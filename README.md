@@ -3,6 +3,7 @@ Requirement :
 1. php 8.1.28
 2. mysql 8
 3. composer
+4. npm
 
 Based on :
 Laravel 10.10
