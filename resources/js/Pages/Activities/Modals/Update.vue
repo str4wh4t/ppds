@@ -52,13 +52,15 @@ watch(
             form.start_time = moment(props.activity.start_date).format('HH:mm');
             form.finish_time = moment(props.activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(props.activity.end_date).format('HH:mm');
             form.description = props.activity?.description ?? '';
+            form.date = moment(props.activity.start_date).format('YYYY-MM-DD');  // cont : 2021-08-01
         }
     },
     { immediate: true }
 );
 
 const submit = () => {
-    form.type = activityType.value?.name ?? '';
+    form.type = activityType.value?.name ?? activityType.value;
+    form.stase_id = activityStase.value?.id ?? staseOptions.find(stase => stase.name === activityStase.value)?.id ?? null;
     form.put(route('activities.update', { activity: props.activity }), {
         onSuccess: (data) => {
             form.clearErrors();

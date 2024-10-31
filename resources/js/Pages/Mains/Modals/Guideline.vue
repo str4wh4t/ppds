@@ -12,7 +12,8 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import SelectInput from '@/Components/SelectInputBasic.vue';
 import MultiselectBasic from '@/Components/MultiselectBasic.vue';
 import InputUpload from '@/Components/InputUpload.vue';
-import { CloudArrowUpIcon, XCircleIcon } from '@heroicons/vue/24/outline';
+import { CloudArrowUpIcon, PrinterIcon, XCircleIcon } from '@heroicons/vue/24/outline';
+import WarningButton from '@/Components/WarningButton.vue';
 
 
 const emit = defineEmits(['exitUpdate']);
@@ -78,8 +79,11 @@ const printPDF = () => {
                             leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
                             <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
                         </Transition>
-                        <PrimaryButton class="ml-4" :disabled="form.processing">
+                        <WarningButton class="ml-4" :disabled="form.processing" type="submit">
                             <CloudArrowUpIcon class="-ml-0.5 h-5 w-5 mr-1" aria-hidden="true" /> Sudah Baca
+                        </WarningButton>
+                        <PrimaryButton class="ml-4" @click="printPDF" type="button">
+                            <PrinterIcon class="-ml-0.5 h-5 w-5 mr-1" aria-hidden="true" /> Cetak Jadwal
                         </PrimaryButton>
                     </div>
                 </form>

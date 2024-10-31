@@ -51,6 +51,7 @@ class ActivityController extends Controller
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%");
             })
+            ->with(['unitStase', 'unitStase.stase'])
             ->paginate(10)
             ->withQueryString();
 
@@ -85,7 +86,15 @@ class ActivityController extends Controller
                 // Menghitung time_spend sebagai selisih antara end_date dan start_date
                 $startDate = Carbon::parse($request->date . ' ' . $request->start_time);
                 $endDate = Carbon::parse($request->date . ' ' . $request->finish_time);
-                $timeSpend = $startDate->diff($endDate)->format('%H:%I:%S');
+                $timeSpendInSeconds = $startDate->diffInSeconds($endDate);
+
+                // Menghitung jam, menit, dan detik
+                $hours = floor($timeSpendInSeconds / 3600);
+                $minutes = floor(($timeSpendInSeconds % 3600) / 60);
+                $seconds = $timeSpendInSeconds % 60;
+
+                // Format dengan sprintf untuk memastikan dua digit
+                $timeSpend = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
 
                 $date = Carbon::parse($startDate); // Buat objek Carbon dari tanggal input
 
@@ -145,7 +154,7 @@ class ActivityController extends Controller
                     'is_approved' => 0, // default value
                     'approved_by' => null,
                     'approved_at' => null,
-                    'unit_stase_id' => $unit_stase_id,
+                    'unit_stase_id' =>  $request->type == 'nonstase' ? null : $unit_stase_id,
                     'week_group_id' => $weekGroupId,
                     'is_generated' => 0,
                 ]);
@@ -185,7 +194,15 @@ class ActivityController extends Controller
                 // Menghitung time_spend sebagai selisih antara end_date dan start_date
                 $startDate = Carbon::parse($request->date . ' ' . $request->start_time);
                 $endDate = Carbon::parse($request->date . ' ' . $request->finish_time);
-                $timeSpend = $startDate->diff($endDate)->format('%H:%I:%S');
+                $timeSpendInSeconds = $startDate->diffInSeconds($endDate);
+
+                // Menghitung jam, menit, dan detik
+                $hours = floor($timeSpendInSeconds / 3600);
+                $minutes = floor(($timeSpendInSeconds % 3600) / 60);
+                $seconds = $timeSpendInSeconds % 60;
+
+                // Format dengan sprintf untuk memastikan dua digit
+                $timeSpend = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
 
                 $unit_stase_id = null;
 
@@ -196,7 +213,7 @@ class ActivityController extends Controller
                 $activity->update([
                     'name' => $request->name,
                     'type' => $request->type,
-                    'unit_stase_id' => $unit_stase_id,
+                    'unit_stase_id' => $request->type == 'nonstase' ? null : $unit_stase_id,
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'time_spend' => $timeSpend,
@@ -325,26 +342,24 @@ class ActivityController extends Controller
                 ];
             }
 
-            $dayObj['workload'] = isset($activities[0]) ? $activities[0]->weekMonitor->workload : 0;
-
-            if (isset($activities[0])) {
-                $dayObj['workload'] = $activities[0]->weekMonitor->workload;
+            $weekMonitor = WeekMonitor::where('user_id', $user_id)
+                ->where('week_group_id', $date->year . $date->isoWeek)
+                ->first();
+            if (isset($weekMonitor)) {
+                $dayObj['workload'] = $weekMonitor->workload;
             } else {
-                $weekMonitor = WeekMonitor::where('user_id', $user_id)
-                    ->where('week_group_id', $date->year . $date->isoWeek)
-                    ->first();
-                if (isset($weekMonitor)) {
-                    $dayObj['workload'] = $weekMonitor->workload;
-                } else {
-                    $dayObj['workload'] = '00:00';
-                }
+                $dayObj['workload'] = '00:00';
             }
+
+            list($hours, $minutes) = explode(':', $dayObj['workload']);
+            // Mengambil jam sebagai integer
+            $hoursInteger = (int) $hours;
 
             // Logika untuk menandai tanggal sebagai warning atau danger
-            if ($dayObj['workload'] >= 70 && $dayObj['workload'] < 80) {
+            if ($hoursInteger >= 70 && $hoursInteger < 80) {
                 $dayObj['isWarning'] = true;
             }
-            if ($dayObj['workload'] >= 80) {
+            if ($hoursInteger >= 80) {
                 $dayObj['isDanger'] = true;
             }
 

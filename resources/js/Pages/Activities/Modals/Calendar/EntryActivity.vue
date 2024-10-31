@@ -82,6 +82,27 @@ watch(
     { immediate: true }
 );
 
+const openForm = () => {
+    form.reset();
+    isFormShow.value = true;
+}
+
+const openUpdate = (activity) => {
+    isFormShow.value = true;
+    isUpdate.value = true;
+    form.name = activity.name;
+    form.type = activity.type;
+    activityType.value = activity.type;
+    activityStase.value = activity.unit_stase?.stase.name ?? null;
+    form.start_time = moment(activity.start_date).format('HH:mm');
+    form.finish_time = moment(activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(activity.end_date).format('HH:mm');
+    // form.start_time = mmDate({ date: activity.start_date, formatOutput: 'HH:mm' });
+    // form.finish_time = mmDate({ date: activity.end_date, formatOutput: 'HH:mm' });
+    form.description = activity.description;
+    btnConfirmDelete.value = true;
+    selectedActivity.value = activity;
+}
+
 const submit = () => {
     form.type = activityType.value?.name ?? activityType.value;
     form.stase_id = activityStase.value?.id ?? staseOptions.find(stase => stase.name === activityStase.value)?.id ?? null;
@@ -107,27 +128,6 @@ const submit = () => {
         })
     }
 };
-
-const openForm = () => {
-    form.reset();
-    isFormShow.value = true;
-}
-
-const openUpdate = (activity) => {
-    isFormShow.value = true;
-    isUpdate.value = true;
-    form.name = activity.name;
-    form.type = activity.type;
-    activityType.value = activity.type;
-    activityStase.value = activity.unit_stase?.stase.name ?? null;
-    form.start_time = moment(activity.start_date).format('HH:mm');
-    form.finish_time = moment(activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(activity.end_date).format('HH:mm');
-    // form.start_time = mmDate({ date: activity.start_date, formatOutput: 'HH:mm' });
-    // form.finish_time = mmDate({ date: activity.end_date, formatOutput: 'HH:mm' });
-    form.description = activity.description;
-    btnConfirmDelete.value = true;
-    selectedActivity.value = activity;
-}
 
 const onShowConfirmDelete = () => {
     showConfirmDelete.value = true;

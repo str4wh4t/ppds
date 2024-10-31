@@ -109,7 +109,13 @@ const openModalGlobal = () => {
                         </td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ activity.type }}</td>
+                            <div class="font-medium text-gray-900">
+                                {{ activity.type }}
+                            </div>
+                            <div class="mt-1 flex flex-col text-gray-500 text-xs sm:block">
+                                <span>{{ activity?.unit_stase?.stase.name }}</span>
+                            </div>
+                        </td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ $formatDate({ date: activity.start_date, formatOutput: 'DD/MM/YYYY HH:mm' }) }}</td>

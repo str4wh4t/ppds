@@ -51,8 +51,10 @@ class WorkMonitor
 
         $hours = floor($totalSeconds / 3600);       // Menghitung total jam
         $minutes = floor(($totalSeconds % 3600) / 60); // Menghitung sisa menit
+        // $seconds = $totalSeconds % 60;                 // Sisa detik setelah jam dan menit
 
-        // Mengembalikan dalam format jam:menit
+        // Mengembalikan dalam format jam:menit:detik
+        // $totalWorkload = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
         $totalWorkload = sprintf('%02d:%02d', $hours, $minutes);
 
         // Log atau simpan workload mingguan
