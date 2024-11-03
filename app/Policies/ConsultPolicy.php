@@ -42,10 +42,7 @@ class ConsultPolicy
     public function update(User $user, Consult $model): bool
     {
         //
-        if ($user->id == $model->user_id) {
-            return true;
-        }
-        return false;
+        return $user->id === $model->user_id;
     }
 
     /**
@@ -54,9 +51,6 @@ class ConsultPolicy
     public function delete(User $user, Consult $model): bool
     {
         // 
-        if ($user->id == $model->user_id) {
-            return true;
-        }
-        return false;
+        return $user->id === $model->user_id;
     }
 }

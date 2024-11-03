@@ -59,7 +59,7 @@ const adminNavigation = [
     { name: 'Konsultasi', href: route('consults.student-list'), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.student-list') || route().current('consults.index'), method: 'get' },
     { name: 'Portofolio', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
     { name: 'Report', href: route('activities.report', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.report'), method: 'get' },
-    { name: 'Laporkan', href: route('speaks.index', { user: usePage().props.auth.user }), icon: ExclamationCircleIcon, current: route().current('speaks.index'), method: 'get' },
+    { name: 'Laporkan', href: route('speaks.student-list'), icon: ExclamationCircleIcon, current: route().current('speaks.student-list') || route().current('speaks.index'), method: 'get' },
 ];
 
 const masterNavigation = [

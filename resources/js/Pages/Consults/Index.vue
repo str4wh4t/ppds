@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { Link, usePage } from '@inertiajs/vue3';
 import ModalCreate from './Modals/Create.vue';
 import ModalUpdate from './Modals/Update.vue';
+import ModalReply from './Modals/Reply.vue';
 import ModalDocument from '@/Components/ModalDocument.vue';
 import CreateButton from '@/Components/CreateButton.vue';
 import { CheckCircleIcon, ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon, XCircleIcon } from '@heroicons/vue/20/solid';
@@ -48,6 +49,15 @@ const openItem = (document) => {
     showDocument.value = true;
 };
 
+const isReply = ref(false);
+const openReply = (consult) => {
+    selectedItem.value = consult;
+    isReply.value = true;
+};
+const closeReply = () => {
+    isReply.value = false;
+};
+
 </script>
 
 <template>
@@ -84,8 +94,12 @@ const openItem = (document) => {
                         <div class="mt-2 lg:mt-2 xl:col-span-3 xl:mt-0">
                             <div class="flex items-center justify-start">
                                 <h3 class="font-medium text-gray-900">{{ consult.consult_title }}</h3>
-                                <a v-if="!consult.reply_at" @click="openUpdate(consult)" href="#"
+                                <a v-if="!consult.reply_at && $hasRoles('student')" @click="openUpdate(consult)"
+                                    href="#"
                                     class="text-sm ml-5 font-bold bg-yellow-300 px-3 font-medium text-indigo-600 hover:text-indigo-500">Edit</a>
+                                <a v-if="!consult.reply_at && !$hasRoles('student')" @click="openReply(consult)"
+                                    href="#"
+                                    class="text-sm ml-5 font-bold bg-yellow-300 px-3 font-medium text-indigo-600 hover:text-indigo-500">Jawab</a>
                             </div>
                             <div class="mt-3 space-y-6  text-gray-500" v-html="consult.description" />
                             <div v-if="consult.consult_document_size > 0"
@@ -100,10 +114,10 @@ const openItem = (document) => {
                                                 <div class="ml-4 flex min-w-0 flex-1 gap-2">
                                                     <span class="truncate font-medium">{{
                                                         $snakeCaseText(consult.consult_title)
-                                                        }}.pdf</span>
+                                                    }}.pdf</span>
                                                     <span class="flex-shrink-0 text-gray-400">{{
                                                         consult.consult_document_size
-                                                        }} mb</span>
+                                                    }} mb</span>
                                                 </div>
                                             </div>
                                             <div class="ml-4 flex-shrink-0">
@@ -129,46 +143,50 @@ const openItem = (document) => {
                         </div>
                     </div>
                 </div>
-                <div v-if="consult.reply_at" class="pt-5 lg:grid lg:grid-cols-12 lg:gap-x-8 bg-yellow-50 mt-4">
+                <div v-if="consult.reply_at" class="pt-5 lg:grid lg:grid-cols-12 lg:gap-x-8 bg-yellow-50">
                     <div
-                        class="lg:col-span-4 lg:col-start-5 xl:col-span-3 xl:col-start-10 xl:grid xl:grid-cols-3 xl:items-start xl:gap-x-8">
+                        class="lg:col-span-8 lg:col-start-5 xl:col-span-9 xl:col-start-4 xl:grid xl:grid-cols-3 xl:items-start xl:gap-x-8">
                         <div class="mt-2 lg:mt-2 xl:col-span-3 xl:mt-0">
-                            <p class="font-medium text-gray-900 text-end">{{ consult.dosbing.fullname }}</p>
-                            <time :datetime="consult.reply_at"
-                                class="ml-4 border-l border-gray-200 pl-4 text-gray-500 lg:ml-0 lg:mt-2 lg:border-0 lg:pl-0 text-end block">{{
-                                    $formatDate({ date: consult.reply_at, formatOutput: "DD/MM/YYYY hh:mm" }) }}</time>
+                            <div class="flex items-center justify-start">
+                                <h3 class="font-medium text-gray-900">{{ consult.reply_title }}</h3>
+                                <a v-if="!$hasRoles('student')" @click="openReply(consult)" href="#"
+                                    class="text-sm ml-5 font-bold bg-yellow-300 px-3 font-medium text-indigo-600 hover:text-indigo-500">Edit</a>
+                            </div>
+                            <div class="mt-3 space-y-6 text-gray-500" v-html="consult.reply" />
+                            <div v-if="consult.reply_document_size > 0"
+                                class="px-4 py-4 sm:grid sm:grid-cols-4 sm:gap-4 sm:px-0">
+                                <dt class="text-sm/6 font-medium text-gray-900">Attachments</dt>
+                                <dd class="mt-2 text-sm text-gray-900 sm:col-span-3 sm:mt-0">
+                                    <ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
+                                        <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm/6">
+                                            <div class="flex w-0 flex-1 items-center">
+                                                <PaperClipIcon class="h-4 w-4 u flex-shrink-0 text-gray-400"
+                                                    aria-hidden="true" />
+                                                <div class="ml-4 flex min-w-0 flex-1 gap-2">
+                                                    <span class="truncate font-medium">{{
+                                                        $snakeCaseText(consult.reply_title)
+                                                        }}.pdf</span>
+                                                    <span class="flex-shrink-0 text-gray-400">{{
+                                                        consult.reply_document_size
+                                                    }} mb</span>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4 flex-shrink-0">
+                                                <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500"
+                                                    @click="openItem({ path: consult.reply_document_path, title: consult.reply_title })">Download</a>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </dd>
+                            </div>
                         </div>
                     </div>
                     <div
-                        class="mt-2 flex items-center lg:col-span-8 lg:col-start-1 lg:row-start-1 lg:mt-0 lg:flex-col lg:items-start xl:col-span-9">
-                        <h3 class=" font-medium text-gray-900">{{ consult.reply_title }}</h3>
-                        <div class="mt-3 space-y-6 text-gray-500" v-html="consult.reply" />
-                        <div v-if="consult.reply_document_size > 0"
-                            class="px-4 py-4 sm:grid sm:grid-cols-4 sm:gap-4 sm:px-0">
-                            <dt class="text-sm/6 font-medium text-gray-900">Attachments</dt>
-                            <dd class="mt-2 text-sm text-gray-900 sm:col-span-3 sm:mt-0">
-                                <ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
-                                    <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm/6">
-                                        <div class="flex w-0 flex-1 items-center">
-                                            <PaperClipIcon class="h-4 w-4 u flex-shrink-0 text-gray-400"
-                                                aria-hidden="true" />
-                                            <div class="ml-4 flex min-w-0 flex-1 gap-2">
-                                                <span class="truncate font-medium">{{
-                                                    $snakeCaseText(consult.reply_title)
-                                                }}.pdf</span>
-                                                <span class="flex-shrink-0 text-gray-400">{{
-                                                    consult.reply_document_size
-                                                }} mb</span>
-                                            </div>
-                                        </div>
-                                        <div class="ml-4 flex-shrink-0">
-                                            <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500"
-                                                @click="openItem({ path: consult.reply_document_path, title: reply.consult_title })">Download</a>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </dd>
-                        </div>
+                        class="mt-2 flex items-center lg:col-span-4 lg:col-start-1 lg:row-start-1 lg:mt-0 lg:flex-col lg:items-start xl:col-span-3">
+                        <p class="font-medium text-gray-900">{{ consult.dosbing.fullname }}</p>
+                        <time :datetime="consult.reply_at"
+                            class="ml-4 border-l border-gray-200 pl-4 text-gray-500 lg:ml-0 lg:mt-2 lg:border-0 lg:pl-0">{{
+                                $formatDate({ date: consult.reply_at, formatOutput: "DD/MM/YYYY hh:mm" }) }}</time>
                     </div>
                 </div>
             </div>
@@ -181,6 +199,7 @@ const openItem = (document) => {
     </AuthenticatedLayout>
     <ModalCreate :show="isCreate" @close="isCreate = false" />
     <ModalUpdate :consult="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
+    <ModalReply :consult="selectedItem" :show="isReply" @close="closeReply" @exitReply="closeReply" />
     <ModalDocument :document="selectedDocument" :show="showDocument" @close="closeDocument"
         @exitDocument="closeDocument" />
 </template>

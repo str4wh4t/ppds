@@ -15,11 +15,12 @@ class Speak extends Model
         'description',
         'speak_document_path',
         'speak_document_size',
-        'dosbing_user_id',
+        'employee_user_id',
         'answer_title',
         'answer',
         'answer_document_path',
         'answer_document_size',
+        'answer_at',
     ];
 
     public function user() // untuk student

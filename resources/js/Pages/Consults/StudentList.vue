@@ -2,9 +2,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { Link, usePage } from '@inertiajs/vue3';
-import ModalCreate from './Modals/Create.vue';
-import ModalUpdate from './Modals/Update.vue';
-import CreateButton from '@/Components/CreateButton.vue';
 import { ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/vue/20/solid';
 import { ref, computed } from 'vue';
 import MultiselectBasic from '@/Components/MultiselectBasic.vue';
@@ -14,27 +11,18 @@ const units = usePage().props.units;
 
 const filters = ref({ search: usePage().props.filters.search ?? '', units: JSON.parse(usePage().props.filters.units) ?? [] });
 
-const isCreate = ref(false);
-const isUpdate = ref(false);
-const selectedItem = ref({});
-
-const openUpdate = (user) => {
-    selectedItem.value = user;
-    isUpdate.value = true;
-};
-
-const closeUpdate = () => {
-    isUpdate.value = false;
+const openConsult = (user) => {
+    router.get(route('consults.index', { user: user }));
 };
 
 const unitSelectedAsString = ref(JSON.stringify(filters.value.units));
 const unitSelected = (selected) => {
     unitSelectedAsString.value = JSON.stringify(selected);
-    router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+    router.get(route('consults.student-list'), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
 };
 
 const searchPosts = () => {
-    router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+    router.get(route('consults.student-list'), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
 };
 
 </script>
@@ -117,9 +105,9 @@ const searchPosts = () => {
                             {{ $formatDate({ date: user.created_at }) }}</td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-3 pr-4 text-sm text-center font-medium sm:pr-6']">
-                            <button type="button" @click="openUpdate(user)"
+                            <button type="button" @click="openConsult(user)"
                                 class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
-                                Edit<span class="sr-only">, {{ user.username }}</span>
+                                Pilih<span class="sr-only">, {{ user.username }}</span>
                             </button>
                             <div v-if="index !== 0" class="absolute -top-px left-0 right-6 h-px bg-gray-200" />
                         </td>
@@ -188,6 +176,4 @@ const searchPosts = () => {
             </div>
         </div>
     </AuthenticatedLayout>
-    <ModalCreate :show="isCreate" @close="isCreate = false" />
-    <ModalUpdate :user="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
 </template>

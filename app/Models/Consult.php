@@ -20,6 +20,7 @@ class Consult extends Model
         'reply',
         'reply_document_path',
         'reply_document_size',
+        'reply_at',
     ];
 
     public function user() // untuk student

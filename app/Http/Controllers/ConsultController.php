@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Consult\ReplyRequest;
 use App\Http\Requests\Consult\StoreRequest;
 use App\Http\Requests\Consult\UpdateRequest;
 use App\Models\Consult;
@@ -30,12 +31,6 @@ class ConsultController extends Controller
     public function index(Request $request, User $user): Response
     {
         //
-        if ($user->roles->count() == 1) {
-            if ($user->hasRole('student')) {
-                $user =  $request->user();
-            }
-        }
-
         $search = $request->input('search');
 
         $consults = Consult::when($search, function ($query, $search) {
@@ -43,9 +38,18 @@ class ConsultController extends Controller
                 $query->where('title', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
             });
-        })->where('user_id', $user->id)
-            ->with('user', 'dosbing')
-            ->paginate(10)
+        })->with('user', 'dosbing');
+
+
+        if ($request->user()->hasRole('student')) {
+            $consults = $consults->where('user_id', $request->user()->id);
+        } else {
+            if ($user->id != $request->user()->id) {
+                $consults = $consults->where('user_id', $user->id);
+            }
+        }
+
+        $consults = $consults->paginate(10)
             ->withQueryString();
 
         $dosbing_user = $user->dosbingUser;
@@ -62,7 +66,6 @@ class ConsultController extends Controller
     public function studentList(Request $request): Response
     {
         //
-        dd('2');
         $search = $request->input('search');
         $unitSelected = $request->input('units');
 
@@ -87,6 +90,8 @@ class ConsultController extends Controller
                 });
             }
         })->with('roles', 'studentUnit', 'dosbingUser')
+            ->where('dosbing_user_id', $request->user()->id)
+            ->whereHas('consults')
             ->paginate(10)
             ->withQueryString();
 
@@ -173,7 +178,7 @@ class ConsultController extends Controller
         try {
             DB::transaction(function () use ($request, $consult) {
                 $oldConsultFilePath = $consult->consult_document_path;
-                $oldFileSize = $consult->speak_document_size;
+                $oldFileSize = $consult->consult_document_size;
                 // Ambil file yang sudah divalidasi
                 $file = $request->file('document');
 
@@ -227,6 +232,77 @@ class ConsultController extends Controller
                     'description' => $request->description,
                     'consult_document_path' => $path,
                     'consult_document_size' => $fileSize,
+                ]);
+            });
+
+            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Consult updated successfully');
+        } catch (\Exception $e) {
+            return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
+        }
+    }
+
+    public function reply(ReplyRequest $request, Consult $consult)
+    {
+        //
+        try {
+            DB::transaction(function () use ($request, $consult) {
+                $oldConsultFilePath = $consult->reply_document_path;
+                $oldFileSize = $consult->reply_document_size;
+                // Ambil file yang sudah divalidasi
+                $file = $request->file('document');
+
+                // Default path menggunakan file lama
+                $path = $consult->reply_document_path;
+
+                $fileSize = $oldFileSize;
+
+                if ($file) {
+                    $fileSizeByte = $file->getSize();
+                    $fileSizeInKB = $fileSizeByte / 1024;
+                    $fileSize = round($fileSizeInKB, 2);
+                }
+
+                // Cek jika ada file baru diunggah
+                if ($file) {
+                    // Menghitung hash dari file baru
+                    $newFileHash = hash_file('md5', $file->getRealPath());
+
+                    // Menghitung hash dari file lama jika ada
+                    $oldFilePath = $consult->reply_document_path;
+                    $oldFileHash = $oldFilePath && Storage::disk('public')->exists($oldFilePath)
+                        ? md5(Storage::disk('public')->get($oldFilePath))
+                        : null;
+
+                    // Hanya update jika file baru berbeda dengan file lama
+                    // dd($newFileHash !== $oldFileHash);
+                    if ($newFileHash !== $oldFileHash) {
+                        // Hapus file lama jika ada
+                        if ($oldFilePath && Storage::disk('public')->exists($oldFilePath)) {
+                            Storage::disk('public')->delete($oldFilePath);
+                        }
+
+                        // Simpan file baru ke direktori 'consults'
+                        $path = $file->store('consults', 'public');
+                    }
+                }
+
+                $newPath = $request->reply_document_path;
+                if (!$newPath) {
+                    if ($oldConsultFilePath && Storage::disk('public')->exists($oldConsultFilePath)) {
+                        Storage::disk('public')->delete($oldConsultFilePath);
+                    }
+                    $path = null;
+                    $fileSize = 0;
+                }
+
+                // Update data consult
+                $consult->update([
+                    'dosbing_user_id' => $request->user()->id,
+                    'reply_title' => $request->reply_title,
+                    'reply' => $request->reply,
+                    'reply_document_path' => $path,
+                    'reply_document_size' => $fileSize,
+                    'reply_at' => now(),
                 ]);
             });
 

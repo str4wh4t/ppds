@@ -80,6 +80,16 @@ class User extends Authenticatable
         return $this->belongsToMany(UnitStase::class, 'unit_stase_users', 'user_id', 'unit_stase_id');
     }
 
+    public function consults()
+    {
+        return $this->hasMany(Consult::class);
+    }
+
+    public function speaks()
+    {
+        return $this->hasMany(Speak::class);
+    }
+
     /**
      * Scope untuk mengambil pengguna dengan role 'student'.
      *
