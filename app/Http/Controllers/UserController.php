@@ -24,7 +24,6 @@ class UserController extends Controller
         $this->middleware('can:create,\App\Models\User')->only(['create', 'store']);
         $this->middleware('can:update,user')->only(['update', 'edit']);
         $this->middleware('can:delete,user')->only('destroy');
-        $this->middleware('can:resetPassword,user')->only('resetPassword');
     }
     /**
      * Display a listing of the resource.

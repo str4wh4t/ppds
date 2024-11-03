@@ -18,14 +18,18 @@ class PermissionSeeder extends Seeder
         $permissions = [
             'access-control',
             'reset-password',
-            'crud-mahasiswa',
-            'crud-dosen',
-            'crud-kaprodi',
-            'crud-unit',
-            'crud-stase',
-            'crud-logbook',
-            'crud-portofolio',
+            'mahasiswa.crud',
+            'dosen.crud',
+            'kaprodi.crud',
+            'unit.crud',
+            'stase.crud',
+            'logbook.crud',
+            'portofolio.crud',
+            'consult.crud',
+            'speak.crud',
             'report-logbook',
+            'get-notifs',
+            'week-monitor.index'
         ];
 
         foreach ($permissions as $permissionName) {

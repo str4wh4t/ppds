@@ -31,8 +31,8 @@ if (!user.is_read_guideline && is_student) {
             Dashboard
         </template>
         <div>
-            <div class="px-4 sm:px-0">
-                <h3 class="text-base font-semibold leading-7 text-gray-900">Informasi pengguna</h3>
+            <div class="px-4 sm:px-0 mt-4">
+                <h2 class="text-lg font-medium text-gray-900 mt-4">Informasi pengguna</h2>
                 <p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500">Detail dari informasi pengguna dan peran
                     didalam sistem.</p>
             </div>
@@ -67,7 +67,7 @@ if (!user.is_read_guideline && is_student) {
                     <div class="mt-4 px-4 py-3 text-center col-span-2 sm:px-0 block lg:hidden">
                         <Link :href="route('activities.calendar', { user: user })"
                             class="inline-flex justify-center gap-x-1.5 rounded-full bg-indigo-600 w-full px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                        <PlusCircleIcon class="-ml-0.5 h-5 w-5" aria-hidden="true" />
+                        <PlusCircleIcon class="-ml-0.5 h-4 w-4 u" aria-hidden="true" />
                         Tambah aktifitas
                         </Link>
                     </div>
@@ -79,7 +79,7 @@ if (!user.is_read_guideline && is_student) {
                                     class="divide-y divide-gray-100 rounded-md border border-gray-200">
                                     <div class="flex items-center justify-between py-3 pl-4 pr-5 text-sm leading-6">
                                         <div class="flex w-0 flex-1 items-center">
-                                            <UserCircleIcon class="h-5 w-5 flex-shrink-0 text-gray-400"
+                                            <UserCircleIcon class="h-4 w-4 u flex-shrink-0 text-gray-400"
                                                 aria-hidden="true" />
                                             <div class="ml-4 flex min-w-0 flex-1 gap-2">
                                                 <span class="truncate font-medium">

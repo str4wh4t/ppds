@@ -31,6 +31,7 @@ watch(
             showConfirmDelete.value = false;
         }
         if (newValue) {
+            form.clearErrors();
             form.name = props.permission.name;
             form.roles = (props.permission.roles ?? []).map(role => role.name);
         }

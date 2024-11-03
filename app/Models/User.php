@@ -113,4 +113,9 @@ class User extends Authenticatable
             $query->orderBy('users.created_at', 'desc');
         });
     }
+
+    public function receivesBroadcastNotificationsOn()
+    {
+        return 'user.notification.' . $this->id;
+    }
 }

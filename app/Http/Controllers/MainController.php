@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class MainController extends Controller
@@ -28,7 +27,7 @@ class MainController extends Controller
             }
         }
         return Inertia::render('Mains/Dashboard', [
-            'guideline' => Storage::url("public/" . $guideline_document_path),
+            'guideline' => $guideline_document_path,
         ]);
     }
 }

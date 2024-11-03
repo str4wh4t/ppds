@@ -1,34 +1,20 @@
 <?php
 
-namespace App\Listeners;
+namespace App\Observers;
 
-use App\Events\ActivityLogged;
+use App\Events\WorkloadExceeded;
 use App\Models\Activity;
 use App\Models\WeekMonitor;
-use Carbon\Carbon;
-use Carbon\CarbonInterval;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
-class WorkMonitor
+class ActivityObserver
 {
-    /**
-     * Create the event listener.
-     */
-    public function __construct()
+
+    private function calculateWorkload(Activity $activity)
     {
         //
-    }
+        $user = $activity->user;
 
-    /**
-     * Handle the event.
-     */
-    public function handle(ActivityLogged $event)
-    {
-        $user = $event->user;
-        $activity = $event->activity;
-
-        $weekGroupId = $activity['week_group_id'];
+        $weekGroupId = $activity->week_group_id;
 
         // Ambil semua aktivitas user dalam rentang minggu ini
         $activities = Activity::where(['user_id' => $user->id, 'week_group_id' => $weekGroupId])
@@ -58,9 +44,63 @@ class WorkMonitor
         $totalWorkload = sprintf('%02d:%02d', $hours, $minutes);
 
         // Log atau simpan workload mingguan
-        WeekMonitor::updateOrCreate(
+        $weekMonitor = WeekMonitor::updateOrCreate(
             ['user_id' => $user->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
-            ['workload' => $totalWorkload, 'workload_as_seconds' => $totalSeconds]           // Data yang akan diupdate/insert
+            ['year' => substr($weekGroupId, 0, 4), 'week' => substr($weekGroupId, 4, 2), 'workload_hours' => $hours, 'workload' => $totalWorkload, 'workload_as_seconds' => $totalSeconds]           // Data yang akan diupdate/insert
         );
+
+        if ($hours > 80) {
+            event(new WorkloadExceeded($weekMonitor));
+        }
+    }
+
+    /**
+     * Handle the Activity "created" event.
+     */
+    public function created(Activity $activity): void
+    {
+        //
+    }
+
+    /**
+     * Handle the Activity "saved" event.
+     */
+    public function saved(Activity $activity): void
+    {
+        //
+        $this->calculateWorkload($activity);
+    }
+
+    /**
+     * Handle the Activity "updated" event.
+     */
+    public function updated(Activity $activity): void
+    {
+        //
+    }
+
+    /**
+     * Handle the Activity "deleted" event.
+     */
+    public function deleted(Activity $activity): void
+    {
+        //
+        $this->calculateWorkload($activity);
+    }
+
+    /**
+     * Handle the Activity "restored" event.
+     */
+    public function restored(Activity $activity): void
+    {
+        //
+    }
+
+    /**
+     * Handle the Activity "force deleted" event.
+     */
+    public function forceDeleted(Activity $activity): void
+    {
+        //
     }
 }

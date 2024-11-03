@@ -18,3 +18,8 @@ How to install :
 6. php artisan db:seed --class=RoleSeeder
 7. php artisan db:seed --class=PermissionSeeder
 8. enjoy
+
+Todo List :
+
+1. notifikasi
+2. policy untuk index

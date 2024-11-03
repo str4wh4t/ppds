@@ -9,7 +9,7 @@ import ModalUpdate from './Modals/Update.vue';
 const permissions = computed(() => usePage().props.permissions);
 
 const isUpdate = ref(false);
-const selectedItem = ref([]);
+const selectedItem = ref({});
 
 const openUpdate = (permission) => {
     selectedItem.value = permission;
@@ -29,7 +29,7 @@ const closeUpdate = () => {
         <template #header>
             Permision List
         </template>
-        <div class="-mx-4 mt-5 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg">
+        <div class="ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg mt-4">
             <table class="min-w-full divide-y divide-gray-300">
                 <thead>
                     <tr>
@@ -39,10 +39,10 @@ const closeUpdate = () => {
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             GuardName</th>
+                        <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                            Roles</th>
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            Roles</th>
-                        <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             CreatedAt</th>
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
@@ -74,7 +74,7 @@ const closeUpdate = () => {
                                 }}</div>
                         </td>
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ $formatDate({ date: permission.created_at }) }}</td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
@@ -127,7 +127,7 @@ const closeUpdate = () => {
                             <Link :href="!permissions.prev_page_url ? '#' : permissions.prev_page_url"
                                 class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronLeftIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                             <Link
                                 v-for="link in permissions.links.filter((link, index) => index !== 0 && index !== permissions.links.length - 1)"
@@ -139,7 +139,7 @@ const closeUpdate = () => {
                             <Link :href="!permissions.next_page_url ? '#' : permissions.next_page_url"
                                 class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronRightIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                         </nav>
                     </div>

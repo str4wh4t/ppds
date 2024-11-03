@@ -32,6 +32,7 @@ watch(
             showConfirmDelete.value = false;
         }
         if (newValue) {
+            form.clearErrors();
             form.name = props.stase.name;
             form.location = props.stase.location;
             form.description = props.stase.description;

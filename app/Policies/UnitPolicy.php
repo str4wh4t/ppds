@@ -32,17 +32,17 @@ class UnitPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Unit $unit): Response
+    public function update(User $user, Unit $unit): bool
     {
         //
         if ($user->hasRole(['system', 'admin_fakultas'])) {
-            return Response::allow();
+            return true;
         }
 
         if ($user->hasRole('admin_prodi')) {
             $adminUnits = $user->adminUnits->pluck('id');
             if (!$adminUnits->contains($unit->id)) {
-                return Response::deny('You are not authorized to update this');
+                return false;
             }
 
             $request = app(Request::class);
@@ -57,26 +57,26 @@ class UnitPolicy
                 sort($newIds);
                 sort($oldIds);
 
-                if ($newIds !== $oldIds) {
-                    return Response::deny('You are not authorized to update this');
+                if ($newIds === $oldIds) {
+                    return true;
                 }
             }
         }
 
 
-        return Response::allow();
+        return true;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Unit $unit): Response
+    public function delete(User $user, Unit $unit): bool
     {
         //
-        if (!$user->hasRole(['system', 'admin_fakultas'])) {
-            return Response::deny('You are not authorized to delete this');
+        if ($user->hasRole(['system', 'admin_fakultas'])) {
+            return true;
         }
-        return Response::allow();
+        return false;
     }
 
     public function processGuideline(User $user, Unit $unit): bool
@@ -88,11 +88,11 @@ class UnitPolicy
 
         if ($user->hasRole('admin_prodi')) {
             $adminUnits = $user->adminUnits->pluck('id');
-            if (!$adminUnits->contains($unit->id)) {
-                return false;
+            if ($adminUnits->contains($unit->id)) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public function processSchedule(User $user, Unit $unit): bool
@@ -105,9 +105,9 @@ class UnitPolicy
         if ($user->hasRole('admin_prodi')) {
             $adminUnits = $user->adminUnits->pluck('id');
             if (!$adminUnits->contains($unit->id)) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 }

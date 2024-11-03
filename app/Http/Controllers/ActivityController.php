@@ -29,6 +29,7 @@ class ActivityController extends Controller
     public function __construct()
     {
         // Menambahkan Policy untuk otorisasi update dan delete
+        $this->middleware('can:create,\App\Models\Activity')->only('store');
         $this->middleware('can:update,activity')->only(['update', 'edit']);
         $this->middleware('can:delete,activity')->only('destroy');
     }
@@ -39,31 +40,56 @@ class ActivityController extends Controller
     public function index(Request $request, User $user): Response
     {
         //
-        if ($user->roles->count() == 1) {
-            if ($user->hasRole('student')) {
-                $user =  $request->user();
+        $search = $request->input('search');
+        $unitSelected = $request->input('units');
+
+        $activities = Activity::when($search, function ($query, $search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($query) use ($search) {
+                        $query->where('fullname', 'like', "%{$search}%");
+                    });
+            });
+        })->when($unitSelected, function ($query, $unitSelected) {
+            $array = json_decode($unitSelected, true);
+            if (!empty($array)) {
+                $unitNames = array_map(function ($item) {
+                    return $item['name'];
+                }, $array);
+
+                // Filter hanya user yang memiliki setidaknya satu role yang dipilih
+                $query->whereHas('user.studentUnit', function ($query) use ($unitNames) {
+                    $query->whereIn('name', $unitNames);
+                });
+            }
+        })->with('user', 'user.studentUnit', 'unitStase', 'unitStase.stase');
+
+        if ($request->user()->hasRole('student')) {
+            $activities = $activities->where('user_id', $request->user()->id);
+        } else {
+            if ($user->id != $request->user()->id) {
+                $activities = $activities->where('user_id', $user->id);
             }
         }
 
-        $search = $request->input('search');
-
-        $activities = Activity::where('user_id', $user->id)
-            ->when($search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%");
-            })
-            ->with(['unitStase', 'unitStase.stase'])
-            ->paginate(10)
+        $activities = $activities->paginate(10)
             ->withQueryString();
 
-        $stases = Stase::whereHas('units', function ($query) use ($user) {
-            $query->where('units.id', $user->student_unit_id);
+        $stases = Stase::whereHas('units', function ($query) use ($user, $request) {
+            if ($request->user()->hasRole('student')) {
+                $query->where('units.id', $user->student_unit_id);
+            }
         })->get(['id', 'name']);
+
+        $units = Unit::all();
 
         return Inertia::render('Activities/Index', [
             'activities' => $activities,
             'stases' => $stases,
+            'units' => $units,
             'filters' => [
                 'search' => $search,
+                'units' => $unitSelected,
             ]
         ]);
     }
@@ -101,14 +127,15 @@ class ActivityController extends Controller
                 // Membuat week_group_id dengan format Tahun + Minggu (ISO-8601)
                 $weekGroupId = $date->year . $date->isoWeek;
 
-                // Memeriksa apakah `week_group_id` sudah ada di Activity
-                $activity = Activity::where('user_id',  $request->user()->id)->where('week_group_id', $weekGroupId)->first();
-
                 // init week monitor
                 WeekMonitor::updateOrCreate(
                     ['user_id' => $request->user()->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
-                    ['workload' => 0, 'workload_as_seconds' => 0]           // Data yang akan diupdate/insert
+                    ['year' => $date->year, 'week' => $date->isoWeek, 'workload' => 0, 'workload_hours' => 0, 'workload_as_seconds' => 0]           // Data yang akan diupdate/insert
                 );
+
+                // Memeriksa apakah `week_group_id` sudah ada di Activity
+                $activity = Activity::where('user_id',  $request->user()->id)->where('week_group_id', $weekGroupId)->first();
+
 
                 if ($activity == null) {
                     // Pindah ke hari Senin minggu yang sama
@@ -123,7 +150,7 @@ class ActivityController extends Controller
                             'start_date' => $date->format('Y-m-d'),
                             'end_date' => $date->format('Y-m-d'),
                             'time_spend' => '00:00',
-                            'description' => null,
+                            'description' => '',
                             'is_approved' => 0, // Nilai default
                             'approved_by' => null,
                             'approved_at' => null,
@@ -158,8 +185,6 @@ class ActivityController extends Controller
                     'week_group_id' => $weekGroupId,
                     'is_generated' => 0,
                 ]);
-
-                event(new ActivityLogged($request->user(), $activity->toArray()));
             });
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Activity created successfully');
@@ -219,8 +244,6 @@ class ActivityController extends Controller
                     'time_spend' => $timeSpend,
                     'description' => $request->description,
                 ]);
-
-                event(new ActivityLogged($request->user(), $activity->toArray()));
             });
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Activity updated successfully');
@@ -237,7 +260,6 @@ class ActivityController extends Controller
         try {
             DB::transaction(function () use ($request, $activity) {
                 $activity->delete();
-                event(new ActivityLogged($request->user(), $activity->toArray()));
             });
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Activity deleted successfully');
@@ -249,15 +271,29 @@ class ActivityController extends Controller
     // create function named calendar
     public function calendar(Request $request, User $user): Response
     {
-        // $search = $request->input('search');
-        if ($user->roles->count() == 1) {
-            if ($user->hasRole('student')) {
-                $user =  $request->user();
-            }
+        $weekGroupId = $request->input('weekGroupId');
+        $userId = $request->input('userId');
+        $month = date('m');
+        $month = $month - 1;
+        $year = date('Y');
+        // dd($weekGroupId);
+        if (!empty($weekGroupId)) {
+            $year = substr($weekGroupId, 0, 4);
+            $week = substr($weekGroupId, 4, 2);
+            $date = new DateTime();
+            $date->setISODate($year, $week);
+            $month = $date->format('m');
+            $month = $month - 1;
+        }
+
+        if ($request->user()->hasRole('student')) {
+            $user =  $request->user();
+        } else {
+            $user = User::find($userId);
         }
 
         $activities = Activity::where('user_id', $user->id)
-            ->with(['unitStase', 'unitStase.stase'])
+            ->with('unitStase', 'unitStase.stase')
             ->with('weekMonitor', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->get();
@@ -269,6 +305,9 @@ class ActivityController extends Controller
         return Inertia::render('Activities/Calendar', [
             'activities' => $activities,
             'stases' => $stases,
+            'month' => $month,
+            'year' => $year,
+            'selectedUser' => $user,
             'filters' => [
                 // 'search' => $search,
             ]
@@ -281,6 +320,10 @@ class ActivityController extends Controller
         $year = $request->input('year');
         $month = $request->input('month') + 1; // Tambahkan 1 untuk menyesuaikan dengan format PHP
         $days = [];
+
+        if ($request->user()->hasRole('student')) {
+            $user =  $request->user();
+        }
 
         // Tentukan tanggal pertama dan terakhir dari bulan yang diminta
         $startDate = Carbon::createFromDate($year, $month, 1);
@@ -310,18 +353,14 @@ class ActivityController extends Controller
                 'isWarning' => false,
                 'isDanger' => false,
                 'isToday' => false,
-                'workload' => 0,
+                'workload' => '00:00',
+                'workload_hours' => 0,
             ];
 
             // Tentukan apakah tanggal adalah hari ini
             $today = Carbon::today();
 
-            $user_id = $user->id;
-            if ($user->roles->count() == 1) {
-                if ($user->hasRole('student')) {
-                    $user_id =  $request->user()->id;
-                }
-            }
+            $user_id =  $user->id;
 
             $activities = Activity::where('user_id', $user_id)
                 ->whereDate('start_date', $date)
@@ -347,19 +386,16 @@ class ActivityController extends Controller
                 ->first();
             if (isset($weekMonitor)) {
                 $dayObj['workload'] = $weekMonitor->workload;
-            } else {
-                $dayObj['workload'] = '00:00';
+                $dayObj['workload_hours'] = $weekMonitor->workload_hours;
             }
 
-            list($hours, $minutes) = explode(':', $dayObj['workload']);
-            // Mengambil jam sebagai integer
-            $hoursInteger = (int) $hours;
+            $workload_hours = $dayObj['workload_hours'];
 
             // Logika untuk menandai tanggal sebagai warning atau danger
-            if ($hoursInteger >= 70 && $hoursInteger < 80) {
+            if ($workload_hours >= 70 && $workload_hours < 80) {
                 $dayObj['isWarning'] = true;
             }
-            if ($hoursInteger >= 80) {
+            if ($workload_hours >= 80) {
                 $dayObj['isDanger'] = true;
             }
 
@@ -388,13 +424,6 @@ class ActivityController extends Controller
         $search = $request->input('search');
         $unitSelected = $request->input('units');
 
-        // cek apakah user memiliki role student
-        if ($user->roles->count() == 1) {
-            if ($user->hasRole('student')) {
-                $user =  $request->user();
-            }
-        }
-
         // ambil data activities berdasarkan user_id
         $activities = Activity::where('type', 'stase')
             ->when($search, function ($query, $search) {
@@ -419,6 +448,14 @@ class ActivityController extends Controller
 
         if ($user->roles->count() == 1) {
             if ($user->hasRole('student')) {
+                $activities = $activities->where('user_id', $user->id);
+            }
+        }
+
+        if ($request->user()->hasRole('student')) {
+            $activities = $activities->where('user_id', $request->user()->id);
+        } else {
+            if ($user->id != $request->user()->id) {
                 $activities = $activities->where('user_id', $user->id);
             }
         }

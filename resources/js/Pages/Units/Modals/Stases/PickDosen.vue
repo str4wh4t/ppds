@@ -43,6 +43,7 @@ watch(
             showConfirmDelete.value = false;
         }
         if (newValue) {
+            form.clearErrors();
             form.name = props.stase.name;
             form.stase_id = props.stase.id;
             form.is_mandatory = props.stase.unit_stases[0].is_mandatory ? true : false;

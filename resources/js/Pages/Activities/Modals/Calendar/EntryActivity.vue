@@ -259,7 +259,7 @@ const totalWorkload = (activities) => {
                                         :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-3 pr-4 text-center text-sm font-medium sm:pr-6']">
                                         <button type="button" @click="openUpdate(activity)"
                                             class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
-                                            <PencilSquareIcon class="h-5 w-5" aria-hidden="true" />
+                                            <PencilSquareIcon class="h-4 w-4 u" aria-hidden="true" />
                                         </button>
                                         <div v-if="index !== 0"
                                             class="absolute -top-px left-0 right-6 h-px bg-gray-200" />
@@ -274,7 +274,7 @@ const totalWorkload = (activities) => {
                     <div class="w-full text-center justify-center mt-5">
                         <button @click="openForm" type="button"
                             class="inline-flex items-center justify-center gap-x-1.5 rounded-full bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                            <PlusCircleIcon class="-ml-0.5 h-5 w-5" aria-hidden="true" />
+                            <PlusCircleIcon class="-ml-0.5 h-4 w-4 u" aria-hidden="true" />
                             Tambah aktifitas
                         </button>
                     </div>
@@ -321,7 +321,7 @@ const totalWorkload = (activities) => {
 
                     <div class="mt-2">
                         <InputLabel for="description" value="Deskripsi" />
-                        <TextArea id="description" class="mt-1 block w-full" v-model="form.description" />
+                        <TextArea id="description" class="mt-1 block w-full" required v-model="form.description" />
                         <!-- <QuillEditor class="mt-1 block w-full" v-model="form.description" /> -->
                         <InputError class="mt-2" :message="form.errors.description" />
                     </div>

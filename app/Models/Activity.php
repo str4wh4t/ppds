@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Observers\ActivityObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use DateTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+#[ObservedBy([ActivityObserver::class])]
 class Activity extends Model
 {
     use HasFactory;

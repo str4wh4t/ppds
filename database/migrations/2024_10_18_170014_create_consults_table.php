@@ -17,17 +17,20 @@ return new class extends Migration
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->onDelete('restrict');
+            $table->string('consult_title');
             $table->text('description');
-            $table->json('files')->nullable();
-            $table->dateTime('consult_at');
+            $table->string('consult_document_path')->nullable();
+            $table->double('consult_document_size')->default(0);
             $table->foreignId('dosbing_user_id')
                 ->nullable()
                 ->constrained('users')
                 ->onDelete('restrict');
-            $table->boolean('is_read')->default(false);
+            $table->string('reply_title')->nullable();
             $table->text('reply')->nullable();
-            $table->json('reply_files')->nullable();
+            $table->string('reply_document_path')->nullable();
+            $table->double('reply_document_size')->default(0);
             $table->dateTime('reply_at')->nullable();
+            $table->integer('rating')->nullable();
             $table->timestamps();
         });
     }

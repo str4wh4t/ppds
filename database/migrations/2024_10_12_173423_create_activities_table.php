@@ -23,7 +23,7 @@ return new class extends Migration
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->time('time_spend');
-            $table->text('description')->nullable();
+            $table->text('description');
             $table->boolean('is_approved')->default(false);
             $table->foreignId('approved_by')
                 ->nullable()

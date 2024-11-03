@@ -17,9 +17,12 @@ return new class extends Migration
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->onDelete('cascade');
+            $table->year('year');
+            $table->tinyInteger('week');
             $table->integer('week_group_id')->index();
             $table->bigInteger('workload_as_seconds');
             $table->string('workload');
+            $table->bigInteger('workload_hours');
             $table->timestamps();
         });
     }

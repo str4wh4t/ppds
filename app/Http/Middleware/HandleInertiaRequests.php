@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\WeekMonitor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Inertia\Middleware;
@@ -40,6 +41,11 @@ class HandleInertiaRequests extends Middleware
                 config('constants.public.flashmsg.ko') => session()->get(config('constants.public.flashmsg.ko')),
             ],
             'constants' => config('constants.public'), // Bagikan semua konstanta
+            'exceededWorkloads' => $request->user() ?
+                ($request->user()->hasRole('student') ?
+                    WeekMonitor::where('workload_hours', '>', 80)->where('user_id', $request->user()->id)->get() :
+                    WeekMonitor::where('workload_hours', '>', 80)->with('user', 'user.studentUnit')->get()) :
+                null,
         ];
 
         // if (session()->get('token')) {

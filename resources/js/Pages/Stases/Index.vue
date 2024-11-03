@@ -15,7 +15,7 @@ const filters = ref({ search: usePage().props.filters.search ?? '' });
 
 const isCreate = ref(false);
 const isUpdate = ref(false);
-const selectedItem = ref([]);
+const selectedItem = ref({});
 
 const openUpdate = (stase) => {
     selectedItem.value = stase;
@@ -39,11 +39,11 @@ const searchPosts = () => {
         <template #header>
             Stase List
         </template>
-        <div class="sm:flex sm:items-center">
+        <div class="sm:flex sm:items-center mt-4">
             <div class="sm:flex-auto">
                 <div class="relative rounded-md shadow-sm">
                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <MagnifyingGlassIcon class="h-4 w-4 u text-gray-400" aria-hidden="true" />
                     </div>
                     <input v-model="filters.search" @keyup.enter="searchPosts" type="text" placeholder="Pencarian data"
                         class="block w-full rounded-full border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
@@ -150,7 +150,7 @@ const searchPosts = () => {
                             <Link :href="!stases.prev_page_url ? '#' : stases.prev_page_url"
                                 class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronLeftIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                             <Link
                                 v-for="link in stases.links.filter((link, index) => index !== 0 && index !== stases.links.length - 1)"
@@ -162,7 +162,7 @@ const searchPosts = () => {
                             <Link :href="!stases.next_page_url ? '#' : stases.next_page_url"
                                 class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronRightIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                         </nav>
                     </div>

@@ -38,17 +38,15 @@ class UserPolicy
 
         if ($user->hasRole('admin_prodi')) {
             $request = app(Request::class);
-            if ($request->student_unit_id) {
+            if ($request->student_unit_id) { // << jika ingin menambahkan data student
                 $adminUnitIds = $user->adminUnits->pluck('id')->toArray();
-                if (!in_array($request->student_unit_id, $adminUnitIds)) {
-                    return false;
+                if (in_array($request->student_unit_id, $adminUnitIds)) {
+                    return true;
                 }
-            } else {
-                return false;
             }
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -73,24 +71,22 @@ class UserPolicy
             $request = app(Request::class);
             if ($model->hasRole('student')) {
                 if ($request->student_unit_id != $model->student_unit_id) {
-                    return false;
+                    return false; // untuk mencegah meminda data student ke unit lain
                 }
                 $adminUnitIds = $user->adminUnits->pluck('id')->toArray();
-                if (!in_array($request->student_unit_id, $adminUnitIds)) {
-                    return false;
+                if (in_array($request->student_unit_id, $adminUnitIds)) {
+                    return true;
                 }
             }
-
-            if ($model->hasRole('dosen')) {
+            if ($model->hasRole('dosen')) { // << jika ingin mengedit data dosen
                 return false;
             }
-
-            if ($model->hasRole('kaprodi')) {
+            if ($model->hasRole('kaprodi')) { // << jika ingin mengedit data kaprodi
                 return false;
             }
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -116,8 +112,8 @@ class UserPolicy
         if ($user->hasRole('admin_prodi')) {
             if ($model->hasRole('student')) { // << jika ingin menghapus data student
                 $adminUnitIds = $user->adminUnits->pluck('id')->toArray();
-                if (!in_array($model->student_unit_id, $adminUnitIds)) {
-                    return false;
+                if (in_array($model->student_unit_id, $adminUnitIds)) {
+                    return true;
                 }
             }
             if ($model->hasRole('dosen')) { // << jika ingin menghapus data dosen
@@ -130,7 +126,7 @@ class UserPolicy
 
         // Selain itu, izinkan penghapusan jika logika di atas tidak dilanggar
 
-        return true;
+        return false;
     }
 
     /**

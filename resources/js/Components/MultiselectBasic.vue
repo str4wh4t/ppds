@@ -111,14 +111,14 @@ onUnmounted(() => {
             <button v-if="selectedOptions.length > 0" @click.stop="clearSelection"
                 class="ml-auto text-gray-400 hover:text-gray-600 focus:outline-none">
                 <!-- Icon X -->
-                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                <svg class="h-4 w-4 u" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
             <button v-else class="ml-auto text-gray-400 hover:text-gray-600 focus:outline-none">
                 <!-- Chevron Icon -->
-                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                <svg class="h-4 w-4 u" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
                     aria-hidden="true">
                     <path fill-rule="evenodd"
                         d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"

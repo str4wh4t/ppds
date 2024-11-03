@@ -45,6 +45,7 @@ watch(
             showConfirmDelete.value = false;
         }
         if (newValue) {
+            form.clearErrors();
             form.name = props.activity.name;
             form.type = props.activity.type;
             activityType.value = props.activity.type;
@@ -141,7 +142,7 @@ const deleteItem = () => {
 
                     <div class="mt-2">
                         <InputLabel for="description" value="Description" />
-                        <TextArea id="description" class="mt-1 block w-full" v-model="form.description" />
+                        <TextArea id="description" class="mt-1 block w-full" required v-model="form.description" />
                         <InputError class="mt-2" :message="form.errors.description" />
                     </div>
 

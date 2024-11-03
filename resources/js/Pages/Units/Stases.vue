@@ -19,7 +19,7 @@ const filters = ref({ search: usePage().props.filters.search ?? '' });
 
 const isCreate = ref(false);
 const isUpdate = ref(false);
-const selectedItem = ref([]);
+const selectedItem = ref({});
 
 const openUpdate = (stase) => {
     selectedItem.value = stase;
@@ -47,7 +47,7 @@ const openModalGlobal = () => {
         <template #header>
             Stase List
         </template>
-        <div class="-mx-4 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg">
+        <div class="ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg mt-4">
             <table class="min-w-full divide-y divide-gray-300">
                 <thead>
                     <tr>
@@ -72,14 +72,14 @@ const openModalGlobal = () => {
             <div class="mt-4 sm:mt-0 sm:flex-none">
                 <Link :href="route('units.index')"
                     class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-400 px-3 py-2 text-sm font-semibold border-2 border-yellow-600 shadow-sm hover:bg-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-600">
-                <ArrowLeftCircleIcon class="h-5 w-5" aria-hidden="true" />
+                <ArrowLeftCircleIcon class="h-4 w-4 u" aria-hidden="true" />
                 Back
                 </Link>
             </div>
             <div class="sm:ml-5 sm:flex-auto">
                 <div class="relative rounded-md shadow-sm">
                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <MagnifyingGlassIcon class="h-4 w-4 u text-gray-400" aria-hidden="true" />
                     </div>
                     <input v-model="filters.search" @keyup.enter="searchPosts" type="text" placeholder="Pencarian data"
                         class="block w-full rounded-full border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
@@ -143,9 +143,9 @@ const openModalGlobal = () => {
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-center text-gray-500 lg:table-cell']">
                             <div class="flex justify-center items-center">
-                                <CheckCircleIcon v-if="stase.unit_stases[0].is_mandatory" class="h-5 w-5 text-green-400"
-                                    aria-hidden="true" />
-                                <XCircleIcon v-else class="h-5 w-5 text-red-400" aria-hidden="true" />
+                                <CheckCircleIcon v-if="stase.unit_stases[0].is_mandatory"
+                                    class="h-4 w-4 u text-green-400" aria-hidden="true" />
+                                <XCircleIcon v-else class="h-4 w-4 u text-red-400" aria-hidden="true" />
                             </div>
                         </td>
                         <td
@@ -204,7 +204,7 @@ const openModalGlobal = () => {
                             <Link :href="!stases.prev_page_url ? '#' : stases.prev_page_url"
                                 class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronLeftIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                             <Link
                                 v-for="link in stases.links.filter((link, index) => index !== 0 && index !== stases.links.length - 1)"
@@ -216,7 +216,7 @@ const openModalGlobal = () => {
                             <Link :href="!stases.next_page_url ? '#' : stases.next_page_url"
                                 class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronRightIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                         </nav>
                     </div>

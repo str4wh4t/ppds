@@ -55,6 +55,7 @@ watch(
             showConfirmDelete.value = false;
         }
         if (newValue) {
+            form.clearErrors();
             form.name = props.unit.name;
             form.kaprodi_user_id = props.unit.kaprodi_user_id ?? '';
             form.unit_admins = props.unit.unit_admins.map(user => ({

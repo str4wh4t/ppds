@@ -8,7 +8,7 @@
                 <!-- <button @click="removeDocument" class="mb-4 px-4 py-2 bg-red-600 text-white rounded-md">
                     Hapus Dokumen
                 </button> -->
-                <iframe :src="documentUrl || initialDocumentUrl" type="application/pdf"
+                <iframe :src="documentUrl || initialDocumentUrl" :type="validTypes[fileType]"
                     class="w-full h-64 border rounded-md" frameborder="0">
                 </iframe>
             </div>
@@ -26,7 +26,7 @@
                     </label>
                     <p class="pl-1">or drag and drop</p>
                 </div>
-                <p class="text-xs text-gray-600">PDF up to 10MB</p>
+                <p class="text-xs text-gray-600">.{{ fileType }} file up to 10MB</p>
             </div>
         </div>
     </div>
@@ -40,6 +40,10 @@ import { PhotoIcon } from '@heroicons/vue/24/outline';
 const props = defineProps({
     modelValue: File,
     initialDocumentPath: String, // Path dokumen awal dari server
+    fileType: {
+        type: String,
+        default: 'pdf'
+    }
 });
 const emit = defineEmits(['update:modelValue']);
 
@@ -59,16 +63,20 @@ watch(() => props.modelValue, (newFile) => {
         documentUrl.value = null;
     }
 });
+const validTypes = {
+    pdf: 'application/pdf',
+    jpeg: 'image/jpeg'
+};
 
 // Fungsi untuk menangani upload file baru
 const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    if (file && file.type === 'application/pdf' && file.size <= 10 * 1024 * 1024) {
+    if (file && file.type === validTypes[props.fileType] && file.size <= 10 * 1024 * 1024) {
         documentUrl.value = URL.createObjectURL(file); // Membuat URL pratinjau dari Blob baru
         emit('update:modelValue', file); // Update modelValue (file baru)
         initialDocumentUrl.value = null; // Hilangkan pratinjau lama jika ada file baru
     } else {
-        alert('Please upload a valid PDF file (max 10MB).');
+        alert(`Please upload a valid ${props.fileType.toUpperCase()} file (max 10MB).`);
     }
 };
 

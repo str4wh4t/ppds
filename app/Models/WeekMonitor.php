@@ -12,7 +12,22 @@ class WeekMonitor extends Model
     protected $fillable = [
         'user_id',
         'week_group_id',
+        'year',
+        'week',
         'workload',
+        'workload_hours',
         'workload_as_seconds',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope('latest', function ($query) {
+            $query->orderBy('user_id')->orderBy('week', 'desc');
+        });
+    }
 }

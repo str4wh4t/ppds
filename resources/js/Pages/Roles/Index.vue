@@ -15,47 +15,53 @@ const roles = usePage().props.roles;
         <template #header>
             Role List
         </template>
-        <div class="-mx-4 mt-5 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-300">
-                <thead>
-                    <tr>
-                        <th scope="col" class="py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                            Name
-                        </th>
-                        <th scope="col"
-                            class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            GuardName</th>
-                        <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            CreatedAt</th>
-                        <th scope="col"
-                            class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            UpdatedAt</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(role, index) in roles.data" :key="role.id">
-                        <td
-                            :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-4 pr-3 text-sm sm:pl-6']">
-                            <div class="font-medium text-gray-900">
-                                {{ role.name }}
-                            </div>
-                            <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                                <span>{{ role.guard_name }}</span>
-                            </div>
-                            <div v-if="index !== 0" class="absolute -top-px left-6 right-0 h-px bg-gray-200" />
-                        </td>
-                        <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ role.guard_name }}</td>
-                        <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ $formatDate({ date: role.created_at }) }}</td>
-                        <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ $formatDate({ date: role.updated_at }) }}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="ring-1 ring-gray-300 mx-0 rounded-lg mt-4">
+            <div class="">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead>
+                        <tr>
+                            <th scope="col"
+                                class="py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                                Name
+                            </th>
+                            <th scope="col"
+                                class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                                GuardName</th>
+                            <th scope="col"
+                                class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                                CreatedAt</th>
+                            <th scope="col"
+                                class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                                UpdatedAt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(role, index) in roles.data" :key="role.id">
+                            <td
+                                :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-4 pr-3 text-sm sm:pl-6']">
+                                <div class="font-medium text-gray-900">
+                                    {{ role.name }}
+                                </div>
+                                <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
+                                    <span>{{ role.guard_name }}</span>
+                                </div>
+                                <div v-if="index !== 0" class="absolute -top-px left-6 right-0 h-px bg-gray-200" />
+                            </td>
+                            <td
+                                :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                                {{ role.guard_name }}</td>
+                            <td
+                                :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                                {{ $formatDate({ date: role.created_at }) }}</td>
+                            <td
+                                :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-3 pr-4 text-sm font-medium sm:pr-6']">
+                                {{ $formatDate({ date: role.updated_at }) }}
+                                <div v-if="index !== 0" class="absolute -top-px left-0 right-6 h-px bg-gray-200" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
                 <div class="flex flex-1 justify-between sm:hidden">
                     <Link :href="!roles.prev_page_url ? '#' : roles.prev_page_url"
@@ -93,7 +99,7 @@ const roles = usePage().props.roles;
                             <Link :href="!roles.prev_page_url ? '#' : roles.prev_page_url"
                                 class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronLeftIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                             <Link
                                 v-for="link in roles.links.filter((link, index) => index !== 0 && index !== roles.links.length - 1)"
@@ -105,7 +111,7 @@ const roles = usePage().props.roles;
                             <Link :href="!roles.next_page_url ? '#' : roles.next_page_url"
                                 class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronRightIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                         </nav>
                     </div>

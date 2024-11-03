@@ -18,11 +18,14 @@ import {
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { CalendarDaysIcon } from '@heroicons/vue/24/outline';
 
+const month = usePage().props.month;
+const year = usePage().props.year;
+
 const days = ref([]);
-const thisMonth = new Date().getMonth();
+const thisMonth = month;
 const pointerMonth = ref(thisMonth);
-const labelMonth = ref(moment().format('MMMM'));
-const labelYear = ref(moment().format('YYYY'));
+const labelMonth = ref(moment().month(month).format('MMMM'));
+const labelYear = ref(year);
 const isLoading = ref(true);
 const selectedDay = ref({});
 // days.value = generateDays(labelYear.value, pointerMonth.value);
@@ -31,7 +34,7 @@ const generateDays = async (year, month, callback = null) => {
     try {
         isLoading.value = true;
         await axios
-            .post(route('calendar.generatedays', { user: usePage().props.auth.user }), {
+            .post(route('calendar.generatedays', { user: usePage().props.selectedUser }), {
                 year: labelYear.value,
                 month: pointerMonth.value,
             })
@@ -80,8 +83,9 @@ const goNextMonth = async () => {
 }
 
 const goThisMonth = async () => {
-    pointerMonth.value = thisMonth;
+    pointerMonth.value = new Date().getMonth();
     labelYear.value = moment().format('YYYY');
+    labelMonth.value = moment().format('MMMM');
     // days.value = generateDays(labelYear.value, pointerMonth.value);
     await generateDays(labelYear.value, pointerMonth.value);
 }
@@ -130,12 +134,13 @@ const replaceProps = async (props, selected = null) => {
         <template #header>
             Kalender
         </template>
-        <div v-if="!isLoading" class="lg:flex lg:h-full lg:flex-col">
-            <header class="flex items-center justify-between border-b border-gray-200 py-4 lg:flex-none">
-                <Link :href="route('activities.schedule', { user: usePage().props.auth.user })"
+        <div v-if="!isLoading" class="lg:flex lg:h-full lg:flex-col mt-4">
+            <header class="flex items-center justify-between border-b border-gray-200 pb-5 lg:flex-none">
+                <Link v-if="$hasRoles('student')"
+                    :href="route('activities.schedule', { user: usePage().props.auth.user })"
                     class="hidden sm:inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     type="button">
-                <CalendarDaysIcon class="-ml-0.5 h-5 w-5" aria-hidden="true" /> Lihat Jadwal
+                <CalendarDaysIcon class="-ml-0.5 h-4 w-4 u" aria-hidden="true" /> Lihat Jadwal
                 </Link>
                 <h1 class="text-base font-semibold leading-6 text-gray-900">
                     <span>{{ labelMonth }} {{ labelYear }}</span>
@@ -145,7 +150,7 @@ const replaceProps = async (props, selected = null) => {
                         <button @click="goPrevMonth()" type="button"
                             class="flex h-9 w-12 items-center justify-center rounded-l-md border-y border-l border-gray-300 pr-1 text-gray-400 hover:text-indigo-500 focus:relative md:w-9 md:pr-0 hover:bg-indigo-50">
                             <span class="sr-only">Bulan lalu</span>
-                            <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronLeftIcon class="h-4 w-4 u" aria-hidden="true" />
                         </button>
                         <button @click="goThisMonth()" type="button"
                             class="hidden border-y border-gray-300 px-3.5 text-sm font-semibold text-gray-900 hover:bg-indigo-50 hover:text-indigo-500 focus:relative md:block">Bulan
@@ -154,14 +159,14 @@ const replaceProps = async (props, selected = null) => {
                         <button @click="goNextMonth()" type="button"
                             class="flex h-9 w-12 items-center justify-center rounded-r-md border-y border-r border-gray-300 pl-1 text-gray-400 hover:text-indigo-500 focus:relative md:w-9 md:pl-0 hover:bg-indigo-50">
                             <span class="sr-only">Bulan depan</span>
-                            <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronRightIcon class="h-4 w-4 u" aria-hidden="true" />
                         </button>
                     </div>
                     <!-- <Menu as="div" class="relative ml-6 md:hidden">
                         <MenuButton
                             class="-mx-2 flex items-center rounded-full border border-transparent p-2 text-gray-400 hover:text-gray-500">
                             <span class="sr-only">Open menu</span>
-                            <EllipsisHorizontalIcon class="h-5 w-5" aria-hidden="true" />
+                            <EllipsisHorizontalIcon class="h-4 w-4 u" aria-hidden="true" />
                         </MenuButton>
 
                         <transition enter-active-class="transition ease-out duration-100"

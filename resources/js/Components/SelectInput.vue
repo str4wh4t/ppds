@@ -16,13 +16,13 @@ const selected = ref(props.selectOptions[0])
             <div class="inline-flex divide-x divide-indigo-700 rounded-md shadow-sm">
                 <div
                     class="inline-flex items-center gap-x-1.5 rounded-l-md bg-indigo-600 px-3 py-2 text-white shadow-sm">
-                    <CheckIcon class="-ml-0.5 h-5 w-5" aria-hidden="true" />
+                    <CheckIcon class="-ml-0.5 h-4 w-4 u" aria-hidden="true" />
                     <p class="text-sm font-semibold">{{ selected.label }}</p>
                 </div>
                 <ListboxButton
                     class="inline-flex items-center rounded-l-none rounded-r-md bg-indigo-600 p-2 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 focus:ring-offset-gray-50">
                     <span class="sr-only">Change status</span>
-                    <ChevronDownIcon class="h-5 w-5 text-white" aria-hidden="true" />
+                    <ChevronDownIcon class="h-4 w-4 u text-white" aria-hidden="true" />
                 </ListboxButton>
             </div>
 
@@ -38,7 +38,7 @@ const selected = ref(props.selectOptions[0])
                                 <div class="flex justify-between">
                                     <p :class="selected ? 'font-semibold' : 'font-normal'">{{ option.label }}</p>
                                     <span v-if="selected" :class="active ? 'text-white' : 'text-indigo-600'">
-                                        <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                                        <CheckIcon class="h-4 w-4 u" aria-hidden="true" />
                                     </span>
                                 </div>
                                 <p :class="[active ? 'text-indigo-200' : 'text-gray-500', 'mt-2']">{{ option.description

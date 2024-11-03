@@ -1,17 +1,8 @@
 <script setup>
 import { ref, watch, nextTick } from 'vue'
 import Modal from '@/Components/Modal.vue';
-
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { useForm, usePage } from '@inertiajs/vue3';
-import DangerButton from '@/Components/DangerButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import SelectInput from '@/Components/SelectInputBasic.vue';
-import MultiselectBasic from '@/Components/MultiselectBasic.vue';
-import InputUpload from '@/Components/InputUpload.vue';
+import { useForm } from '@inertiajs/vue3';
 import { CloudArrowUpIcon, PrinterIcon, XCircleIcon } from '@heroicons/vue/24/outline';
 import WarningButton from '@/Components/WarningButton.vue';
 
@@ -71,7 +62,7 @@ const printPDF = () => {
                 <!-- Content goes here -->
                 <form @submit.prevent="submit" class="mt-1 text-sm text-gray-600">
                     <div class="sm:flex sm:items-center w-full">
-                        <iframe ref="pdfIframe" :src="$page.props.guideline" width="100%" height="1000px"
+                        <iframe ref="pdfIframe" :src="$storagePath($page.props.guideline)" width="100%" height="1000px"
                             frameborder="0"></iframe>
                     </div>
                     <div class="flex items-center justify-center mt-4">
@@ -80,10 +71,10 @@ const printPDF = () => {
                             <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
                         </Transition>
                         <WarningButton class="ml-4" :disabled="form.processing" type="submit">
-                            <CloudArrowUpIcon class="-ml-0.5 h-5 w-5 mr-1" aria-hidden="true" /> Sudah Baca
+                            <CloudArrowUpIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Sudah Baca
                         </WarningButton>
                         <PrimaryButton class="ml-4" @click="printPDF" type="button">
-                            <PrinterIcon class="-ml-0.5 h-5 w-5 mr-1" aria-hidden="true" /> Cetak Jadwal
+                            <PrinterIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Cetak Jadwal
                         </PrimaryButton>
                     </div>
                 </form>

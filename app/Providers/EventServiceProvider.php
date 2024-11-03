@@ -18,8 +18,8 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-        \App\Events\ActivityLogged::class => [
-            \App\Listeners\WorkMonitor::class,
+        \App\Events\WorkloadExceeded::class => [
+            \App\Listeners\WorkloadMonitor::class,
         ],
     ];
 

@@ -22,7 +22,7 @@ class StoreRequest extends FormRequest
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'finish_time' => 'required',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'is_approved' => 'boolean',
             'approved_by' => 'nullable|integer|exists:users,id',
             'approved_at' => 'nullable|date',

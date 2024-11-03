@@ -39,12 +39,23 @@ export default {
     };
 
     app.config.globalProperties.$truncatedText = (text) => {
-      const words = text.split(" ");
+      const words = text ? text.split(" ") : "";
       if (words.length > 5) {
         return words.slice(0, 5).join(" ") + "...";
       } else {
         return text;
       }
+    };
+
+    app.config.globalProperties.$snakeCaseText = (text) => {
+      return text
+        .replace(/([a-z])([A-Z])/g, "$1_$2") // Menambahkan garis bawah sebelum huruf kapital
+        .replace(/\s+/g, "_") // Mengganti spasi dengan garis bawah
+        .toLowerCase(); // Mengubah semua huruf menjadi kecil
+    };
+
+    app.config.globalProperties.$storagePath = (path) => {
+      return `/storage/${path}`;
     };
   },
 };

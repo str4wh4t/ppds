@@ -50,7 +50,7 @@ class StudentController extends Controller
                     $query->whereIn('name', $unitNames);
                 });
             }
-        })->with(['roles', 'studentUnit', 'dosbingUser'])
+        })->with('roles', 'studentUnit', 'dosbingUser')
             ->paginate(10)
             ->withQueryString();
 

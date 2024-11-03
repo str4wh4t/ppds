@@ -27,13 +27,16 @@ import {
     ClipboardDocumentListIcon,
     MinusIcon,
     ChatBubbleBottomCenterIcon,
-    SpeakerWaveIcon
+    SpeakerWaveIcon,
+    ExclamationCircleIcon,
+    PresentationChartBarIcon
 } from '@heroicons/vue/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, BellIcon } from '@heroicons/vue/20/solid'
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ModalGlobal from '@/Components/ModalGlobal.vue';
 import { useModalStore } from '@/stores/modalStore';
 import { Link, usePage } from '@inertiajs/vue3';
+import LinkNotif from './Notification/LinkNotif.vue';
 
 const defaultnav = [
     { name: 'Dashboard', href: route('dashboard'), icon: HomeIcon, current: route().current('dashboard'), method: 'get' },
@@ -42,10 +45,21 @@ const defaultnav = [
 const navigation = [
     { name: 'Logbook', href: route('activities.index', { user: usePage().props.auth.user }), icon: FolderIcon, current: route().current('activities.index'), method: 'get' },
     { name: 'Kalender', href: route('activities.calendar', { user: usePage().props.auth.user }), icon: CalendarIcon, current: route().current('activities.calendar'), method: 'get' },
-    { name: 'Konsultasi', href: '#', icon: ChatBubbleBottomCenterIcon, current: false, method: 'get' },
+    { name: 'Beban Kerja', href: route('week-monitors.index', { user: usePage().props.auth.user }), icon: PresentationChartBarIcon, current: route().current('week-monitors.index'), method: 'get' },
+    { name: 'Konsultasi', href: route('consults.index', { user: usePage().props.auth.user }), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.index'), method: 'get' },
     { name: 'Portofolio', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
     { name: 'Report', href: route('activities.report', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.report'), method: 'get' },
-    { name: 'Laporkan', href: '#', icon: SpeakerWaveIcon, current: false, method: 'get' },
+    { name: 'Laporkan', href: route('speaks.index', { user: usePage().props.auth.user }), icon: ExclamationCircleIcon, current: route().current('speaks.index'), method: 'get' },
+];
+
+const adminNavigation = [
+    { name: 'Logbook', href: route('activities.index', { user: usePage().props.auth.user }), icon: FolderIcon, current: route().current('activities.index'), method: 'get' },
+    // { name: 'Kalender', href: route('activities.calendar', { user: usePage().props.auth.user }), icon: CalendarIcon, current: route().current('activities.calendar'), method: 'get' },
+    { name: 'Beban Kerja', href: route('week-monitors.index', { user: usePage().props.auth.user }), icon: PresentationChartBarIcon, current: route().current('week-monitors.index') || route().current('activities.calendar'), method: 'get' },
+    { name: 'Konsultasi', href: route('consults.student-list'), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.student-list') || route().current('consults.index'), method: 'get' },
+    { name: 'Portofolio', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
+    { name: 'Report', href: route('activities.report', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.report'), method: 'get' },
+    { name: 'Laporkan', href: route('speaks.index', { user: usePage().props.auth.user }), icon: ExclamationCircleIcon, current: route().current('speaks.index'), method: 'get' },
 ];
 
 const masterNavigation = [
@@ -62,7 +76,6 @@ const masterNavigation = [
         ],
     },
     { name: 'Students', href: route('students.index'), icon: UserGroupIcon, current: route().current('students.index'), method: 'get' },
-    { name: 'Report', href: route('activities.report', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.report'), method: 'get' },
 ];
 
 const accessControlNavigation = [
@@ -95,6 +108,7 @@ watch(
         }
     }, { immediate: true }
 );
+
 </script>
 <template>
     <ModalGlobal />
@@ -168,9 +182,27 @@ watch(
                                                 {{ item.name }}
                                                 </Link>
                                             </li>
+                                            <li v-if="!$hasRoles('student')" v-for="item in adminNavigation"
+                                                :key="item.name">
+                                                <!-- <a :href="item.href"
+                                                        :class="[item.current ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600', 'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6']">
+                                                        <component :is="item.icon"
+                                                            :class="[item.current ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600', 'h-6 w-6 shrink-0']"
+                                                            aria-hidden="true" />
+                                                        {{ item.name }}
+                                                    </a> -->
+                                                <Link :href="item.href"
+                                                    :class="[item.current ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600', 'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6']"
+                                                    :method="item.method" as="button">
+                                                <component :is="item.icon"
+                                                    :class="[item.current ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600', 'h-6 w-6 shrink-0']"
+                                                    aria-hidden="true" />
+                                                {{ item.name }}
+                                                </Link>
+                                            </li>
                                         </ul>
                                     </li>
-                                    <div v-if="!$hasRoles('student')">
+                                    <div v-if="$hasRoles(['admin_prodi', 'admin_fakultas'])">
                                         <div class="text-xs font-semibold leading-6 text-gray-400">Master Data</div>
                                         <li v-for="item in masterNavigation" :key="item.name" class="-mx-2">
                                             <Link v-if="!item.children" :href="item.href"
@@ -279,9 +311,19 @@ watch(
                                 {{ item.name }}
                                 </Link>
                             </li>
+                            <li v-if="!$hasRoles('student')" v-for="item in adminNavigation" :key="item.name">
+                                <Link :href="item.href"
+                                    :class="[item.current ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600', 'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6']"
+                                    :method="item.method" as="button">
+                                <component :is="item.icon"
+                                    :class="[item.current ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600', 'h-6 w-6 shrink-0']"
+                                    aria-hidden="true" />
+                                {{ item.name }}
+                                </Link>
+                            </li>
                         </ul>
                     </li>
-                    <div v-if="!$hasRoles('student')">
+                    <div v-if="$hasRoles(['admin_prodi', 'admin_fakultas'])">
                         <div class="text-xs font-semibold leading-6 text-gray-400">Master Data</div>
                         <li v-for="item in masterNavigation" :key="item.name" class="-mx-2">
                             <Link v-if="!item.children" :href="item.href"
@@ -375,10 +417,7 @@ watch(
                             <span class="sr-only">View notifications</span>
                             <BellIcon class="h-6 w-6" aria-hidden="true" />
                         </button> -->
-                    <Link :href="route('notifs.index')" method="get" as="button"
-                        class="-m-2.5 p-2.5 text-red-600 hover:text-red-800">
-                    <BellIcon class="h-6 w-6" aria-hidden="true" />
-                    </Link>
+                    <LinkNotif />
 
                     <!-- Separator -->
                     <div class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />

@@ -53,6 +53,7 @@ watch(
             showConfirmDelete.value = false;
         }
         if (newValue) {
+            form.clearErrors();
             form.fullname = props.user.fullname;
             form.username = props.user.username;
             form.identity = props.user.identity;

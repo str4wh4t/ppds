@@ -28,25 +28,27 @@ const printPDF = () => {
         <template #header>
             Jadwal
         </template>
-        <header class="flex items-center justify-between border-b border-gray-200 py-4 lg:flex-none">
-            <Link :href="route('activities.calendar', { user: usePage().props.auth.user })"
-                class="hidden sm:inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                type="button">
-            <CalendarDaysIcon class="-ml-0.5 h-5 w-5" aria-hidden="true" /> Lihat Kalender
-            </Link>
-            <h1 class="text-base font-semibold leading-6 text-gray-900">
-                <span>Jadwal Aktifitas</span>
-            </h1>
-            <div class="flex items-center">
-                <PrimaryButton @click="printPDF">
-                    <PrinterIcon class="-ml-0.5 h-5 w-5 mr-1" aria-hidden="true" /> Cetak Jadwal
-                </PrimaryButton>
-            </div>
-        </header>
-        <div class="sm:flex sm:items-center w-full">
-            <div class="pdf-container">
-                <iframe ref="pdfIframe" :src="$page.props.schedule" width="100%" height="1000px"
-                    frameborder="0"></iframe>
+        <div class="lg:flex lg:h-full lg:flex-col mt-4">
+            <header class="flex items-center justify-between border-b border-gray-200 pb-5 lg:flex-none">
+                <Link :href="route('activities.calendar', { user: usePage().props.auth.user })"
+                    class="hidden sm:inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    type="button">
+                <CalendarDaysIcon class="-ml-0.5 h-4 w-4 u" aria-hidden="true" /> Lihat Kalender
+                </Link>
+                <h1 class="text-base font-semibold leading-6 text-gray-900">
+                    <span>Jadwal Aktifitas</span>
+                </h1>
+                <div class="flex items-center">
+                    <PrimaryButton @click="printPDF">
+                        <PrinterIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Cetak Jadwal
+                    </PrimaryButton>
+                </div>
+            </header>
+            <div class="sm:flex sm:items-center w-full">
+                <div class="pdf-container">
+                    <iframe ref="pdfIframe" :src="$page.props.schedule" width="100%" height="1000px"
+                        frameborder="0"></iframe>
+                </div>
             </div>
         </div>
     </AuthenticatedLayout>

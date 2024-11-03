@@ -19,7 +19,7 @@ const isUploadSchedule = ref(false);
 const isUploadGuideline = ref(false);
 const isCreate = ref(false);
 const isUpdate = ref(false);
-const selectedItem = ref([]);
+const selectedItem = ref({});
 
 const openUpdate = (unit) => {
     selectedItem.value = unit;
@@ -63,11 +63,11 @@ const searchPosts = () => {
         <template #header>
             Unit List
         </template>
-        <div class="sm:flex sm:items-center">
+        <div class="sm:flex sm:items-center mt-4">
             <div class="sm:flex-auto">
                 <div class="relative rounded-md shadow-sm">
                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <MagnifyingGlassIcon class="h-4 w-4 u text-gray-400" aria-hidden="true" />
                     </div>
                     <input v-model="filters.search" @keyup.enter="searchPosts" type="text" placeholder="Pencarian data"
                         class="block w-full rounded-full border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
@@ -91,8 +91,7 @@ const searchPosts = () => {
                             Kaprodi</th>
                         <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Admin</th>
-                        <th scope="col"
-                            class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                        <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Stase</th>
                         <th scope="col" class="hidden px-3 py-2 text-sm font-semibold text-gray-900 lg:table-cell">
                             Jadwal</th>
@@ -133,9 +132,9 @@ const searchPosts = () => {
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <div class="flex justify-center items-center">
                                 <CheckCircleIcon v-if="unit.schedule_document_path"
-                                    class="h-5 w-5 text-green-400 cursor-pointer" @click="openUploadSchedule(unit)"
+                                    class="h-4 w-4 u text-green-400 cursor-pointer" @click="openUploadSchedule(unit)"
                                     aria-hidden="true" />
-                                <XCircleIcon v-else class="h-5 w-5 text-red-400 cursor-pointer"
+                                <XCircleIcon v-else class="h-4 w-4 u text-red-400 cursor-pointer"
                                     @click="openUploadSchedule(unit)" aria-hidden="true" />
                             </div>
                         </td>
@@ -143,9 +142,9 @@ const searchPosts = () => {
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <div class="flex justify-center items-center">
                                 <CheckCircleIcon v-if="unit.guideline_document_path"
-                                    class="h-5 w-5 text-green-400 cursor-pointer" @click="openUploadGuideline(unit)"
+                                    class="h-4 w-4 u text-green-400 cursor-pointer" @click="openUploadGuideline(unit)"
                                     aria-hidden="true" />
-                                <XCircleIcon v-else class="h-5 w-5 text-red-400 cursor-pointer"
+                                <XCircleIcon v-else class="h-4 w-4 u text-red-400 cursor-pointer"
                                     @click="openUploadGuideline(unit)" aria-hidden="true" />
                             </div>
                         </td>
@@ -158,13 +157,13 @@ const searchPosts = () => {
                                 <button type="button" @click="openUpdate(unit)" class="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 ring-1
                                     ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10">
                                     <span class="sr-only">Edit</span>
-                                    <PencilSquareIcon class="h-5 w-5" aria-hidden="true" />
+                                    <PencilSquareIcon class="h-4 w-4 u" aria-hidden="true" />
                                 </button>
                                 <Link :href="route('units.stases', { unit: unit })"
                                     class="relative -ml-px inline-flex items-center rounded-r-md bg-white px-2 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
                                     as="button">
                                 <span class="sr-only">Stases</span>
-                                <ClipboardDocumentListIcon class="h-5 w-5" aria-hidden="true" />
+                                <ClipboardDocumentListIcon class="h-4 w-4 u" aria-hidden="true" />
                                 </Link>
                             </span>
                             <button v-else type="button" @click="openUpdate(unit)"
@@ -218,7 +217,7 @@ const searchPosts = () => {
                             <Link :href="!units.prev_page_url ? '#' : units.prev_page_url"
                                 class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronLeftIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronLeftIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                             <Link
                                 v-for="link in units.links.filter((link, index) => index !== 0 && index !== units.links.length - 1)"
@@ -230,7 +229,7 @@ const searchPosts = () => {
                             <Link :href="!units.next_page_url ? '#' : units.next_page_url"
                                 class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 as="button">
-                            <ChevronRightIcon class="h-5 w-5" aria-hidden="true" />
+                            <ChevronRightIcon class="h-4 w-4 u" aria-hidden="true" />
                             </Link>
                         </nav>
                     </div>

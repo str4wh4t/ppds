@@ -52,7 +52,7 @@ class UnitController extends Controller
                     $query->where('fullname', 'like', "%{$search}%");
                 });
         })
-            ->with(['kaprodiUser', 'unitAdmins', 'stases']) // Eager load relasi
+            ->with('kaprodiUser', 'unitAdmins', 'stases') // Eager load relasi
             ->paginate(10)
             ->withQueryString();
 
@@ -180,7 +180,17 @@ class UnitController extends Controller
         //
         try {
             DB::transaction(function () use ($unit) {
+                $oldScheduleFilePath = $unit->schedule_document_path;
+                $oldGuidelineFilePath = $unit->guideline_document_path;
+
                 $unit->delete();
+
+                if ($oldScheduleFilePath && Storage::disk('public')->exists($oldScheduleFilePath)) {
+                    Storage::disk('public')->delete($oldScheduleFilePath);
+                }
+                if ($oldGuidelineFilePath && Storage::disk('public')->exists($oldGuidelineFilePath)) {
+                    Storage::disk('public')->delete($oldGuidelineFilePath);
+                }
             });
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Unit deleted successfully');
         } catch (\Exception $e) {

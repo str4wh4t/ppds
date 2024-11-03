@@ -55,25 +55,25 @@ Route::group(['middleware' => ['permission:reset-password']], function () {
     Route::patch('/users/{user}/resetpassword', [\App\Http\Controllers\UserController::class, 'resetPassword'])->name('users.reset-password');
 });
 
-Route::middleware(['permission:crud-mahasiswa'])->group(function () {
+Route::middleware(['permission:mahasiswa.crud'])->group(function () {
     Route::resource('/students', \App\Http\Controllers\StudentController::class)->parameters([
         'students' => 'user'
     ]);
 });
 
-Route::middleware(['permission:crud-dosen'])->group(function () {
+Route::middleware(['permission:dosen.crud'])->group(function () {
     Route::resource('/dosens', \App\Http\Controllers\DosenController::class)->parameters([
         'dosens' => 'user'
     ]);
 });
 
-Route::middleware(['permission:crud-kaprodi'])->group(function () {
+Route::middleware(['permission:kaprodi.crud'])->group(function () {
     Route::resource('/kaprodis', \App\Http\Controllers\KaprodiController::class)->parameters([
         'kaprodis' => 'user'
     ]);
 });
 
-Route::middleware(['permission:crud-unit'])->group(function () {
+Route::middleware(['permission:unit.crud'])->group(function () {
     Route::resource('/units', UnitController::class);
     Route::get('/units/{unit}/stases', [UnitController::class, 'stases'])->name('units.stases');
     Route::put('/units/{unit}/stases', [UnitController::class, 'staseUpdate'])->name('units.stases.update');
@@ -84,11 +84,11 @@ Route::middleware(['permission:crud-unit'])->group(function () {
 });
 
 
-Route::middleware(['permission:crud-stase'])->group(function () {
+Route::middleware(['permission:stase.crud'])->group(function () {
     Route::resource('/stases', \App\Http\Controllers\StaseController::class);
 });
 
-Route::middleware(['permission:crud-logbook'])->group(function () {
+Route::middleware(['permission:logbook.crud'])->group(function () {
     Route::get('/activities/{user}', [\App\Http\Controllers\ActivityController::class, 'index'])->name('activities.index');
     // Route::resource('/activities', \App\Http\Controllers\ActivityController::class)->except(['index']);
     // Menambahkan middleware 'can' untuk aksi update dan delete pada resource activities
@@ -103,8 +103,27 @@ Route::middleware(['permission:report-logbook'])->group(function () {
     Route::get('/activities/{user}/report', [\App\Http\Controllers\ActivityController::class, 'report'])->name('activities.report');
 });
 
-Route::middleware(['permission:crud-portofolio'])->group(function () {
-    Route::resource('/portofolios', \App\Http\Controllers\PortofolioController::class);
+Route::middleware(['permission:portofolio.crud'])->group(function () {
+    Route::get('/portofolios/{user}', [\App\Http\Controllers\PortofolioController::class, 'index'])->name('portofolios.index'); // << agar bisa diakses oleh admin
+    Route::post('/portofolios/{portofolio}', [\App\Http\Controllers\PortofolioController::class, 'update'])->name('portofolios.update'); // << karena ada upload file
+    Route::resource('/portofolios', \App\Http\Controllers\PortofolioController::class)->except(['index', 'update']);
+});
+
+Route::middleware(['permission:consult.crud'])->group(function () {
+    Route::get('/consults/{user}', [\App\Http\Controllers\ConsultController::class, 'index'])->name('consults.index');
+    Route::post('/consults/{consult}', [\App\Http\Controllers\ConsultController::class, 'update'])->name('consults.update'); // << karena ada upload file
+    Route::resource('/consults', \App\Http\Controllers\ConsultController::class)->except(['index', 'update']);
+    Route::get('/consults/studentlist', [\App\Http\Controllers\ConsultController::class, 'studentList'])->name('consults.student-list');
+});
+
+Route::middleware(['permission:speak.crud'])->group(function () {
+    Route::get('/speaks/{user}', [\App\Http\Controllers\SpeakController::class, 'index'])->name('speaks.index');
+    Route::post('/speaks/{speak}', [\App\Http\Controllers\SpeakController::class, 'update'])->name('speaks.update'); // << karena ada upload file
+    Route::resource('/speaks', \App\Http\Controllers\SpeakController::class)->except(['index', 'update']);
+});
+
+Route::middleware(['permission:week-monitor.index'])->group(function () {
+    Route::get('/weekmonitors/{user}', [\App\Http\Controllers\WeekMonitorController::class, 'index'])->name('week-monitors.index');
 });
 
 

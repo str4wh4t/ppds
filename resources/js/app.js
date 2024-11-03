@@ -7,6 +7,8 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy";
 import { createPinia } from "pinia";
 import UtilsPlugin from "@/plugins/utils";
+import Echo from "laravel-echo";
+import Pusher from "pusher-js";
 
 import axios from "axios";
 
@@ -35,4 +37,13 @@ createInertiaApp({
   progress: {
     color: "#4B5563",
   },
+});
+
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+  broadcaster: "pusher",
+  key: import.meta.env.VITE_PUSHER_APP_KEY,
+  cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+  forceTLS: import.meta.env.VITE_PUSHER_SCHEME === "https",
 });

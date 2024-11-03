@@ -20,7 +20,7 @@ const props = defineProps({
             <MenuButton
                 class="relative inline-flex items-center rounded-r-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10">
                 <span class="sr-only">Options</span>
-                <ChevronDownIcon class="h-5 w-5" aria-hidden="true" />
+                <ChevronDownIcon class="h-4 w-4 u" aria-hidden="true" />
             </MenuButton>
             <transition enter-active-class="transition ease-out duration-100"
                 enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100"

@@ -26,7 +26,6 @@ const showConfirmDelete = ref(false);
 const fileUploader = ref(null);
 
 const form = useForm({
-    unit_id: '',
     document: null,
     document_path: '',
 });
@@ -39,7 +38,6 @@ watch(
             showConfirmDelete.value = false;
         }
         if (newValue) {
-            form.unit_id = props.unit.id;
             form.document = props.unit.document;
             form.document_path = props.unit.guideline_document_path;
         }
@@ -49,10 +47,9 @@ watch(
 
 const submit = () => {
     form.post(route('units.upload-document-guideline', { unit: props.unit }), {
-        forceFormData: true,
         onSuccess: (data) => {
             form.clearErrors();
-            emit('exitUpdate');
+            // emit('exitUpdate');
         }
     })
 };
@@ -72,7 +69,7 @@ const clearDocument = () => {
             fileUploader.value?.removeDocument(); // Memanggil removeDocument dari FileUploader
             form.document_path = '';
             showConfirmDelete.value = false;
-
+            emit('exitUpdate');
         }
     })
 };
@@ -95,17 +92,18 @@ const clearDocument = () => {
                         <InputUpload v-model="form.document" :initialDocumentPath="form.document_path"
                             ref="fileUploader" />
                     </div>
-                    <div v-if="form.document_path || form.document" class="flex items-center justify-center mt-4">
-                        <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
-                            leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
-                            <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
-                        </Transition>
-                        <PrimaryButton class="ml-4" v-if="!form.document_path" :disabled="form.processing">
-                            <CloudArrowUpIcon class="-ml-0.5 h-5 w-5 mr-1" aria-hidden="true" /> Upload
+                    <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
+                        leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
+                        <p v-if="form.recentlySuccessful"
+                            class="text-sm text-gray-600 block mt-2 text-center bg-orange-100">Saved.</p>
+                    </Transition>
+                    <div v-if="form.document_path || form.document" class="flex items-center justify-center mt-2">
+                        <PrimaryButton v-if="!form.document_path" :disabled="form.processing">
+                            <CloudArrowUpIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Upload
                         </PrimaryButton>
-                        <DangerButton @click="onShowConfirmDelete" v-if="form.document_path" type="button" class="ml-2"
+                        <DangerButton @click="onShowConfirmDelete" v-if="form.document_path" type="button"
                             :disabled="form.processing">
-                            <XCircleIcon class="-ml-0.5 h-5 w-5 mr-1" aria-hidden="true" /> Delete
+                            <XCircleIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Delete
                         </DangerButton>
                     </div>
                     <div v-if="showConfirmDelete" ref="confirmDeleteDialog" tabindex="-1"

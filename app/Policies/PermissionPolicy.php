@@ -24,11 +24,11 @@ class PermissionPolicy
     {
         //
         // Jika user yang sedang login memiliki role "system"
-        if (!$user->hasRole('system')) {
-            return false;
+        if ($user->hasRole('system')) {
+            return true;
         }
 
         // Selain itu, izinkan penghapusan jika logika di atas tidak dilanggar
-        return true;
+        return false;
     }
 }

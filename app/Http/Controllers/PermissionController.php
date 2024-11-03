@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Permissions\UpdateRequest;
+use App\Http\Requests\Permission\UpdateRequest;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Inertia\Inertia;
