@@ -107,7 +107,7 @@ const closeAnswer = () => {
                                                 <div class="ml-4 flex min-w-0 flex-1 gap-2">
                                                     <span class="truncate font-medium">{{
                                                         $snakeCaseText(speak.speak_title)
-                                                    }}.pdf</span>
+                                                    }}.jpeg</span>
                                                     <span class="flex-shrink-0 text-gray-400">{{
                                                         speak.speak_document_size
                                                         }} mb</span>
@@ -153,7 +153,7 @@ const closeAnswer = () => {
                                                 <div class="ml-4 flex min-w-0 flex-1 gap-2">
                                                     <span class="truncate font-medium">{{
                                                         $snakeCaseText(speak.answer_title)
-                                                    }}.pdf</span>
+                                                    }}.jpeg</span>
                                                     <span class="flex-shrink-0 text-gray-400">{{
                                                         speak.answer_document_size
                                                         }} mb</span>
@@ -184,10 +184,10 @@ const closeAnswer = () => {
                 </div>
             </div>
         </div>
+        <ModalCreate :show="isCreate" @close="isCreate = false" />
+        <ModalUpdate :speak="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
+        <ModalAnswer :speak="selectedItem" :show="isAnswer" @close="closeAnswer" @exitAnswer="closeAnswer" />
+        <ModalDocument :document="selectedDocument" :show="showDocument" @close="closeDocument"
+            @exitDocument="closeDocument" />
     </AuthenticatedLayout>
-    <ModalCreate :show="isCreate" @close="isCreate = false" />
-    <ModalUpdate :speak="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
-    <ModalAnswer :speak="selectedItem" :show="isAnswer" @close="closeAnswer" @exitAnswer="closeAnswer" />
-    <ModalDocument :document="selectedDocument" :show="showDocument" @close="closeDocument"
-        @exitDocument="closeDocument" />
 </template>

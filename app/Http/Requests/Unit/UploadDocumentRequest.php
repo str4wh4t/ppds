@@ -19,13 +19,13 @@ class UploadDocumentRequest extends FormRequest
     /**
      * Pesan error khusus untuk validasi.
      */
-    // public function messages()
-    // {
-    //     return [
-    //         'document.required' => 'Dokumen wajib di-upload.',
-    //         'document.file' => 'Dokumen harus berupa file.',
-    //         'document.mimes' => 'Dokumen harus dalam format PDF.',
-    //         'document.max' => 'Ukuran dokumen maksimal adalah 10MB.',
-    //     ];
-    // }
+    public function messages()
+    {
+        return [
+            'document.required' => 'Dokumen wajib di-upload.',
+            'document.file' => 'Dokumen harus berupa file.',
+            'document.mimes' => 'Dokumen harus dalam format PDF.',
+            'document.max' => 'Ukuran dokumen maksimal adalah 10MB.',
+        ];
+    }
 }

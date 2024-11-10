@@ -3,8 +3,8 @@ return [
     'password_default' => '12345678',
     'public' => [
         'activity_types' => [
-            'stase',
-            'nonstase'
+            'jaga',
+            'nonjaga'
         ],
         'flashmsg' => [
             'ok' => 'ok',

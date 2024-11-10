@@ -123,6 +123,7 @@ Route::middleware(['permission:speak.crud'])->group(function () {
     Route::resource('/speaks', \App\Http\Controllers\SpeakController::class)->except(['index', 'update', 'show']);
     Route::get('/speaks/student-list', [\App\Http\Controllers\SpeakController::class, 'studentList'])->name('speaks.student-list');
     Route::post('/speaks/{speak}/answer', [\App\Http\Controllers\SpeakController::class, 'answer'])->name('speaks.answer'); // << karena ada upload file
+    Route::get('/speaks/{user}/index-flyer', [\App\Http\Controllers\SpeakController::class, 'indexFlyer'])->name('speaks.index-flyer');
 });
 
 Route::middleware(['permission:week-monitor.index'])->group(function () {

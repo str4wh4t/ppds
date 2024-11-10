@@ -29,7 +29,8 @@ import {
     ChatBubbleBottomCenterIcon,
     SpeakerWaveIcon,
     ExclamationCircleIcon,
-    PresentationChartBarIcon
+    PresentationChartBarIcon,
+    CalendarDaysIcon
 } from '@heroicons/vue/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, BellIcon } from '@heroicons/vue/20/solid'
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
@@ -43,13 +44,13 @@ const defaultnav = [
 ];
 
 const navigation = [
+    { name: 'Kalender', href: route('activities.calendar', { user: usePage().props.auth.user }), icon: CalendarDaysIcon, current: route().current('activities.calendar'), method: 'get' },
     { name: 'Logbook', href: route('activities.index', { user: usePage().props.auth.user }), icon: FolderIcon, current: route().current('activities.index'), method: 'get' },
-    { name: 'Kalender', href: route('activities.calendar', { user: usePage().props.auth.user }), icon: CalendarIcon, current: route().current('activities.calendar'), method: 'get' },
     { name: 'Beban Kerja', href: route('week-monitors.index', { user: usePage().props.auth.user }), icon: PresentationChartBarIcon, current: route().current('week-monitors.index'), method: 'get' },
     { name: 'Konsultasi', href: route('consults.index', { user: usePage().props.auth.user }), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.index'), method: 'get' },
     { name: 'Portofolio', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
     { name: 'Report', href: route('activities.report', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.report'), method: 'get' },
-    { name: 'Laporkan', href: route('speaks.index', { user: usePage().props.auth.user }), icon: ExclamationCircleIcon, current: route().current('speaks.index'), method: 'get' },
+    { name: 'Laporkan', href: route('speaks.index-flyer', { user: usePage().props.auth.user }), icon: ExclamationCircleIcon, current: route().current('speaks.index'), method: 'get' },
 ];
 
 const adminNavigation = [
@@ -111,7 +112,6 @@ watch(
 
 </script>
 <template>
-    <ModalGlobal />
     <TransitionRoot as="template" :show="sidebarOpen">
         <Dialog class="relative z-50 lg:hidden" @close="sidebarOpen = false">
             <TransitionChild as="template" enter="transition-opacity ease-linear duration-300" enter-from="opacity-0"
@@ -483,4 +483,5 @@ watch(
             </div>
         </main>
     </div>
+    <ModalGlobal />
 </template>

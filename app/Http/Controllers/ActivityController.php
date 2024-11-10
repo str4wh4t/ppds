@@ -72,7 +72,8 @@ class ActivityController extends Controller
             }
         }
 
-        $activities = $activities->paginate(10)
+        $activities = $activities
+            ->paginate(10)
             ->withQueryString();
 
         $stases = Stase::whereHas('units', function ($query) use ($user, $request) {
@@ -181,7 +182,7 @@ class ActivityController extends Controller
                     'is_approved' => 0, // default value
                     'approved_by' => null,
                     'approved_at' => null,
-                    'unit_stase_id' =>  $request->type == 'nonstase' ? null : $unit_stase_id,
+                    'unit_stase_id' =>  $request->type == 'nonjaga' ? null : $unit_stase_id,
                     'week_group_id' => $weekGroupId,
                     'is_generated' => 0,
                 ]);
@@ -238,7 +239,7 @@ class ActivityController extends Controller
                 $activity->update([
                     'name' => $request->name,
                     'type' => $request->type,
-                    'unit_stase_id' => $request->type == 'nonstase' ? null : $unit_stase_id,
+                    'unit_stase_id' => $request->type == 'nonjaga' ? null : $unit_stase_id,
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'time_spend' => $timeSpend,
@@ -300,7 +301,7 @@ class ActivityController extends Controller
 
         $stases = Stase::whereHas('units', function ($query) use ($user) {
             $query->where('units.id', $user->student_unit_id);
-        })->get(['id', 'name']);
+        })->selectRaw('id,name,CONCAT(name," - ",location) AS label')->get();
 
         return Inertia::render('Activities/Calendar', [
             'activities' => $activities,
@@ -425,7 +426,7 @@ class ActivityController extends Controller
         $unitSelected = $request->input('units');
 
         // ambil data activities berdasarkan user_id
-        $activities = Activity::where('type', 'stase')
+        $activities = Activity::where('type', 'jaga')
             ->when($search, function ($query, $search) {
                 $query->whereHas('user', function ($query) use ($search) {
                     $query->where('fullname', 'like', "%{$search}%");
@@ -467,6 +468,7 @@ class ActivityController extends Controller
         foreach ($activities as $activity) {
             $userName = $activity->user->username;       // Mengambil nama user dari activity
             $staseName = $activity->unitStase->stase->name;  // Mengambil nama stase dari relasi unit_stase
+            $staseLocation = $activity->unitStase->stase->location;
 
             // Jika user belum ada di array, inisialisasi dengan array kosong
             if (!isset($userStaseCounts[$userName])) {
@@ -477,16 +479,17 @@ class ActivityController extends Controller
             }
 
             // Jika stase belum ada di array user, inisialisasi dengan 0
-            if (!isset($userStaseCounts[$userName]['stases'][$staseName])) {
-                $userStaseCounts[$userName]['stases'][$staseName] = [
+            if (!isset($userStaseCounts[$userName]['stases'][$staseName . '|' . $staseLocation])) {
+                $userStaseCounts[$userName]['stases'][$staseName . '|' . $staseLocation] = [
                     'stase_id' => $activity->unitStase->stase->id,
                     'name' => $staseName,
+                    'location' => $staseLocation,
                     'count' => 0
                 ];
             }
 
             // Tambah jumlah pengambilan stase oleh user
-            $userStaseCounts[$userName]['stases'][$staseName]['count']++;
+            $userStaseCounts[$userName]['stases'][$staseName . '|' . $staseLocation]['count']++;
         }
         foreach ($userStaseCounts as &$userStaseCount) {
             $userStaseCount['stases'] = array_values($userStaseCount['stases']);

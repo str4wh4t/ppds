@@ -57,6 +57,10 @@ if (!user.is_read_guideline && is_student) {
                         <dt class="text-sm font-medium leading-6 text-gray-900">Alamat email</dt>
                         <dd class="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">{{ user.email }}</dd>
                     </div>
+                    <div v-if="$hasRoles('student')" class="border-t border-gray-100 px-4 py-3 sm:col-span-1 sm:px-0">
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Prodi</dt>
+                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">{{ user.student_unit.name }}</dd>
+                    </div>
                     <!-- <div class="border-t border-gray-100 px-4 py-3 sm:col-span-2 sm:px-0">
                         <dt class="text-sm font-medium leading-6 text-gray-900">About</dt>
                         <dd class="mt-1 text-sm leading-6 text-gray-700 sm:mt-2">Fugiat ipsum ipsum deserunt culpa
@@ -99,6 +103,6 @@ if (!user.is_read_guideline && is_student) {
                 </dl>
             </div>
         </div>
+        <ModalGuideline :user="user" :show="showGuideline" @close="closeGuideline" @exitUpdate="closeGuideline" />
     </AuthenticatedLayout>
-    <ModalGuideline :user="user" :show="showGuideline" @close="closeGuideline" @exitUpdate="closeGuideline" />
 </template>

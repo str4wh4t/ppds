@@ -118,8 +118,8 @@ const deleteItem = () => {
 
                     <div class="mt-2"
                         v-if="activityType &&
-                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'stase') ||
-                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'stase'))">
+                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'jaga') ||
+                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'jaga'))">
                         <InputLabel for="stase" value="Stases" />
                         <SelectInput id="stase" class="mt-1 block w-full" v-model="activityStase"
                             :options="staseOptions" required />

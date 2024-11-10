@@ -298,7 +298,7 @@ const replaceProps = async (props, selected = null) => {
                 </div>
             </div>
         </div>
+        <ModalEntryActivity :selectedDay="selectedDay" :activities="userActivities" :show="isCreate"
+            @close="isCreate = false" @updateProps="replaceProps" />
     </AuthenticatedLayout>
-    <ModalEntryActivity :selectedDay="selectedDay" :activities="userActivities" :show="isCreate"
-        @close="isCreate = false" @updateProps="replaceProps" />
 </template>

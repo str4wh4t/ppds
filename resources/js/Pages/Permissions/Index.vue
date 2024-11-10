@@ -146,6 +146,6 @@ const closeUpdate = () => {
                 </div>
             </div>
         </div>
+        <ModalUpdate :permission="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
     </AuthenticatedLayout>
-    <ModalUpdate :permission="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
 </template>

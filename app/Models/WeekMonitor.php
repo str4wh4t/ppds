@@ -27,7 +27,7 @@ class WeekMonitor extends Model
     protected static function booted()
     {
         static::addGlobalScope('latest', function ($query) {
-            $query->orderBy('user_id')->orderBy('week', 'desc');
+            $query->where('workload_hours', '!=', 0)->orderBy('user_id')->orderBy('week', 'desc');
         });
     }
 }

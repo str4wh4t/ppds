@@ -236,11 +236,11 @@ const searchPosts = () => {
                 </div>
             </div>
         </div>
+        <ModalCreate :show="isCreate" @close="isCreate = false" />
+        <ModalUpdate :unit="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
+        <ModalUploadSchedule :unit="selectedItem" :show="isUploadSchedule" @close="closeUploadSchedule"
+            @exitUpdate="closeUploadSchedule" />
+        <ModalUploadGuideline :unit="selectedItem" :show="isUploadGuideline" @close="closeUploadGuideline"
+            @exitUpdate="closeUploadGuideline" />
     </AuthenticatedLayout>
-    <ModalCreate :show="isCreate" @close="isCreate = false" />
-    <ModalUpdate :unit="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
-    <ModalUploadSchedule :unit="selectedItem" :show="isUploadSchedule" @close="closeUploadSchedule"
-        @exitUpdate="closeUploadSchedule" />
-    <ModalUploadGuideline :unit="selectedItem" :show="isUploadGuideline" @close="closeUploadGuideline"
-        @exitUpdate="closeUploadGuideline" />
 </template>

@@ -20,7 +20,7 @@ class StoreRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique(Portofolio::class),
+                Rule::unique(Portofolio::class)->where('user_id', $this->user()->id),
             ],
             'description' => [
                 'required',

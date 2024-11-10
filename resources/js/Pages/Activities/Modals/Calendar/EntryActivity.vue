@@ -93,7 +93,11 @@ const openUpdate = (activity) => {
     form.name = activity.name;
     form.type = activity.type;
     activityType.value = activity.type;
-    activityStase.value = activity.unit_stase?.stase.name ?? null;
+    activityStase.value = activity.unit_stase?.stase ? {
+        id: activity.unit_stase?.stase.id,
+        name: activity.unit_stase?.stase.name,
+        label: activity.unit_stase?.stase.name + " - " + activity.unit_stase?.stase.location
+    } : null;
     form.start_time = moment(activity.start_date).format('HH:mm');
     form.finish_time = moment(activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(activity.end_date).format('HH:mm');
     // form.start_time = mmDate({ date: activity.start_date, formatOutput: 'HH:mm' });
@@ -105,7 +109,7 @@ const openUpdate = (activity) => {
 
 const submit = () => {
     form.type = activityType.value?.name ?? activityType.value;
-    form.stase_id = activityStase.value?.id ?? staseOptions.find(stase => stase.name === activityStase.value)?.id ?? null;
+    form.stase_id = activityStase.value?.id ?? null;
     form.date = props.selectedDay.date;
     if (isUpdate.value === false) {
         form.post(route('activities.store'), {
@@ -241,9 +245,10 @@ const totalWorkload = (activities) => {
                                         <div class="font-medium text-gray-900">
                                             {{ activity.type }}
                                         </div>
-                                        <div v-if="activity.type == 'stase'"
+                                        <div v-if="activity.type == 'jaga'"
                                             class="hidden mt-1 flex flex-col text-gray-500 sm:block">
-                                            <span>{{ activity.unit_stase.stase.name }}</span>
+                                            <span class="sm:block">{{ activity.unit_stase.stase.name }}</span>
+                                            <span>{{ activity.unit_stase.stase.location }}</span>
                                         </div>
                                         <div v-if="index !== 0"
                                             class="absolute -top-px left-6 right-0 h-px bg-gray-200" />
@@ -297,8 +302,8 @@ const totalWorkload = (activities) => {
 
                     <div class="mt-2"
                         v-if="activityType &&
-                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'stase') ||
-                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'stase'))">
+                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'jaga') ||
+                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'jaga'))">
                         <InputLabel for="stase" value="Stases" />
                         <SelectInput id="stase" class="mt-1 block w-full" v-model="activityStase"
                             :options="staseOptions" required />

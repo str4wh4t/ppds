@@ -20,7 +20,9 @@ class UpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique(Portofolio::class)->ignore($this->portofolio->id),
+                Rule::unique(Portofolio::class)
+                    ->where('user_id', $this->user()->id)
+                    ->ignore($this->portofolio->id),
             ],
             'description' => [
                 'required',

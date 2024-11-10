@@ -186,7 +186,7 @@ const searchPosts = () => {
                 </div>
             </div>
         </div>
+        <ModalCreate :show="isCreate" @close="isCreate = false" />
+        <ModalUpdate :user="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
     </AuthenticatedLayout>
-    <ModalCreate :show="isCreate" @close="isCreate = false" />
-    <ModalUpdate :user="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
 </template>

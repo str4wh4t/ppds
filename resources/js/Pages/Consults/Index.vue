@@ -114,10 +114,10 @@ const closeReply = () => {
                                                 <div class="ml-4 flex min-w-0 flex-1 gap-2">
                                                     <span class="truncate font-medium">{{
                                                         $snakeCaseText(consult.consult_title)
-                                                    }}.pdf</span>
+                                                        }}.pdf</span>
                                                     <span class="flex-shrink-0 text-gray-400">{{
                                                         consult.consult_document_size
-                                                    }} mb</span>
+                                                        }} mb</span>
                                                 </div>
                                             </div>
                                             <div class="ml-4 flex-shrink-0">
@@ -165,10 +165,10 @@ const closeReply = () => {
                                                 <div class="ml-4 flex min-w-0 flex-1 gap-2">
                                                     <span class="truncate font-medium">{{
                                                         $snakeCaseText(consult.reply_title)
-                                                        }}.pdf</span>
+                                                    }}.pdf</span>
                                                     <span class="flex-shrink-0 text-gray-400">{{
                                                         consult.reply_document_size
-                                                    }} mb</span>
+                                                        }} mb</span>
                                                 </div>
                                             </div>
                                             <div class="ml-4 flex-shrink-0">
@@ -196,10 +196,10 @@ const closeReply = () => {
                 </div>
             </div>
         </div>
+        <ModalCreate :show="isCreate" @close="isCreate = false" />
+        <ModalUpdate :consult="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
+        <ModalReply :consult="selectedItem" :show="isReply" @close="closeReply" @exitReply="closeReply" />
+        <ModalDocument :document="selectedDocument" :show="showDocument" @close="closeDocument"
+            @exitDocument="closeDocument" />
     </AuthenticatedLayout>
-    <ModalCreate :show="isCreate" @close="isCreate = false" />
-    <ModalUpdate :consult="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
-    <ModalReply :consult="selectedItem" :show="isReply" @close="closeReply" @exitReply="closeReply" />
-    <ModalDocument :document="selectedDocument" :show="showDocument" @close="closeDocument"
-        @exitDocument="closeDocument" />
 </template>

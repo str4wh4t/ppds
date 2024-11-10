@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->onDelete('restrict');
-            $table->string('name')->unique();
+            $table->string('name');
             $table->text('description');
             $table->string('portofolio_document_path');
             $table->timestamps();

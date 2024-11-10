@@ -211,7 +211,7 @@ const closeUpdate = () => {
                 </div>
             </div>
         </div>
+        <ModalCreate :show="isCreate" @close="isCreate = false" />
+        <ModalUpdate :portofolio="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
     </AuthenticatedLayout>
-    <ModalCreate :show="isCreate" @close="isCreate = false" />
-    <ModalUpdate :portofolio="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
 </template>

@@ -150,7 +150,8 @@ const openModalGlobal = () => {
                                 {{ activity.type }}
                             </div>
                             <div class="mt-1 flex flex-col text-gray-500 text-xs sm:block">
-                                <span>{{ activity?.unit_stase?.stase.name }}</span>
+                                <span class="sm:block">{{ activity?.unit_stase?.stase.name }}</span>
+                                <span>{{ activity?.unit_stase?.stase.location }}</span>
                             </div>
                         </td>
                         <td
@@ -246,7 +247,7 @@ const openModalGlobal = () => {
                 </div>
             </div>
         </div>
+        <!-- <ModalCreate :show="isCreate" @close="isCreate = false" /> -->
+        <ModalUpdate :activity="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
     </AuthenticatedLayout>
-    <!-- <ModalCreate :show="isCreate" @close="isCreate = false" /> -->
-    <ModalUpdate :activity="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
 </template>

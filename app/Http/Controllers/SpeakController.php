@@ -61,6 +61,11 @@ class SpeakController extends Controller
         ]);
     }
 
+    public function indexFlyer(Request $request, User $user): Response
+    {
+        return Inertia::render('Speaks/IndexFlyer');
+    }
+
     public function studentList(Request $request): Response
     {
         //

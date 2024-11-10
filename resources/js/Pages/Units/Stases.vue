@@ -223,6 +223,6 @@ const openModalGlobal = () => {
                 </div>
             </div>
         </div>
+        <ModalPickDosen :stase="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
     </AuthenticatedLayout>
-    <ModalPickDosen :stase="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
 </template>

@@ -21,5 +21,14 @@ How to install :
 
 Todo List :
 
-1. notifikasi
-2. policy untuk index
+1. ~~notifikasi~~
+2. ~~policy untuk index~~
+
+Todolist
+
+1. membuat manual book
+2. ~~memampilkan flyer (4) di laporkan~~
+3. ~~portofolio name unique belum pas~~
+4. ~~menghapus record selain huda~~
+5. ~~stase / nonstase diganti jaga / nonjaga~~
+6. ~~memunculkan nama rumah sakit disamping nama stase~~
