@@ -20,7 +20,7 @@ How to install :
 8. login with user : super , pass : 12345678
 9. enjoy
 
-Todo List :
+Todolist :
 
 1. ~~notifikasi~~
 2. ~~policy untuk index~~
