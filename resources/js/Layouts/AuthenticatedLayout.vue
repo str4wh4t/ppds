@@ -30,7 +30,8 @@ import {
     SpeakerWaveIcon,
     ExclamationCircleIcon,
     PresentationChartBarIcon,
-    CalendarDaysIcon
+    CalendarDaysIcon,
+    BuildingOffice2Icon
 } from '@heroicons/vue/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, BellIcon } from '@heroicons/vue/20/solid'
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
@@ -66,7 +67,7 @@ const adminNavigation = [
 const masterNavigation = [
     { name: 'Units', href: route('units.index'), icon: QueueListIcon, current: route().current('units.index') },
     { name: 'Stase', href: route('stases.index'), icon: ClipboardDocumentListIcon, current: route().current('stases.index') },
-    { name: 'Location', href: route('stase-locations.index'), icon: ClipboardDocumentListIcon, current: route().current('stase-locations.index') },
+    { name: 'Location', href: route('stase-locations.index'), icon: BuildingOffice2Icon, current: route().current('stase-locations.index') },
     {
         name: 'Users',
         icon: UsersIcon,
