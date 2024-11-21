@@ -23,6 +23,7 @@ class PermissionSeeder extends Seeder
             'kaprodi.crud',
             'unit.crud',
             'stase.crud',
+            'stase-location.crud',
             'logbook.crud',
             'portofolio.crud',
             'consult.crud',

@@ -49,7 +49,11 @@ watch(
             form.name = props.activity.name;
             form.type = props.activity.type;
             activityType.value = props.activity.type;
-            activityStase.value = props.activity.unit_stase?.stase.name ?? null;
+            activityStase.value = props.activity.unit_stase?.stase ? {
+                id: props.activity.unit_stase?.stase.id,
+                name: props.activity.unit_stase?.stase.name,
+                label: props.activity.unit_stase?.stase.name + " - " + props.activity.unit_stase?.stase.stase_location.name
+            } : null;
             form.start_time = moment(props.activity.start_date).format('HH:mm');
             form.finish_time = moment(props.activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(props.activity.end_date).format('HH:mm');
             form.description = props.activity?.description ?? '';
@@ -61,7 +65,7 @@ watch(
 
 const submit = () => {
     form.type = activityType.value?.name ?? activityType.value;
-    form.stase_id = activityStase.value?.id ?? staseOptions.find(stase => stase.name === activityStase.value)?.id ?? null;
+    form.stase_id = activityStase.value?.id ?? null;
     form.put(route('activities.update', { activity: props.activity }), {
         onSuccess: (data) => {
             form.clearErrors();

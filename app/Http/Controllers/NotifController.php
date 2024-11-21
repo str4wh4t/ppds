@@ -11,7 +11,8 @@ class NotifController extends Controller
     public function index(Request $request)
     {
         // render Notif/Index
-        $notifs = $request->user()->unreadNotifications;
+        // $notifs = $request->user()->unreadNotifications;
+        $notifs = null;
         return Inertia::render(
             'Notifs/Index',
             [

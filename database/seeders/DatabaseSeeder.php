@@ -31,8 +31,8 @@ class DatabaseSeeder extends Seeder
         $user = \App\Models\User::first();
         $user->assignRole('system');
 
-        Permission::firstOrCreate(['name' => 'access control']);
+        Permission::firstOrCreate(['name' => 'access-control']);
         $role = Role::findByName('system');
-        $role->givePermissionTo('access control');
+        $role->givePermissionTo('access-control');
     }
 }

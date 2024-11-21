@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Stase;
+namespace App\Http\Requests\StaseLocation;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
-class UpdateRequest extends FormRequest
+class StoreRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -20,10 +20,6 @@ class UpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-            ],
-            'stase_location_id' => [
-                'required',
-                'exists:stase_locations,id',
             ],
             'description' => [
                 'nullable',

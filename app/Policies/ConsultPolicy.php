@@ -53,4 +53,10 @@ class ConsultPolicy
         // 
         return $user->id === $model->user_id;
     }
+
+    public function reply(User $user, Consult $model): bool
+    {
+        // 
+        return $user->id === $model->dosbing_user_id;
+    }
 }

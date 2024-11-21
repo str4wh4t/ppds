@@ -62,7 +62,7 @@ class ActivityController extends Controller
                     $query->whereIn('name', $unitNames);
                 });
             }
-        })->with('user', 'user.studentUnit', 'unitStase', 'unitStase.stase');
+        })->with('user', 'user.studentUnit', 'unitStase', 'unitStase.stase', 'unitStase.stase.staseLocation');
 
         if ($request->user()->hasRole('student')) {
             $activities = $activities->where('user_id', $request->user()->id);
@@ -80,7 +80,9 @@ class ActivityController extends Controller
             if ($request->user()->hasRole('student')) {
                 $query->where('units.id', $user->student_unit_id);
             }
-        })->get(['id', 'name']);
+        })
+            ->join('stase_locations', 'stases.stase_location_id', '=', 'stase_locations.id')
+            ->selectRaw('stases.id,stases.name,CONCAT(stases.name," - ",stase_locations.name) AS label')->get();
 
         $units = Unit::all();
 
@@ -294,14 +296,16 @@ class ActivityController extends Controller
         }
 
         $activities = Activity::where('user_id', $user->id)
-            ->with('unitStase', 'unitStase.stase')
+            ->with('unitStase', 'unitStase.stase', 'unitStase.stase.staseLocation')
             ->with('weekMonitor', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->get();
 
         $stases = Stase::whereHas('units', function ($query) use ($user) {
             $query->where('units.id', $user->student_unit_id);
-        })->selectRaw('id,name,CONCAT(name," - ",location) AS label')->get();
+        })
+            ->join('stase_locations', 'stases.stase_location_id', '=', 'stase_locations.id')
+            ->selectRaw('stases.id,stases.name,CONCAT(stases.name," - ",stase_locations.name) AS label')->get();
 
         return Inertia::render('Activities/Calendar', [
             'activities' => $activities,
@@ -393,10 +397,10 @@ class ActivityController extends Controller
             $workload_hours = $dayObj['workload_hours'];
 
             // Logika untuk menandai tanggal sebagai warning atau danger
-            if ($workload_hours >= 70 && $workload_hours < 80) {
+            if ($workload_hours > 70 && $workload_hours <= 80) {
                 $dayObj['isWarning'] = true;
             }
-            if ($workload_hours >= 80) {
+            if ($workload_hours > 80) {
                 $dayObj['isDanger'] = true;
             }
 
@@ -468,7 +472,7 @@ class ActivityController extends Controller
         foreach ($activities as $activity) {
             $userName = $activity->user->username;       // Mengambil nama user dari activity
             $staseName = $activity->unitStase->stase->name;  // Mengambil nama stase dari relasi unit_stase
-            $staseLocation = $activity->unitStase->stase->location;
+            $staseLocation = $activity->unitStase->stase->staseLocation->name;  // Mengambil lokasi stase dari relasi unit_stase
 
             // Jika user belum ada di array, inisialisasi dengan array kosong
             if (!isset($userStaseCounts[$userName])) {
@@ -505,7 +509,9 @@ class ActivityController extends Controller
                     $query->where('units.id', $user->student_unit_id);
                 }
             }
-        })->get(['id', 'name', 'location']);
+        })
+            ->join('stase_locations', 'stases.stase_location_id', '=', 'stase_locations.id')
+            ->selectRaw('stases.id,stases.name,stase_locations.name AS location')->get();
 
         $units = Unit::all();
 

@@ -151,7 +151,7 @@ const openModalGlobal = () => {
                             </div>
                             <div class="mt-1 flex flex-col text-gray-500 text-xs sm:block">
                                 <span class="sm:block">{{ activity?.unit_stase?.stase.name }}</span>
-                                <span>{{ activity?.unit_stase?.stase.location }}</span>
+                                <span>{{ activity?.unit_stase?.stase.stase_location.name }}</span>
                             </div>
                         </td>
                         <td

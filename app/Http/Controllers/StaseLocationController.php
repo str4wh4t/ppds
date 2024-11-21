@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Stase\StoreRequest;
-use App\Http\Requests\Stase\UpdateRequest;
-use App\Models\User;
-use App\Models\Stase;
 use App\Models\StaseLocation;
+use App\Http\Requests\StaseLocation\StoreRequest;
+use App\Http\Requests\StaseLocation\UpdateRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -14,7 +12,7 @@ use Inertia\Response;
 use \Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Redirect;
 
-class StaseController extends Controller
+class StaseLocationController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -24,23 +22,16 @@ class StaseController extends Controller
         //
         $search = $request->input('search');
 
-        $stases = Stase::when($search, function ($query, $search) {
+        $stase_locations = StaseLocation::when($search, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%");
-            })->orWhereHas('staseLocation', function ($query) use ($search) {
-                // Pencarian pada kolom 'name' di relasi staseLocation
                 $query->where('name', 'like', "%{$search}%");
             });
         })
-            ->with('staseLocation')
             ->paginate(10)
             ->withQueryString();
 
-        $stase_location_list = StaseLocation::all();
-
-        return Inertia::render('Stases/Index', [
-            'stases' => $stases,
-            'stase_location_list' => $stase_location_list,
+        return Inertia::render('StaseLocations/Index', [
+            'stase_locations' => $stase_locations,
             'filters' => [
                 'search' => $search,
             ]
@@ -58,19 +49,18 @@ class StaseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreRequest $request): RedirectResponse
+    public function store(StoreRequest $request)
     {
         //
         try {
             DB::transaction(function () use ($request) {
-                Stase::create([
+                StaseLocation::create([
                     'name' => $request->name,
-                    'stase_location_id' => $request->stase_location_id,
                     'description' => $request->description,
                 ]);
             });
 
-            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase created successfully');
+            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase location created successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
         }
@@ -79,7 +69,7 @@ class StaseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Stase $stase)
+    public function show(StaseLocation $staseLocation)
     {
         //
     }
@@ -87,7 +77,7 @@ class StaseController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Stase $stase)
+    public function edit(StaseLocation $staseLocation)
     {
         //
     }
@@ -95,19 +85,18 @@ class StaseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateRequest $request, Stase $stase)
+    public function update(UpdateRequest $request, StaseLocation $stase_location)
     {
         //
         try {
-            DB::transaction(function () use ($request, $stase) {
-                $stase->update([
+            DB::transaction(function () use ($request, $stase_location) {
+                $stase_location->update([
                     'name' => $request->name,
-                    'stase_location_id' => $request->stase_location_id,
                     'description' => $request->description,
                 ]);
             });
 
-            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase updated successfully');
+            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase location updated successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
         }
@@ -116,14 +105,14 @@ class StaseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Stase $stase): RedirectResponse
+    public function destroy(StaseLocation $stase_location)
     {
         //
         try {
-            DB::transaction(function () use ($stase) {
-                $stase->delete();
+            DB::transaction(function () use ($stase_location) {
+                $stase_location->delete();
             });
-            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase deleted successfully');
+            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase location deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
         }

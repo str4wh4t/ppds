@@ -159,7 +159,7 @@ const deleteItem = () => {
                                                 <label :for="stase.name" class="font-medium text-gray-900">{{ stase.name
                                                     }}</label>
                                                 <p :id="stase.name + '-location'" class="text-gray-500">{{
-                                                    stase.location }}
+                                                    stase.stase_location.name }}
                                                 </p>
                                             </div>
                                         </div>

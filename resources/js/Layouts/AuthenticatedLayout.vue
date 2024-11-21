@@ -50,7 +50,7 @@ const navigation = [
     { name: 'Konsultasi', href: route('consults.index', { user: usePage().props.auth.user }), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.index'), method: 'get' },
     { name: 'Portofolio', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
     { name: 'Report', href: route('activities.report', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.report'), method: 'get' },
-    { name: 'Laporkan', href: route('speaks.index-flyer', { user: usePage().props.auth.user }), icon: ExclamationCircleIcon, current: route().current('speaks.index'), method: 'get' },
+    { name: 'Laporkan', href: route('speaks.index-flyer'), icon: ExclamationCircleIcon, current: route().current('speaks.index-flyer'), method: 'get' },
 ];
 
 const adminNavigation = [
@@ -60,12 +60,13 @@ const adminNavigation = [
     { name: 'Konsultasi', href: route('consults.student-list'), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.student-list') || route().current('consults.index'), method: 'get' },
     { name: 'Portofolio', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
     { name: 'Report', href: route('activities.report', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.report'), method: 'get' },
-    { name: 'Laporkan', href: route('speaks.student-list'), icon: ExclamationCircleIcon, current: route().current('speaks.student-list') || route().current('speaks.index'), method: 'get' },
+    // { name: 'Laporkan', href: route('speaks.student-list'), icon: ExclamationCircleIcon, current: route().current('speaks.student-list') || route().current('speaks.index'), method: 'get' },
 ];
 
 const masterNavigation = [
     { name: 'Units', href: route('units.index'), icon: QueueListIcon, current: route().current('units.index') },
     { name: 'Stase', href: route('stases.index'), icon: ClipboardDocumentListIcon, current: route().current('stases.index') },
+    { name: 'Location', href: route('stase-locations.index'), icon: ClipboardDocumentListIcon, current: route().current('stase-locations.index') },
     {
         name: 'Users',
         icon: UsersIcon,

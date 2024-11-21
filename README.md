@@ -12,12 +12,13 @@ How to install :
 
 1. clone this repo !!!
 2. composer install
-3. npm run prod
+3. npm run build
 4. php artisan migrate
 5. php artisan db:seed
 6. php artisan db:seed --class=RoleSeeder
 7. php artisan db:seed --class=PermissionSeeder
-8. enjoy
+8. login with user : super , pass : 12345678
+9. enjoy
 
 Todo List :
 
@@ -32,3 +33,8 @@ Todolist
 4. ~~menghapus record selain huda~~
 5. ~~stase / nonstase diganti jaga / nonjaga~~
 6. ~~memunculkan nama rumah sakit disamping nama stase~~
+
+Todolist (20/11/2024)
+
+1. membuat role advisor_rs
+2. menyesuaikan stase dengan location

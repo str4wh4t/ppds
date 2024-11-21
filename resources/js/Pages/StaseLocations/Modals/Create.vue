@@ -6,19 +6,14 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import SelectInput from '@/Components/SelectInputBasic.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     show: Boolean,
 });
 
-const staseLocation = ref(null);
-const staseLocationList = usePage().props.stase_location_list;
-
 const form = useForm({
     name: '',
-    stase_location_id: '',
     description: '',
 });
 
@@ -28,19 +23,16 @@ watch(
         if (newValue) {
             form.reset();
             form.clearErrors();
-            staseLocation.value = null;
         }
     },
     { immediate: true }
 );
 
 const submit = () => {
-    form.stase_location_id = staseLocation.value?.id ?? '';
-    form.post(route('stases.store'), {
+    form.post(route('stase-locations.store'), {
         onSuccess: (data) => {
             form.reset();
             form.clearErrors();
-            staseLocation.value = null;
         },
     });
 };
@@ -53,7 +45,7 @@ const submit = () => {
                 <!-- Content goes here -->
                 <!-- We use less vertical padding on card headers on desktop than on body sections -->
                 <h2 class="text-lg font-medium text-gray-900">
-                    Create Stase
+                    Create Stase Location
                 </h2>
             </div>
             <div class="px-4 py-5 sm:p-6">
@@ -66,14 +58,6 @@ const submit = () => {
                             autofocus autocomplete="name" />
 
                         <InputError class="mt-2" :message="form.errors.name" />
-                    </div>
-                    <div class="mt-2">
-                        <InputLabel for="stase_location_id" value="Location" />
-
-                        <SelectInput id="stase_location_id" class="mt-1 block w-full" v-model="staseLocation"
-                            :options="staseLocationList" required autofocus autocomplete="stase_location_id" />
-
-                        <InputError class="mt-2" :message="form.errors.stase_location_id" />
                     </div>
                     <div class="mt-2">
                         <InputLabel for="description" value="Description" />

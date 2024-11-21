@@ -76,7 +76,7 @@ const closeUpdate = () => {
             </div>
             <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-none">
                 <CreateButton @click="isCreate = true">
-                    Add portofolio
+                    Tambah portofolio
                 </CreateButton>
             </div>
         </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Consult;
 use App\Models\WeekMonitor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -33,8 +34,14 @@ class HandleInertiaRequests extends Middleware
     {
         $data = [
             ...parent::share($request),
+            // 'auth' => [
+            //     'user' => $request->user() ?
+            //         ($request->user()->hasRole('student') ? $request->user()->load('roles.permissions', 'dosenUnits', 'kaprodiUnits', 'dosbingStudents', 'adminUnits') :
+            //             $request->user()->load('roles.permissions', 'dosenUnits', 'kaprodiUnits', 'dosbingStudents', 'adminUnits')) :
+            //         null,
+            // ],
             'auth' => [
-                'user' => $request->user() ? $request->user()->load('roles.permissions') : null,
+                'user' => $request->user() ? $request->user()->load('roles.permissions', 'dosenUnits', 'kaprodiUnits', 'dosbingStudents', 'adminUnits') : null,
             ],
             'flashmsg' => [
                 config('constants.public.flashmsg.ok') => session()->get(config('constants.public.flashmsg.ok')),
@@ -42,9 +49,14 @@ class HandleInertiaRequests extends Middleware
             ],
             'constants' => config('constants.public'), // Bagikan semua konstanta
             'exceededWorkloads' => $request->user() ?
-                ($request->user()->hasRole('student') ?
+                (($request->user()->hasRole('student') ?
                     WeekMonitor::where('workload_hours', '>', 80)->where('user_id', $request->user()->id)->get() :
-                    WeekMonitor::where('workload_hours', '>', 80)->with('user', 'user.studentUnit')->get()) :
+                    WeekMonitor::where('workload_hours', '>', 80)->with('user', 'user.studentUnit')->get())) :
+                null,
+            'unreadConsults' => $request->user() ?
+                (($request->user()->hasRole('student') ?
+                    Consult::where('reply_at', null)->where('user_id', $request->user()->id)->get() :
+                    Consult::where('reply_at', null)->with('user', 'user.studentUnit')->get())) :
                 null,
         ];
 

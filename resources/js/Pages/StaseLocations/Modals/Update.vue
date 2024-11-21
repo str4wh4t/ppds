@@ -10,23 +10,18 @@ import { useForm, usePage } from '@inertiajs/vue3';
 import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import SelectInput from '@/Components/SelectInputBasic.vue';
-import InputUpload from '@/Components/InputUpload.vue';
-import QuillEditor from '@/Components/QuillEditor.vue';
-import { XCircleIcon } from '@heroicons/vue/24/outline';
 
-const emit = defineEmits(['exitReply']);
+const emit = defineEmits(['exitUpdate']);
 const props = defineProps({
-    consult: Object,
+    stase_location: Object,
     show: Boolean,
 });
 
 const showConfirmDelete = ref(false);
 
 const form = useForm({
-    reply_title: '',
-    reply: '',
-    document: null,
-    reply_document_path: null,
+    name: '',
+    description: '',
 });
 
 watch(
@@ -37,27 +32,18 @@ watch(
         }
         if (newValue) {
             form.clearErrors();
-            form.reply_title = props.consult.reply_title;
-            form.reply = props.consult.reply;
-            // form.document = '';
-            form.reply_document_path = props.consult.reply_document_path;
+            form.name = props.stase_location.name;
+            form.description = props.stase_location.description;
         }
     },
     { immediate: true }
 );
 
 const submit = () => {
-    if (form.reply.trim() === '<p><br></p>') {
-        form.reply = ''; // Mengosongkan konten jika hanya berisi paragraf kosong
-    }
-    if (form.document !== null) { // << ini karena document di buat nullable di database
-        form.reply_document_path = URL.createObjectURL(form.document);
-    }
-    form.post(route('consults.reply', { consult: props.consult }), {
+    form.put(route('stase-locations.update', { stase_location: props.stase_location }), {
         onSuccess: (data) => {
             form.clearErrors();
             showConfirmDelete.value = false;
-            // form.document = null;
         }
     })
 };
@@ -72,22 +58,14 @@ const onShowConfirmDelete = () => {
 }
 
 const deleteItem = () => {
-    form.delete(route('consults.destroyReply', { consult: props.consult }), {
+    form.delete(route('stase-locations.destroy', { stase_location: props.stase_location }), {
         onSuccess: (data) => {
             form.reset();
             showConfirmDelete.value = false;
-            emit('exitReply');
+            emit('exitUpdate');
         },
     });
 }
-
-const fileUploader = ref(null);
-
-const clearDocument = () => {
-    fileUploader.value?.removeDocument(); // Memanggil removeDocument dari FileUploader
-    form.reply_document_path = null;
-    form.document = null;
-};
 
 </script>
 <template>
@@ -97,31 +75,27 @@ const clearDocument = () => {
                 <!-- Content goes here -->
                 <!-- We use less vertical padding on card headers on desktop than on body sections -->
                 <h2 class="text-lg font-medium text-gray-900">
-                    Update Konsultasi
+                    Update Stase Location
                 </h2>
             </div>
             <div class="px-4 py-5 sm:p-6">
                 <!-- Content goes here -->
                 <form @submit.prevent="submit" class="mt-1 text-sm text-gray-600">
                     <div>
-                        <InputLabel for="reply_title" value="Judul" />
+                        <InputLabel for="name" value="Name" />
 
-                        <TextInput id="reply_title" type="text" class="mt-1 block w-full" v-model="form.reply_title"
-                            required autofocus autocomplete="reply_title" />
+                        <TextInput id="name" type="text" class="mt-1 block w-full" v-model="form.name" required
+                            autofocus autocomplete="name" />
 
-                        <InputError class="mt-2" :message="form.errors.reply_title" />
+                        <InputError class="mt-2" :message="form.errors.name" />
                     </div>
                     <div class="mt-2">
-                        <InputLabel for="reply" value="Description" />
+                        <InputLabel for="description" value="Description" />
 
-                        <QuillEditor id="reply" class="mt-1 block w-full" v-model="form.reply" />
+                        <TextInput id="description" type="text" class="mt-1 block w-full" v-model="form.description"
+                            autofocus autocomplete="description" />
 
-                        <InputError class="mt-2" :message="form.errors.reply" />
-                    </div>
-                    <div class="mt-2">
-                        <InputUpload v-model="form.document" :initialDocumentPath="form.reply_document_path"
-                            ref="fileUploader" />
-                        <InputError class="mt-2" :message="form.errors.document" />
+                        <InputError class="mt-2" :message="form.errors.description" />
                     </div>
                     <div class="flex items-center justify-end mt-4">
                         <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
@@ -131,10 +105,6 @@ const clearDocument = () => {
                         <PrimaryButton class="ml-4" :disabled="form.processing">
                             Save
                         </PrimaryButton>
-                        <DangerButton @click="clearDocument" v-if="form.reply_document_path" type="button" class="ml-2"
-                            :disabled="form.processing">
-                            <XCircleIcon class="-ml-0.5 h-4 w-4 mr-1" aria-hidden="true" /> Hapus Dokumen
-                        </DangerButton>
                         <DangerButton type="button" class="ml-2" :disabled="form.processing"
                             @click="onShowConfirmDelete">
                             Delete

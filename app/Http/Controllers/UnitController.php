@@ -58,7 +58,7 @@ class UnitController extends Controller
 
         $kaprodi_list = User::role('dosen')->get(); // diganti dosen karena kaprodi dari dosen
         $admin_list = User::role('admin_prodi')->get(); // diganti dosen karena kaprodi dari dosen
-        $stases = Stase::all();
+        $stases = Stase::with('staseLocation')->get();
         return Inertia::render('Units/Index', [
             'units' => $units,
             'kaprodi_list' => $kaprodi_list,
@@ -209,7 +209,7 @@ class UnitController extends Controller
             });
         })->with(['unitStases' => function ($query) use ($unit) {
             $query->where('unit_id', $unit->id); // Pastikan hanya unitStases terkait yang dimuat
-        }, 'unitStases.users'])
+        }, 'unitStases.users', 'staseLocation'])
             ->paginate(10)
             ->withQueryString();
 

@@ -16,7 +16,7 @@ class Stase extends Model
      */
     protected $fillable = [
         'name',
-        'location',
+        'stase_location_id',
         'description',
     ];
 
@@ -29,6 +29,11 @@ class Stase extends Model
     public function unitStases()
     {
         return $this->hasMany(UnitStase::class);
+    }
+
+    public function staseLocation()
+    {
+        return $this->belongsTo(StaseLocation::class);
     }
 
     protected static function booted()

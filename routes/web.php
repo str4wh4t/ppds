@@ -88,6 +88,10 @@ Route::middleware(['permission:stase.crud'])->group(function () {
     Route::resource('/stases', \App\Http\Controllers\StaseController::class);
 });
 
+Route::middleware(['permission:stase-location.crud'])->group(function () {
+    Route::resource('/stase-locations', \App\Http\Controllers\StaseLocationController::class);
+});
+
 Route::middleware(['permission:logbook.crud'])->group(function () {
     Route::get('/activities/{user}/index', [\App\Http\Controllers\ActivityController::class, 'index'])->name('activities.index');
     // Route::resource('/activities', \App\Http\Controllers\ActivityController::class)->except(['index']);
@@ -115,6 +119,7 @@ Route::middleware(['permission:consult.crud'])->group(function () {
     Route::resource('/consults', \App\Http\Controllers\ConsultController::class)->except(['index', 'update', 'show']);
     Route::get('/consults/student-list', [\App\Http\Controllers\ConsultController::class, 'studentList'])->name('consults.student-list');
     Route::post('/consults/{consult}/reply', [\App\Http\Controllers\ConsultController::class, 'reply'])->name('consults.reply'); // << karena ada upload file
+    Route::delete('/consults/{consult}/destroy-reply', [\App\Http\Controllers\ConsultController::class, 'destroyReply'])->name('consults.destroyReply');
 });
 
 Route::middleware(['permission:speak.crud'])->group(function () {
@@ -123,7 +128,7 @@ Route::middleware(['permission:speak.crud'])->group(function () {
     Route::resource('/speaks', \App\Http\Controllers\SpeakController::class)->except(['index', 'update', 'show']);
     Route::get('/speaks/student-list', [\App\Http\Controllers\SpeakController::class, 'studentList'])->name('speaks.student-list');
     Route::post('/speaks/{speak}/answer', [\App\Http\Controllers\SpeakController::class, 'answer'])->name('speaks.answer'); // << karena ada upload file
-    Route::get('/speaks/{user}/index-flyer', [\App\Http\Controllers\SpeakController::class, 'indexFlyer'])->name('speaks.index-flyer');
+    Route::get('/speaks/index-flyer', [\App\Http\Controllers\SpeakController::class, 'indexFlyer'])->name('speaks.index-flyer');
 });
 
 Route::middleware(['permission:week-monitor.index'])->group(function () {

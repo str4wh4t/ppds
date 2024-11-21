@@ -100,6 +100,11 @@ const submit = () => {
                 <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                     Log in
                 </PrimaryButton>
+
+            </div>
+            <div class="block mt-5 p-1 bg-yellow-200 text-sm text-gray-600 text-center">
+                Petunjuk penggunaan aplikasi : <a href="/manual-book-elogbook-ppds-student.pdf" target="_blank"
+                    class="font-bold text-blue-800">Download</a>
             </div>
         </form>
     </GuestLayout>

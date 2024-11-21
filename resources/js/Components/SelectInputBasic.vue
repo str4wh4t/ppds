@@ -101,6 +101,12 @@ const handleClickOutside = (event) => {
     }
 };
 
+const clearSelection = () => {
+    selectedItem.value = null;
+    emit('update:modelValue', null); // Emit null untuk sinkronisasi dengan v-model
+    searchQuery.value = ""; // Kosongkan input pencarian
+};
+
 onMounted(() => {
     document.addEventListener("click", handleClickOutside);
 });
@@ -117,7 +123,16 @@ onUnmounted(() => {
             :class="[selectedItem ? [selectedItem.name ? 'text-gray-700' : 'text-gray-400'] : 'text-gray-400', isOpen ? 'border-green-600 ring-1 ring-green-600' : 'border-gray-300', 'w-full flex items-center cursor-pointer justify-between px-4 py-2 border rounded-full bg-white shadow-sm text-left']">
             <span>{{ selectedItem ? (selectedItem.hasOwnProperty('label') ? selectedItem.label : (selectedItem.name ??
                 'Select')) : 'Select' }}</span>
-            <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+            <!-- Change caret to X when an item is selected -->
+            <button v-if="selectedItem" @click.stop="clearSelection"
+                class="text-gray-500 hover:text-red-500 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <svg v-else class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd"
                     d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.07a.75.75.75 0 01-.02 1.06l-4 4.25a.75.75.75 0 01-1.06 0l-4-4.25a.75.75.75 0 01-.02-1.06z"
                     clip-rule="evenodd" />

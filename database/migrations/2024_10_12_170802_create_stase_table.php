@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('stases', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('location');
+            $table->foreignId('stase_location_id')
+                ->constrained('stase_locations')
+                ->onDelete('restrict');
             $table->string('description')->nullable();
             $table->timestamps();
         });

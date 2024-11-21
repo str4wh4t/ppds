@@ -96,7 +96,7 @@ const openUpdate = (activity) => {
     activityStase.value = activity.unit_stase?.stase ? {
         id: activity.unit_stase?.stase.id,
         name: activity.unit_stase?.stase.name,
-        label: activity.unit_stase?.stase.name + " - " + activity.unit_stase?.stase.location
+        label: activity.unit_stase?.stase.name + " - " + activity.unit_stase?.stase.stase_location.name
     } : null;
     form.start_time = moment(activity.start_date).format('HH:mm');
     form.finish_time = moment(activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(activity.end_date).format('HH:mm');
@@ -248,7 +248,7 @@ const totalWorkload = (activities) => {
                                         <div v-if="activity.type == 'jaga'"
                                             class="hidden mt-1 flex flex-col text-gray-500 sm:block">
                                             <span class="sm:block">{{ activity.unit_stase.stase.name }}</span>
-                                            <span>{{ activity.unit_stase.stase.location }}</span>
+                                            <span>{{ activity.unit_stase.stase.stase_location.name }}</span>
                                         </div>
                                         <div v-if="index !== 0"
                                             class="absolute -top-px left-6 right-0 h-px bg-gray-200" />

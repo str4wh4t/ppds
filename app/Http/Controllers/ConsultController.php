@@ -24,6 +24,7 @@ class ConsultController extends Controller
         $this->middleware('can:create,\App\Models\Consult')->only('store');
         $this->middleware('can:update,consult')->only('update');
         $this->middleware('can:delete,consult')->only('destroy');
+        $this->middleware('can:reply,consult')->only(['reply', 'destroyReply']);
     }
     /**
      * Display a listing of the resource.
@@ -328,6 +329,31 @@ class ConsultController extends Controller
                 if ($oldConsultFilePath && Storage::disk('public')->exists($oldConsultFilePath)) {
                     Storage::disk('public')->delete($oldConsultFilePath);
                 }
+                if ($oldReplyFilePath && Storage::disk('public')->exists($oldReplyFilePath)) {
+                    Storage::disk('public')->delete($oldReplyFilePath);
+                }
+            });
+            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Consult deleted successfully');
+        } catch (\Exception $e) {
+            return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
+        }
+    }
+
+    public function destroyReply(Consult $consult)
+    {
+        //
+        try {
+            DB::transaction(function () use ($consult) {
+                $oldReplyFilePath = $consult->reply_document_path;
+
+                $consult->reply_title = null;
+                $consult->reply = null;
+                $consult->reply_document_path = null;
+                $consult->reply_document_size = 0;
+                $consult->reply_at = null;
+
+                $consult->save();
+
                 if ($oldReplyFilePath && Storage::disk('public')->exists($oldReplyFilePath)) {
                     Storage::disk('public')->delete($oldReplyFilePath);
                 }

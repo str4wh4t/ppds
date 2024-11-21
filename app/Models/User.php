@@ -47,6 +47,11 @@ class User extends Authenticatable
         return $this->belongsTo(self::class, 'dosbing_user_id', 'id');
     }
 
+    public function dosbingStudents()
+    {
+        return $this->hasMany(self::class, 'dosbing_user_id', 'id');
+    }
+
     /**
      * Relasi HasMany ke Unit untuk user yang berperan sebagai kaprodi melalui user_id.
      *
