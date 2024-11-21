@@ -27,7 +27,7 @@ Todo List :
 
 Todolist
 
-1. membuat manual book
+1. ~~membuat manual book student~~
 2. ~~memampilkan flyer (4) di laporkan~~
 3. ~~portofolio name unique belum pas~~
 4. ~~menghapus record selain huda~~
@@ -36,5 +36,6 @@ Todolist
 
 Todolist (20/11/2024)
 
-1. membuat role advisor_rs
-2. menyesuaikan stase dengan location
+1. ~~membuat tabel master stase_locations~~
+2. ~~membuat crud mode staseLocation~~
+3. ~~menyesuaikan model stase dengan model staseLocation~~
