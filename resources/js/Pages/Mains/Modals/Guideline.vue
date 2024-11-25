@@ -74,7 +74,7 @@ const printPDF = () => {
                             <CloudArrowUpIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Sudah Baca
                         </WarningButton>
                         <PrimaryButton class="ml-4" @click="printPDF" type="button">
-                            <PrinterIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Cetak Jadwal
+                            <PrinterIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Cetak
                         </PrimaryButton>
                     </div>
                 </form>

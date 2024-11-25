@@ -38,12 +38,23 @@ class UserPolicy
 
         if ($user->hasRole('admin_prodi')) {
             $request = app(Request::class);
+            $adminUnitIds = $user->adminUnits->pluck('id')->toArray();
             if ($request->student_unit_id) { // << jika ingin menambahkan data student
-                $adminUnitIds = $user->adminUnits->pluck('id')->toArray();
                 if (in_array($request->student_unit_id, $adminUnitIds)) {
                     return true;
                 }
             }
+            /** UNTUK DOSEN DIMATIKAN KARENA PADA DOSEN BISA DI ASIGN KE BANYAK UNIT */
+            // if ($request->dosen_units) { // << jika ingin menambahkan data dosen
+            //     $dosen_units = $request->dosen_units;
+            //     $ids = array_map(function ($dosen_unit) {
+            //         return $dosen_unit['id'];
+            //     }, $dosen_units);
+            //     $isSubset = empty(array_diff($ids, $adminUnitIds)); // Jika true, maka $subset berada dalam $superset.
+            //     if ($isSubset) {
+            //         return true;
+            //     }
+            // }
         }
 
         return false;
@@ -110,8 +121,8 @@ class UserPolicy
         }
 
         if ($user->hasRole('admin_prodi')) {
+            $adminUnitIds = $user->adminUnits->pluck('id')->toArray();
             if ($model->hasRole('student')) { // << jika ingin menghapus data student
-                $adminUnitIds = $user->adminUnits->pluck('id')->toArray();
                 if (in_array($model->student_unit_id, $adminUnitIds)) {
                     return true;
                 }
