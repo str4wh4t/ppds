@@ -27,12 +27,13 @@ class UpdateRequest extends \App\Http\Requests\User\UpdateRequest
         $additionalRules = [
             // 'field1' => ['required', 'string', 'max:255'],
             'semester' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:1',
             ],
             'student_unit_id' => ['required', 'integer', 'exists:units,id'],
             'dosbing_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'doswal_user_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
 
         return array_merge($rules, $additionalRules);

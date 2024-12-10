@@ -70,31 +70,23 @@ class UserPolicy
             return true;
         }
 
-        if (!$user->hasRole('system')) {
-            // User dengan role selain "system" tidak boleh mengedit pengguna dengan role "system"
-            if ($model->hasRole('system')) {
-                return false;
-            }
-        }
-
         // jika ingin mengubah data student
         if ($user->hasRole('admin_prodi')) {
             $request = app(Request::class);
             if ($model->hasRole('student')) {
-                if ($request->student_unit_id != $model->student_unit_id) {
-                    return false; // untuk mencegah meminda data student ke unit lain
+                if ($request->student_unit_id == $model->student_unit_id) { // <== untuk mencegah memindah data student ke unit lain
+                    $adminUnitIds = $user->adminUnits->pluck('id')->toArray();
+                    if (in_array($model->student_unit_id, $adminUnitIds)) {
+                        return true;
+                    }
                 }
-                $adminUnitIds = $user->adminUnits->pluck('id')->toArray();
-                if (in_array($request->student_unit_id, $adminUnitIds)) {
-                    return true;
-                }
             }
-            if ($model->hasRole('dosen')) { // << jika ingin mengedit data dosen
-                return false;
-            }
-            if ($model->hasRole('kaprodi')) { // << jika ingin mengedit data kaprodi
-                return false;
-            }
+            // if ($model->hasRole('dosen')) { // << jika ingin mengedit data dosen
+            //     return false;
+            // }
+            // if ($model->hasRole('kaprodi')) { // << jika ingin mengedit data kaprodi
+            //     return false;
+            // }
         }
 
         return false;
@@ -108,15 +100,8 @@ class UserPolicy
         // Jika user yang sedang login memiliki role "system"
         if ($user->hasRole('system')) {
             // User dengan role "system" tidak boleh menghapus sesama pengguna dengan role "system"
-            if ($model->hasRole('system')) {
-                return false;
-            }
-        }
-
-        // Pengguna yang tidak memiliki role "system" tidak boleh menghapus pengguna dengan role "system"
-        if (!$user->hasRole('system')) {
-            if ($model->hasRole('system')) {
-                return false;
+            if (!$model->hasRole('system')) {
+                return true;
             }
         }
 
@@ -127,12 +112,12 @@ class UserPolicy
                     return true;
                 }
             }
-            if ($model->hasRole('dosen')) { // << jika ingin menghapus data dosen
-                return false;
-            }
-            if ($model->hasRole('kaprodi')) { // << jika ingin menghapus data kaprodi
-                return false;
-            }
+            // if ($model->hasRole('dosen')) { // << jika ingin menghapus data dosen
+            //     return false;
+            // }
+            // if ($model->hasRole('kaprodi')) { // << jika ingin menghapus data kaprodi
+            //     return false;
+            // }
         }
 
         // Selain itu, izinkan penghapusan jika logika di atas tidak dilanggar

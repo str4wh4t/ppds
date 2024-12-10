@@ -13,8 +13,12 @@ return new class extends Migration
     {
         Schema::create('stase_locations', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('description')->nullable();
+            $table->foreignId('stase_id')
+                ->constrained('stases')
+                ->onDelete('restrict');
+            $table->foreignId('location_id')
+                ->constrained('locations')
+                ->onDelete('restrict');
             $table->timestamps();
         });
     }

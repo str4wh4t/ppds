@@ -22,7 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'student_unit_id', // Untuk relasi student ke unit
-        'dosbing_user_id', // Untuk relasi student ke unit
+        'dosbing_user_id', // Untuk relasi student ke user sebagai dosen pembimbing
+        'doswal_user_id', // Untuk relasi student ke user sebagai dosen wali
     ];
 
     protected $hidden = [
@@ -47,9 +48,19 @@ class User extends Authenticatable
         return $this->belongsTo(self::class, 'dosbing_user_id', 'id');
     }
 
+    public function doswalUser()
+    {
+        return $this->belongsTo(self::class, 'doswal_user_id', 'id');
+    }
+
     public function dosbingStudents()
     {
         return $this->hasMany(self::class, 'dosbing_user_id', 'id');
+    }
+
+    public function doswalStudents()
+    {
+        return $this->hasMany(self::class, 'doswal_user_id', 'id');
     }
 
     /**

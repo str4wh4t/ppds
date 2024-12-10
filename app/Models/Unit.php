@@ -18,7 +18,6 @@ class Unit extends Model
         'name',
         'kaprodi_user_id',
         'admin_user_id',
-        'schedule_document_path',
         'guideline_document_path',
     ];
 

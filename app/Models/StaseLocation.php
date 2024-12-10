@@ -10,12 +10,17 @@ class StaseLocation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'description',
+        'stase_id',
+        'location_id',
     ];
 
-    public function stases()
+    public function stase()
     {
-        return $this->hasMany(Stase::class);
+        return $this->belongsTo(Stase::class);
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
     }
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import Modal from '@/Components/Modal.vue';
 
 import InputError from '@/Components/InputError.vue';
@@ -7,10 +7,17 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import DangerButton from '@/Components/DangerButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import SelectInput from '@/Components/SelectInputBasic.vue';
 
+const emit = defineEmits(['exitUpdate']);
 const props = defineProps({
+    location: Object,
     show: Boolean,
 });
+
+const showConfirmDelete = ref(false);
 
 const form = useForm({
     name: '',
@@ -20,32 +27,55 @@ const form = useForm({
 watch(
     () => props.show,
     (newValue, oldValue) => {
+        if (!newValue) {
+            showConfirmDelete.value = false;
+        }
         if (newValue) {
-            form.reset();
             form.clearErrors();
+            form.name = props.location.name;
+            form.description = props.location.description;
         }
     },
     { immediate: true }
 );
 
 const submit = () => {
-    form.post(route('stase-locations.store'), {
+    form.put(route('locations.update', { location: props.location }), {
+        onSuccess: (data) => {
+            form.clearErrors();
+            showConfirmDelete.value = false;
+        }
+    })
+};
+
+const confirmDeleteDialog = ref(null); // Ref untuk bagian konfirmasi
+
+const onShowConfirmDelete = () => {
+    showConfirmDelete.value = true;
+    nextTick(() => {
+        confirmDeleteDialog.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+}
+
+const deleteItem = () => {
+    form.delete(route('locations.destroy', { location: props.location }), {
         onSuccess: (data) => {
             form.reset();
-            form.clearErrors();
+            showConfirmDelete.value = false;
+            emit('exitUpdate');
         },
     });
-};
+}
 
 </script>
 <template>
     <Modal :show="show" @close="form.reset(), form.errors = {}">
-        <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+        <div id="innerModal" class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
             <div class="px-4 py-5 sm:px-6">
                 <!-- Content goes here -->
                 <!-- We use less vertical padding on card headers on desktop than on body sections -->
                 <h2 class="text-lg font-medium text-gray-900">
-                    Create Stase Location
+                    Update Location
                 </h2>
             </div>
             <div class="px-4 py-5 sm:p-6">
@@ -75,6 +105,25 @@ const submit = () => {
                         <PrimaryButton class="ml-4" :disabled="form.processing">
                             Save
                         </PrimaryButton>
+                        <DangerButton type="button" class="ml-2" :disabled="form.processing"
+                            @click="onShowConfirmDelete">
+                            Delete
+                        </DangerButton>
+                    </div>
+                    <div v-if="showConfirmDelete" ref="confirmDeleteDialog" tabindex="-1"
+                        class="flex flex-col items-center justify-center mt-4 border-2 border-yellow-400 bg-yellow-50 p-4 text-center">
+                        <div>
+                            Sure want to delete, it cannot be undone?
+                        </div>
+                        <div class="flex mt-4">
+                            <SecondaryButton class="ml-2" :disabled="form.processing"
+                                @click="showConfirmDelete = false">
+                                Cancel
+                            </SecondaryButton>
+                            <DangerButton class="ml-2" :disabled="form.processing" @click="deleteItem">
+                                Sure
+                            </DangerButton>
+                        </div>
                     </div>
                 </form>
             </div>

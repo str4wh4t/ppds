@@ -123,13 +123,13 @@ const openModalGlobal = () => {
                                 {{ stase.name }}
                             </div>
                             <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                                <span>{{ stase.stase_location.name }}</span>
+                                <span>{{ (stase?.locations ?? []).map(location => location.name).join(', ') }}</span>
                             </div>
                             <div v-if="index !== 0" class="absolute -top-px left-6 right-0 h-px bg-gray-200" />
                         </td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ stase.stase_location.name }}</td>
+                            {{ (stase?.locations ?? []).map(location => location.name).join(', ') }}</td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <div class="sm:hidden">{{ (stase.unit_stases[0]?.users ?? []).map(user =>

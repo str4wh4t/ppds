@@ -6,19 +6,15 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import MultiselectBasic from '@/Components/MultiselectBasic.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     show: Boolean,
 });
 
-const locationList = usePage().props.location_list;
-
 const form = useForm({
     name: '',
     description: '',
-    locations: [],
 });
 
 watch(
@@ -33,7 +29,7 @@ watch(
 );
 
 const submit = () => {
-    form.post(route('stases.store'), {
+    form.post(route('locations.store'), {
         onSuccess: (data) => {
             form.reset();
             form.clearErrors();
@@ -49,7 +45,7 @@ const submit = () => {
                 <!-- Content goes here -->
                 <!-- We use less vertical padding on card headers on desktop than on body sections -->
                 <h2 class="text-lg font-medium text-gray-900">
-                    Create Stase
+                    Create Location
                 </h2>
             </div>
             <div class="px-4 py-5 sm:p-6">
@@ -70,14 +66,6 @@ const submit = () => {
                             autofocus autocomplete="description" />
 
                         <InputError class="mt-2" :message="form.errors.description" />
-                    </div>
-                    <div class="mt-2">
-                        <InputLabel for="stase_location_id" value="Location" />
-
-                        <MultiselectBasic class="mt-1 block w-full" :key="form.name" :options="locationList"
-                            v-model="form.locations" />
-
-                        <InputError class="mt-2" :message="form.errors.locations" />
                     </div>
                     <div class="flex items-center justify-end mt-4">
                         <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"

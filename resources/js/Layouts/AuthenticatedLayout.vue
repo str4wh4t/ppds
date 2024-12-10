@@ -67,7 +67,7 @@ const adminNavigation = [
 const masterNavigation = [
     { name: 'Units', href: route('units.index'), icon: QueueListIcon, current: route().current('units.index') },
     { name: 'Stase', href: route('stases.index'), icon: ClipboardDocumentListIcon, current: route().current('stases.index') },
-    { name: 'Location', href: route('stase-locations.index'), icon: BuildingOffice2Icon, current: route().current('stase-locations.index') },
+    { name: 'Location', href: route('locations.index'), icon: BuildingOffice2Icon, current: route().current('locations.index') },
     {
         name: 'Users',
         icon: UsersIcon,

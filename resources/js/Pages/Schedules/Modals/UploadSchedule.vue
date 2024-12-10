@@ -10,19 +10,26 @@ import { useForm, usePage } from '@inertiajs/vue3';
 import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import SelectInput from '@/Components/SelectInputBasic.vue';
+import MultiselectBasic from '@/Components/MultiselectBasic.vue';
+import InputUpload from '@/Components/InputUpload.vue';
+import { CloudArrowUpIcon, XCircleIcon } from '@heroicons/vue/24/outline';
+
 
 const emit = defineEmits(['exitUpdate']);
 const props = defineProps({
-    stase_location: Object,
+    schedule: Object,
     show: Boolean,
 });
 
 const showConfirmDelete = ref(false);
 
+const fileUploader = ref(null);
+
 const form = useForm({
-    name: '',
-    description: '',
+    document: null,
+    document_path: '',
 });
+
 
 watch(
     () => props.show,
@@ -31,19 +38,18 @@ watch(
             showConfirmDelete.value = false;
         }
         if (newValue) {
-            form.clearErrors();
-            form.name = props.stase_location.name;
-            form.description = props.stase_location.description;
+            form.document = props.schedule.document;
+            form.document_path = props.schedule.document_path;
         }
     },
     { immediate: true }
 );
 
 const submit = () => {
-    form.put(route('stase-locations.update', { stase_location: props.stase_location }), {
+    form.post(route('schedules.upload-document', { schedule: props.schedule }), {
         onSuccess: (data) => {
             form.clearErrors();
-            showConfirmDelete.value = false;
+            // emit('exitUpdate');
         }
     })
 };
@@ -57,15 +63,16 @@ const onShowConfirmDelete = () => {
     });
 }
 
-const deleteItem = () => {
-    form.delete(route('stase-locations.destroy', { stase_location: props.stase_location }), {
+const clearDocument = () => {
+    form.delete(route('schedules.delete-document', { schedule: props.schedule }), {
         onSuccess: (data) => {
-            form.reset();
+            fileUploader.value?.removeDocument(); // Memanggil removeDocument dari FileUploader
+            form.document_path = '';
             showConfirmDelete.value = false;
             emit('exitUpdate');
-        },
-    });
-}
+        }
+    })
+};
 
 </script>
 <template>
@@ -75,39 +82,28 @@ const deleteItem = () => {
                 <!-- Content goes here -->
                 <!-- We use less vertical padding on card headers on desktop than on body sections -->
                 <h2 class="text-lg font-medium text-gray-900">
-                    Update Stase Location
+                    Upload Document
                 </h2>
             </div>
             <div class="px-4 py-5 sm:p-6">
                 <!-- Content goes here -->
                 <form @submit.prevent="submit" class="mt-1 text-sm text-gray-600">
                     <div>
-                        <InputLabel for="name" value="Name" />
-
-                        <TextInput id="name" type="text" class="mt-1 block w-full" v-model="form.name" required
-                            autofocus autocomplete="name" />
-
-                        <InputError class="mt-2" :message="form.errors.name" />
+                        <InputUpload v-model="form.document" :initialDocumentPath="form.document_path"
+                            ref="fileUploader" />
                     </div>
-                    <div class="mt-2">
-                        <InputLabel for="description" value="Description" />
-
-                        <TextInput id="description" type="text" class="mt-1 block w-full" v-model="form.description"
-                            autofocus autocomplete="description" />
-
-                        <InputError class="mt-2" :message="form.errors.description" />
-                    </div>
-                    <div class="flex items-center justify-end mt-4">
-                        <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
-                            leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
-                            <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
-                        </Transition>
-                        <PrimaryButton class="ml-4" :disabled="form.processing">
-                            Save
+                    <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
+                        leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
+                        <p v-if="form.recentlySuccessful"
+                            class="text-sm text-gray-600 block mt-2 text-center bg-orange-100">Saved.</p>
+                    </Transition>
+                    <div v-if="form.document_path || form.document" class="flex items-center justify-center mt-2">
+                        <PrimaryButton v-if="!form.document_path" :disabled="form.processing">
+                            <CloudArrowUpIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Upload
                         </PrimaryButton>
-                        <DangerButton type="button" class="ml-2" :disabled="form.processing"
-                            @click="onShowConfirmDelete">
-                            Delete
+                        <DangerButton @click="onShowConfirmDelete" v-if="form.document_path" type="button"
+                            :disabled="form.processing">
+                            <XCircleIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Delete
                         </DangerButton>
                     </div>
                     <div v-if="showConfirmDelete" ref="confirmDeleteDialog" tabindex="-1"
@@ -120,7 +116,7 @@ const deleteItem = () => {
                                 @click="showConfirmDelete = false">
                                 Cancel
                             </SecondaryButton>
-                            <DangerButton class="ml-2" :disabled="form.processing" @click="deleteItem">
+                            <DangerButton class="ml-2" :disabled="form.processing" @click="clearDocument">
                                 Sure
                             </DangerButton>
                         </div>

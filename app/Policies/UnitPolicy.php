@@ -40,10 +40,6 @@ class UnitPolicy
         }
 
         if ($user->hasRole('admin_prodi')) {
-            $adminUnits = $user->adminUnits->pluck('id');
-            if (!$adminUnits->contains($unit->id)) {
-                return false;
-            }
 
             $request = app(Request::class);
             $unit_admins = $request->unit_admins;
@@ -64,7 +60,7 @@ class UnitPolicy
         }
 
 
-        return true;
+        return false;
     }
 
     /**
@@ -104,7 +100,7 @@ class UnitPolicy
 
         if ($user->hasRole('admin_prodi')) {
             $adminUnits = $user->adminUnits->pluck('id');
-            if (!$adminUnits->contains($unit->id)) {
+            if ($adminUnits->contains($unit->id)) {
                 return true;
             }
         }

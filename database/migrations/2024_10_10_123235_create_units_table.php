@@ -19,7 +19,6 @@ return new class extends Migration
                 ->constrained('users')
                 ->onDelete('set null') // Mengubah dari 'cascade' menjadi 'set null'
                 ->comment('user_id dari user yang memiliki role kaprodi');
-            $table->string('schedule_document_path')->nullable();
             $table->string('guideline_document_path')->nullable();
             $table->timestamps();
         });

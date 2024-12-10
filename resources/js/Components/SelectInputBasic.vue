@@ -9,6 +9,10 @@ const props = defineProps({
     modelValue: {
         type: [Object, String],
         default: null
+    },
+    placeholder: {
+        type: String,
+        default: 'Select'
     }
 });
 
@@ -26,6 +30,7 @@ watch(
     () => props.modelValue,
     (newValue) => {
         if (typeof newValue === 'string') {
+
             selectedItem.value = findItemByName(newValue);
         } else {
             selectedItem.value = newValue;
@@ -122,7 +127,7 @@ onUnmounted(() => {
         <div ref="triggerButton" @click="toggleDropdown" type="button"
             :class="[selectedItem ? [selectedItem.name ? 'text-gray-700' : 'text-gray-400'] : 'text-gray-400', isOpen ? 'border-green-600 ring-1 ring-green-600' : 'border-gray-300', 'w-full flex items-center cursor-pointer justify-between px-4 py-2 border rounded-full bg-white shadow-sm text-left']">
             <span>{{ selectedItem ? (selectedItem.hasOwnProperty('label') ? selectedItem.label : (selectedItem.name ??
-                'Select')) : 'Select' }}</span>
+                placeholder)) : placeholder }}</span>
             <!-- Change caret to X when an item is selected -->
             <button v-if="selectedItem" @click.stop="clearSelection"
                 class="text-gray-500 hover:text-red-500 focus:outline-none">
@@ -142,7 +147,7 @@ onUnmounted(() => {
         <!-- Dropdown with Teleport -->
         <teleport to="body">
             <div v-if="isOpen" ref="dropdownMenu"
-                class="absolute bg-white mt-1 ring-1 ring-gray-200 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto z-50"
+                class="absolute bg-white ring-1 ring-gray-200 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto z-50"
                 :style="dropdownPosition">
                 <!-- Search Input -->
                 <div class="p-2">

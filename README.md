@@ -39,3 +39,10 @@ Todolist (20/11/2024)
 1. ~~membuat tabel master stase_locations~~
 2. ~~membuat crud mode staseLocation~~
 3. ~~menyesuaikan model stase dengan model staseLocation~~
+
+Todolist (09/12/2024)
+
+1. ~~Membuat role dosen_wali (diganti dengan kolom saja di tabel users)~~
+2. ~~Memisahkan antara Stase dan RS Jejaring~~
+3. Membuat approval aktifitas > 80jam
+4. ~~setiap mahasiswa ppds dan ppdss mengisi jadwal kegiatan harian selama satu bulan secara individu (di tambahi di section Menu Kalendar setelah paragraf pada halaman ini).~~

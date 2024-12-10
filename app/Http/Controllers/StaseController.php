@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Stase\StoreRequest;
 use App\Http\Requests\Stase\UpdateRequest;
+use App\Models\Location;
 use App\Models\User;
 use App\Models\Stase;
 use App\Models\StaseLocation;
@@ -27,20 +28,19 @@ class StaseController extends Controller
         $stases = Stase::when($search, function ($query, $search) {
             $query->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%");
-            })->orWhereHas('staseLocation', function ($query) use ($search) {
-                // Pencarian pada kolom 'name' di relasi staseLocation
+            })->orWhereHas('locations', function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%");
             });
         })
-            ->with('staseLocation')
+            ->with('locations')
             ->paginate(10)
             ->withQueryString();
 
-        $stase_location_list = StaseLocation::all();
+        $location_list = Location::all();
 
         return Inertia::render('Stases/Index', [
             'stases' => $stases,
-            'stase_location_list' => $stase_location_list,
+            'location_list' => $location_list,
             'filters' => [
                 'search' => $search,
             ]
@@ -63,11 +63,18 @@ class StaseController extends Controller
         //
         try {
             DB::transaction(function () use ($request) {
-                Stase::create([
+                $stase = Stase::create([
                     'name' => $request->name,
-                    'stase_location_id' => $request->stase_location_id,
                     'description' => $request->description,
                 ]);
+                $locations = $request->locations;
+                if (!empty($locations)) {
+                    $ids = array_map(function ($location) {
+                        return $location['id'];
+                    }, $locations);
+
+                    $stase->locations()->sync($ids);
+                }
             });
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase created successfully');
@@ -102,9 +109,16 @@ class StaseController extends Controller
             DB::transaction(function () use ($request, $stase) {
                 $stase->update([
                     'name' => $request->name,
-                    'stase_location_id' => $request->stase_location_id,
                     'description' => $request->description,
                 ]);
+                $locations = $request->locations;
+                if (!empty($locations)) {
+                    $ids = array_map(function ($location) {
+                        return $location['id'];
+                    }, $locations);
+
+                    $stase->locations()->sync($ids);
+                }
             });
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase updated successfully');

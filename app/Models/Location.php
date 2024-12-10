@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Stase extends Model
+class Location extends Model
 {
     use HasFactory;
 
@@ -19,26 +19,15 @@ class Stase extends Model
         'description',
     ];
 
-    // Relasi Stase ke Unit (many-to-many)
-    public function units()
+    public function stases()
     {
-        return $this->belongsToMany(Unit::class, 'unit_stases');
-    }
-
-    public function unitStases()
-    {
-        return $this->hasMany(UnitStase::class);
-    }
-
-    public function locations()
-    {
-        return $this->belongsToMany(Location::class, 'stase_locations');
+        return $this->belongsToMany(Stase::class, 'stase_locations');
     }
 
     protected static function booted()
     {
         static::addGlobalScope('latest', function ($query) {
-            $query->orderBy('stases.created_at', 'desc');
+            $query->orderBy('locations.created_at', 'desc');
         });
     }
 }

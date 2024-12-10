@@ -38,7 +38,7 @@ class UserController extends Controller
         // dd($users);
 
         $users = User::whereDoesntHave('roles', function ($query) {
-            $query->where('name', 'system');
+            $query->whereIn('name', ['system', 'student']);
         })
             ->with('roles')
             ->when($search, function ($query, $search) {
@@ -67,7 +67,7 @@ class UserController extends Controller
 
 
 
-        $roles = Role::whereNotIn('name', ['system', 'dosen', 'student', ['kaprodi']])->get();
+        $roles = Role::whereNotIn('name', ['system', 'student'])->get();
 
         return Inertia::render('Users/Index', [
             'users' => $users,

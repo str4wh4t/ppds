@@ -50,7 +50,7 @@ class StudentController extends Controller
                     $query->whereIn('name', $unitNames);
                 });
             }
-        })->with('roles', 'studentUnit', 'dosbingUser')
+        })->with('roles', 'studentUnit', 'dosbingUser', 'doswalUser')
             ->paginate(10)
             ->withQueryString();
 
@@ -91,6 +91,7 @@ class StudentController extends Controller
                     'semester' => $request->semester,
                     'student_unit_id' => $request->student_unit_id,
                     'dosbing_user_id' => $request->dosbing_user_id,
+                    'doswal_user_id' => $request->doswal_user_id,
                     'email' => $request->email,
                     'password' =>  Hash::make(config('constants.password_default')),
 
@@ -138,6 +139,7 @@ class StudentController extends Controller
                     'semester' => $request->semester,
                     'student_unit_id' => $request->student_unit_id,
                     'dosbing_user_id' => $request->dosbing_user_id,
+                    'doswal_user_id' => $request->doswal_user_id,
                     'email' => $request->email,
                 ]);
 

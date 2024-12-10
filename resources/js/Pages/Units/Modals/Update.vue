@@ -47,6 +47,11 @@ const updatedUserKaprodi = ref({
 });
 
 const stases = usePage().props.stases;
+const staseList = stases.map(stase => ({
+    ...stase,
+    // name: stase.name + " - " + (stase?.locations ?? []).map(location => location.name).join(', '),
+    name: stase.name,
+}));
 
 watch(
     () => props.show,
@@ -58,12 +63,17 @@ watch(
             form.clearErrors();
             form.name = props.unit.name;
             form.kaprodi_user_id = props.unit.kaprodi_user_id ?? '';
-            form.unit_admins = props.unit.unit_admins.map(user => ({
+            form.unit_admins = (props.unit.unit_admins ?? []).map(user => ({
                 ...user,
                 name: user.fullname, // Mengganti fullname dengan name
                 fullname: undefined // Menghapus key fullname
-            })) ?? [];
-            form.stases = (props.unit.stases ?? []).map(stase => stase.id);
+            }));
+            // form.stases = (props.unit.stases ?? []).map(stase => stase.id);
+            form.stases = (props.unit.stases ?? []).map(stase => ({
+                ...stase,
+                // name: stase.name + " - " + (stase?.locations ?? []).map(location => location.name).join(', '),
+                name: stase.name,
+            }));
             updatedUserKaprodi.value = {
                 id: props.unit.kaprodi_user?.id,
                 name: props.unit.kaprodi_user?.fullname
@@ -140,6 +150,15 @@ const deleteItem = () => {
 
                         <InputError class="mt-2" :message="form.errors.unit_admins" />
                     </div>
+                    <div class="mt-2">
+                        <InputLabel for="unit_stase_id" value="Stases" />
+
+                        <MultiselectBasic class="mt-1 block w-full" :key="form.name" :options="staseList"
+                            v-model="form.stases" />
+
+                        <InputError class="mt-2" :message="form.errors.stases" />
+                    </div>
+                    <!--
                     <div class="mt-2" v-if="$hasItems(stases)">
                         <InputLabel for="stases" value="Stases" />
 
@@ -158,16 +177,13 @@ const deleteItem = () => {
                                             <div class="ml-3 text-sm leading-6">
                                                 <label :for="stase.name" class="font-medium text-gray-900">{{ stase.name
                                                     }}</label>
-                                                <p :id="stase.name + '-location'" class="text-gray-500">{{
-                                                    stase.stase_location.name }}
-                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </fieldset>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="flex items-center justify-end mt-4">
                         <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
                             leave-active-class="transition ease-in-out" leave-to-class="opacity-0">

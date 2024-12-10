@@ -83,6 +83,9 @@ const searchPosts = () => {
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Dosbing</th>
+                        <th scope="col"
+                            class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                            Doswal</th>
                         <!-- <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Email</th> -->
@@ -120,6 +123,9 @@ const searchPosts = () => {
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ user.dosbing_user?.fullname ?? '' }}</td>
+                        <td
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            {{ user.doswal_user?.fullname ?? '' }}</td>
                         <!-- <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ user.email }}</td> -->

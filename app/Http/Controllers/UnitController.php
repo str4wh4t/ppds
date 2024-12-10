@@ -52,13 +52,14 @@ class UnitController extends Controller
                     $query->where('fullname', 'like', "%{$search}%");
                 });
         })
-            ->with('kaprodiUser', 'unitAdmins', 'stases') // Eager load relasi
+            // ->with('kaprodiUser', 'unitAdmins', 'stases.locations') // Eager load relasi
+            ->with('kaprodiUser', 'unitAdmins', 'stases')
             ->paginate(10)
             ->withQueryString();
 
         $kaprodi_list = User::role('dosen')->get(); // diganti dosen karena kaprodi dari dosen
         $admin_list = User::role('admin_prodi')->get(); // diganti dosen karena kaprodi dari dosen
-        $stases = Stase::with('staseLocation')->get();
+        $stases = Stase::with('locations')->get();
         return Inertia::render('Units/Index', [
             'units' => $units,
             'kaprodi_list' => $kaprodi_list,
@@ -160,10 +161,17 @@ class UnitController extends Controller
                     $unit->unitAdmins()->sync($syncData);
                 }
 
-                // if ($request->stases) {
-                $stase_ids = $request->stases;
-                $unit->stases()->sync($stase_ids);
-                // }
+                $stases = $request->stases;
+                if (!empty($stases)) {
+                    $ids = array_map(function ($stase) {
+                        return $stase['id'];
+                    }, $stases);
+
+                    $unit->stases()->sync($ids);
+                }
+
+                // $stase_ids = $request->stases;
+                // $unit->stases()->sync($stase_ids);
             });
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Unit updated successfully');
@@ -209,7 +217,7 @@ class UnitController extends Controller
             });
         })->with(['unitStases' => function ($query) use ($unit) {
             $query->where('unit_id', $unit->id); // Pastikan hanya unitStases terkait yang dimuat
-        }, 'unitStases.users', 'staseLocation'])
+        }, 'unitStases.users', 'locations'])
             ->paginate(10)
             ->withQueryString();
 
@@ -248,26 +256,6 @@ class UnitController extends Controller
         }
     }
 
-    public function uploadScheduleDocument(UploadDocumentRequest $request, Unit $unit)
-    {
-        try {
-            // Ambil file yang sudah divalidasi
-            $file = $request->file('document');
-
-            // Simpan file ke direktori 'documents'
-            $path = $file->store('schedules', 'public');
-
-            $unit->schedule_document_path = $path;
-            $unit->save();
-
-            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Unit document uploaded successfully');
-        } catch (\Exception $e) {
-            return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
-        }
-    }
-
-
-
     public function uploadGuidelineDocument(UploadDocumentRequest $request, Unit $unit)
     {
         try {
@@ -281,24 +269,6 @@ class UnitController extends Controller
             $unit->save();
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Unit document uploaded successfully');
-        } catch (\Exception $e) {
-            return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
-        }
-    }
-
-    public function deleteScheduleDocument(Unit $unit)
-    {
-        try {
-            $oldFilePath = $unit->schedule_document_path;
-
-            if ($oldFilePath && Storage::disk('public')->exists($oldFilePath)) {
-                Storage::disk('public')->delete($oldFilePath);
-            }
-
-            $unit->schedule_document_path = null;
-            $unit->save();
-
-            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Unit document delete successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
         }

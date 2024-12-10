@@ -30,6 +30,7 @@ const form = useForm({
     student_unit_id: '',
     semester: '',
     dosbing_user_id: '',
+    doswal_user_id: '',
     email: '',
 });
 
@@ -37,6 +38,11 @@ const unit = ref(props.user?.student_unit);
 const dosenPembimbing = ref({
     id: props.user?.dosbing_user?.id,
     name: props.user?.dosbing_user?.fullname
+});
+
+const dosenWali = ref({
+    id: props.user?.doswal_user?.id,
+    name: props.user?.doswal_user?.fullname
 });
 
 const dosen_list = usePage().props.dosen_list;
@@ -60,10 +66,15 @@ watch(
             form.student_unit_id = props.user?.student_unit_id ?? '';
             form.semester = props.user.semester;
             form.dosbing_user_id = props.user?.dosbing_user_id ?? '';
+            form.doswal_user_id = props.user?.doswal_user_id ?? '';
             unit.value = props.user.student_unit;
             dosenPembimbing.value = {
                 id: props.user.dosbing_user?.id,
                 name: props.user.dosbing_user?.fullname
+            };
+            dosenWali.value = {
+                id: props.user.doswal_user?.id,
+                name: props.user.doswal_user?.fullname
             };
             form.email = props.user.email;
         }
@@ -74,6 +85,7 @@ watch(
 const submit = () => {
     form.student_unit_id = unit.value?.id ?? null;
     form.dosbing_user_id = dosenPembimbing.value?.id ?? null;
+    form.doswal_user_id = dosenWali.value?.id ?? null;
     form.put(route('students.update', { user: props.user }), {
         onSuccess: (data) => {
             form.clearErrors();
@@ -155,14 +167,14 @@ const onResetPassword = () => {
 
                         <InputError class="mt-2" :message="form.errors.student_unit_id" />
                     </div>
-                    <div class="mt-2">
+                    <!-- <div class="mt-2">
                         <InputLabel for="semester" value="Semester" />
 
                         <TextInput id="semester" type="text" class="mt-1 block w-full" v-model="form.semester" required
                             autofocus autocomplete="semester" />
 
                         <InputError class="mt-2" :message="form.errors.semester" />
-                    </div>
+                    </div> -->
                     <div class="mt-2">
                         <InputLabel for="dosbing_user_id" value="Dosen Pembimbing" />
 
@@ -170,6 +182,14 @@ const onResetPassword = () => {
                             :options="dosenList" required autofocus autocomplete="dosbing_user_id" />
 
                         <InputError class="mt-2" :message="form.errors.dosbing_user_id" />
+                    </div>
+                    <div class="mt-2">
+                        <InputLabel for="doswal_user_id" value="Dosen Wali" />
+
+                        <SelectInput id="doswal_user_id" class="mt-1 block w-full" v-model="dosenWali"
+                            :options="dosenList" required autofocus autocomplete="doswal_user_id" />
+
+                        <InputError class="mt-2" :message="form.errors.doswal_user_id" />
                     </div>
                     <div class="mt-2">
                         <InputLabel for="email" value="Email" />

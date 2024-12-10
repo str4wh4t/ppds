@@ -9,7 +9,7 @@ import TextInput from '@/Components/TextInput.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
-import SelectInput from '@/Components/SelectInputBasic.vue';
+import MultiselectBasic from '@/Components/MultiselectBasic.vue';
 
 const emit = defineEmits(['exitUpdate']);
 const props = defineProps({
@@ -17,17 +17,15 @@ const props = defineProps({
     show: Boolean,
 });
 
-const staseLocationList = usePage().props.stase_location_list;
+const locationList = usePage().props.location_list;
 
 const showConfirmDelete = ref(false);
 
 const form = useForm({
     name: '',
-    stase_location_id: '',
     description: '',
+    locations: [],
 });
-
-const updatedStaseLocation = ref(null);
 
 watch(
     () => props.show,
@@ -38,16 +36,14 @@ watch(
         if (newValue) {
             form.clearErrors();
             form.name = props.stase.name;
-            form.stase_location_id = props.stase.stase_location_id ?? '';
             form.description = props.stase.description;
-            updatedStaseLocation.value = props.stase.stase_location;
+            form.locations = props.stase.locations ?? [];
         }
     },
     { immediate: true }
 );
 
 const submit = () => {
-    form.stase_location_id = updatedStaseLocation.value.id;
     form.put(route('stases.update', { stase: props.stase }), {
         onSuccess: (data) => {
             form.clearErrors();
@@ -98,20 +94,20 @@ const deleteItem = () => {
                         <InputError class="mt-2" :message="form.errors.name" />
                     </div>
                     <div class="mt-2">
-                        <InputLabel for="stase_location_id" value="Location" />
-
-                        <SelectInput id="stase_location_id" class="mt-1 block w-full" v-model="updatedStaseLocation"
-                            :options="staseLocationList" required autofocus autocomplete="stase_location_id" />
-
-                        <InputError class="mt-2" :message="form.errors.stase_location_id" />
-                    </div>
-                    <div class="mt-2">
                         <InputLabel for="description" value="Description" />
 
                         <TextInput id="description" type="text" class="mt-1 block w-full" v-model="form.description"
                             autofocus autocomplete="description" />
 
                         <InputError class="mt-2" :message="form.errors.description" />
+                    </div>
+                    <div class="mt-2">
+                        <InputLabel for="stase_location_id" value="Location" />
+
+                        <MultiselectBasic class="mt-1 block w-full" :key="form.name" :options="locationList"
+                            v-model="form.locations" />
+
+                        <InputError class="mt-2" :message="form.errors.locations" />
                     </div>
                     <div class="flex items-center justify-end mt-4">
                         <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"

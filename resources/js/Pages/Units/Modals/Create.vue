@@ -15,7 +15,6 @@ const props = defineProps({
 });
 
 const userKaprodi = ref(null);
-const userAdmin = ref(null);
 
 const kaprodi_list = usePage().props.kaprodi_list;
 
@@ -46,7 +45,6 @@ watch(
             form.reset();
             form.clearErrors();
             userKaprodi.value = null;
-            userAdmin.value = null;
         }
     },
     { immediate: true }

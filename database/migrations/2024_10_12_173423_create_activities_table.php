@@ -41,6 +41,7 @@ return new class extends Migration
                 ->on('week_monitors')            // Tabel yang dirujuk
                 ->onDelete('restrict');
             $table->boolean('is_generated')->default(false);
+            $table->boolean('is_allowed')->default(true);
             $table->softDeletes();
             $table->timestamps();
         });

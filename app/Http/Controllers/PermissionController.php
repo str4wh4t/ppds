@@ -13,12 +13,6 @@ use Illuminate\Support\Facades\Redirect;
 
 class PermissionController extends Controller
 {
-    public function __construct()
-    {
-        // Menambahkan Policy untuk otorisasi update dan delete
-        $this->middleware('can:update,permission')->only(['update', 'edit']);
-        // $this->middleware('can:delete,permission')->only('destroy');
-    }
     /**
      * Display a listing of the resource.
      */

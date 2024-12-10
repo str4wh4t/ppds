@@ -24,6 +24,11 @@ return new class extends Migration
                 ->constrained('users')
                 ->onDelete('set null')
                 ->before('created_at');
+            $table->foreignId('doswal_user_id')
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('set null')
+                ->before('created_at');
             $table->boolean('is_read_guideline')->default(false)->before('created_at');
             $table->timestamp('read_guideline_at')->nullable()->before('created_at');
         });

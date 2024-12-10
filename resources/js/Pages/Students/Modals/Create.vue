@@ -23,6 +23,7 @@ const form = useForm({
     student_unit_id: '',
     semester: '',
     dosbing_user_id: '',
+    doswal_user_id: '',
     email: '',
 });
 
@@ -33,6 +34,7 @@ const dosenList = dosen_list.map(user => ({
     fullname: undefined // Menghapus key fullname
 }));
 const dosenPembimbing = ref(null);
+const dosenWali = ref(null);
 
 watch(
     () => props.show,
@@ -42,6 +44,7 @@ watch(
             form.clearErrors();
             unit.value = null;
             dosenPembimbing.value = null;
+            dosenWali.value = null;
         }
     },
     { immediate: true }
@@ -50,12 +53,14 @@ watch(
 const submit = () => {
     form.student_unit_id = unit.value?.id ?? null;
     form.dosbing_user_id = dosenPembimbing.value?.id ?? null;
+    form.doswal_user_id = dosenWali.value?.id ?? null;
     form.post(route('students.store'), {
         onSuccess: (data) => {
             form.reset();
             form.clearErrors();
             unit.value = null;
             dosenPembimbing.value = null;
+            dosenWali.value = null;
         },
     });
 };
@@ -98,6 +103,14 @@ const submit = () => {
 
                         <InputError class="mt-2" :message="form.errors.identity" />
                     </div>
+                    <!-- <div class="mt-2">
+                        <InputLabel for="semester" value="Semester" />
+
+                        <TextInput id="semester" type="text" class="mt-1 block w-full" v-model="form.semester" required
+                            autofocus autocomplete="semester" />
+
+                        <InputError class="mt-2" :message="form.errors.semester" />
+                    </div> -->
                     <div class="mt-2">
                         <InputLabel for="student_unit_id" value="Unit" />
 
@@ -107,20 +120,20 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.student_unit_id" />
                     </div>
                     <div class="mt-2">
-                        <InputLabel for="semester" value="Semester" />
-
-                        <TextInput id="semester" type="text" class="mt-1 block w-full" v-model="form.semester" required
-                            autofocus autocomplete="semester" />
-
-                        <InputError class="mt-2" :message="form.errors.semester" />
-                    </div>
-                    <div class="mt-2">
                         <InputLabel for="dosbing_user_id" value="Dosen Pembimbing" />
 
                         <SelectInput id="dosbing_user_id" class="mt-1 block w-full" v-model="dosenPembimbing"
                             :options="dosenList" required autofocus autocomplete="dosbing_user_id" />
 
                         <InputError class="mt-2" :message="form.errors.dosbing_user_id" />
+                    </div>
+                    <div class="mt-2">
+                        <InputLabel for="doswal_user_id" value="Dosen Wali" />
+
+                        <SelectInput id="doswal_user_id" class="mt-1 block w-full" v-model="dosenWali"
+                            :options="dosenList" required autofocus autocomplete="doswal_user_id" />
+
+                        <InputError class="mt-2" :message="form.errors.doswal_user_id" />
                     </div>
                     <div class="mt-2">
                         <InputLabel for="email" value="Email" />

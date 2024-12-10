@@ -21,10 +21,6 @@ class StoreRequest extends FormRequest
                 'string',
                 'max:255',
             ],
-            'stase_location_id' => [
-                'required',
-                'exists:stase_locations,id',
-            ],
             'description' => [
                 'nullable',
                 'string',
