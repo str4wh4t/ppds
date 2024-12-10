@@ -6,7 +6,9 @@ use App\Events\ActivityLogged;
 use App\Http\Requests\Activity\StoreRequest;
 use App\Http\Requests\Activity\UpdateRequest;
 use App\Models\Activity;
+use App\Models\Location;
 use App\Models\Stase;
+use App\Models\StaseLocation;
 use App\Models\Unit;
 use App\Models\UnitStase;
 use App\Models\UnitStaseUser;
@@ -32,6 +34,7 @@ class ActivityController extends Controller
         $this->middleware('can:create,\App\Models\Activity')->only('store');
         $this->middleware('can:update,activity')->only(['update', 'edit']);
         $this->middleware('can:delete,activity')->only('destroy');
+        $this->middleware('can:permitActivity,activity')->only('allowActivity');
     }
 
     /**
@@ -62,7 +65,7 @@ class ActivityController extends Controller
                     $query->whereIn('name', $unitNames);
                 });
             }
-        })->with('user', 'user.studentUnit', 'unitStase', 'unitStase.stase', 'unitStase.stase.staseLocation');
+        })->with('user', 'user.studentUnit', 'unitStase', 'stase', 'staseLocation', 'location');
 
         if ($request->user()->hasRole('student')) {
             $activities = $activities->where('user_id', $request->user()->id);
@@ -81,8 +84,9 @@ class ActivityController extends Controller
                 $query->where('units.id', $user->student_unit_id);
             }
         })
-            ->join('stase_locations', 'stases.stase_location_id', '=', 'stase_locations.id')
-            ->selectRaw('stases.id,stases.name,CONCAT(stases.name," - ",stase_locations.name) AS label')->get();
+            // ->join('stase_locations', 'stases.stase_location_id', '=', 'stase_locations.id')
+            // ->selectRaw('stases.id,stases.name,CONCAT(stases.name," - ",stase_locations.name) AS label')->get();
+            ->get();
 
         $units = Unit::all();
 
@@ -128,17 +132,50 @@ class ActivityController extends Controller
                 $date = Carbon::parse($startDate); // Buat objek Carbon dari tanggal input
 
                 // Membuat week_group_id dengan format Tahun + Minggu (ISO-8601)
-                $weekGroupId = $date->year . $date->isoWeek;
+                $weekGroupId = intval($date->year . $date->isoWeek);
 
                 // init week monitor
-                WeekMonitor::updateOrCreate(
-                    ['user_id' => $request->user()->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
-                    ['year' => $date->year, 'week' => $date->isoWeek, 'workload' => 0, 'workload_hours' => 0, 'workload_as_seconds' => 0]           // Data yang akan diupdate/insert
-                );
+                // WeekMonitor::updateOrCreate(
+                //     ['user_id' => $request->user()->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
+                //     ['year' => $date->year, 'week' => $date->isoWeek, 'workload' => 0, 'workload_hours' => 0, 'workload_as_seconds' => 0]           // Data yang akan diupdate/insert
+                // );
+
+                $isWorkloadExceeded = false;
+
+                $weekMonitor = WeekMonitor::where('user_id', $request->user()->id)
+                    ->where('week_group_id', $weekGroupId)
+                    ->first();
+                if (empty($weekMonitor)) {
+                    // Jika record ditemukan, update data
+                    $weekMonitor = new WeekMonitor();
+                    $weekMonitor->user_id = $request->user()->id;
+                    $weekMonitor->week_group_id = $weekGroupId;
+                    $weekMonitor->year = substr($weekGroupId, 0, 4);
+                    $weekMonitor->week = substr($weekGroupId, 4, 2);
+                    $weekMonitor->workload_hours = 0;
+                    $weekMonitor->workload = 0;
+                    $weekMonitor->workload_as_seconds = 0;
+                    $weekMonitor->save();
+                } else {
+                    // if ($weekMonitor->workload_hours > 80) {
+                    //     throw new \Exception('Workload exceeded');
+                    // }
+                    $activity = Activity::where('user_id',  $request->user()->id)
+                        ->where('week_group_id', $weekGroupId)
+                        ->where('is_allowed', 0)
+                        ->first();
+                    if (!empty($activity)) {
+                        // ada kegiatan yang belum di ijinkan
+                        throw new \Exception('Workload exceeded');
+                    }
+                    $next_workhours = $weekMonitor->workload_hours + $hours;
+                    if ($next_workhours > 80) {
+                        $isWorkloadExceeded = true;
+                    }
+                }
 
                 // Memeriksa apakah `week_group_id` sudah ada di Activity
                 $activity = Activity::where('user_id',  $request->user()->id)->where('week_group_id', $weekGroupId)->first();
-
 
                 if ($activity == null) {
                     // Pindah ke hari Senin minggu yang sama
@@ -173,6 +210,13 @@ class ActivityController extends Controller
                     $unit_stase_id = $unit_stase->id;
                 }
 
+                $stase_location_id = null;
+
+                if (!is_null($request->stase_id)) {
+                    $stase_location = StaseLocation::where('stase_id', $request->stase_id)->where('location_id', $request->location_id)->first();
+                    $stase_location_id = $stase_location->id;
+                }
+
                 $activity = Activity::create([
                     'user_id' => $request->user()->id,
                     'name' => $request->name,
@@ -185,8 +229,12 @@ class ActivityController extends Controller
                     'approved_by' => null,
                     'approved_at' => null,
                     'unit_stase_id' =>  $request->type == 'nonjaga' ? null : $unit_stase_id,
+                    'stase_id' =>  $request->type == 'nonjaga' ? null : $request->stase_id,
+                    'stase_location_id' =>  $request->type == 'nonjaga' ? null : $stase_location_id,
+                    'location_id' =>  $request->type == 'nonjaga' ? null : $request->location_id,
                     'week_group_id' => $weekGroupId,
                     'is_generated' => 0,
+                    'is_allowed' => $isWorkloadExceeded ? 0 : 1,
                 ]);
             });
 
@@ -232,20 +280,51 @@ class ActivityController extends Controller
                 // Format dengan sprintf untuk memastikan dua digit
                 $timeSpend = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
 
+                $changeToAllow = false;
+                // proteksi update tidak boleh melebihi 80 jam
+                list($prev_activity_hours, $prev_activity_minutes, $prev_activity_seconds) = explode(':', $activity->time_spend);
+                if ($prev_activity_hours != $hours) {
+                    $weekMonitor = WeekMonitor::where('user_id', $request->user()->id)
+                        ->where('week_group_id', $activity->week_group_id)
+                        ->first();
+                    $updated_workload_hours = ($weekMonitor->workload_hours - $prev_activity_hours) + $hours;
+                    if ($updated_workload_hours > 80) {
+                        if ($activity->is_allowed == 1) {
+                            throw new \Exception('Workload exceeded');
+                        }
+                    } else {
+                        if ($activity->is_allowed == 0) {
+                            $changeToAllow = true;
+                        }
+                    }
+                }
+
                 $unit_stase_id = null;
 
                 if (!is_null($request->stase_id)) {
                     $unit_stase = UnitStase::where('stase_id', $request->stase_id)->where('unit_id', $request->user()->student_unit_id)->first();
                     $unit_stase_id = $unit_stase->id;
                 }
+
+                $stase_location_id = null;
+
+                if (!is_null($request->stase_id)) {
+                    $stase_location = StaseLocation::where('stase_id', $request->stase_id)->where('location_id', $request->location_id)->first();
+                    $stase_location_id = $stase_location->id;
+                }
+
                 $activity->update([
                     'name' => $request->name,
                     'type' => $request->type,
                     'unit_stase_id' => $request->type == 'nonjaga' ? null : $unit_stase_id,
+                    'stase_id' =>  $request->type == 'nonjaga' ? null : $request->stase_id,
+                    'stase_location_id' =>  $request->type == 'nonjaga' ? null : $stase_location_id,
+                    'location_id' =>  $request->type == 'nonjaga' ? null : $request->location_id,
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'time_spend' => $timeSpend,
                     'description' => $request->description,
+                    'is_allowed' => $activity->is_allowed == 0 ? ($changeToAllow ? 1 : 0) : 1,
                 ]);
             });
 
@@ -262,6 +341,19 @@ class ActivityController extends Controller
     {
         try {
             DB::transaction(function () use ($request, $activity) {
+                if ($activity->is_allowed == 1) {
+                    list($prev_activity_hours, $prev_activity_minutes, $prev_activity_seconds) = explode(':', $activity->time_spend);
+                    $weekMonitor = WeekMonitor::where('user_id', $request->user()->id)
+                        ->where('week_group_id', $activity->week_group_id)
+                        ->first();
+                    $updated_workload_hours = $weekMonitor->workload_hours - $prev_activity_hours;
+                    if ($updated_workload_hours <= 80) {
+                        Activity::where('is_allowed', 0)
+                            ->where('user_id',  $request->user()->id)
+                            ->where('week_group_id', $activity->week_group_id)
+                            ->update(['is_allowed' => 1]);
+                    }
+                }
                 $activity->delete();
             });
 
@@ -296,7 +388,7 @@ class ActivityController extends Controller
         }
 
         $activities = Activity::where('user_id', $user->id)
-            ->with('unitStase', 'unitStase.stase', 'unitStase.stase.staseLocation')
+            ->with('unitStase', 'staseLocation', 'stase', 'location')
             ->with('weekMonitor', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->get();
@@ -304,8 +396,9 @@ class ActivityController extends Controller
         $stases = Stase::whereHas('units', function ($query) use ($user) {
             $query->where('units.id', $user->student_unit_id);
         })
-            ->join('stase_locations', 'stases.stase_location_id', '=', 'stase_locations.id')
-            ->selectRaw('stases.id,stases.name,CONCAT(stases.name," - ",stase_locations.name) AS label')->get();
+            // ->join('stase_locations', 'stases.stase_location_id', '=', 'stase_locations.id')
+            // ->selectRaw('stases.id,stases.name,CONCAT(stases.name," - ",stase_locations.name) AS label')->get();
+            ->get();
 
         return Inertia::render('Activities/Calendar', [
             'activities' => $activities,
@@ -320,7 +413,7 @@ class ActivityController extends Controller
     }
 
 
-    public function generateDays(Request $request, User $user): \Illuminate\Http\JsonResponse
+    public function calendarGenerateDays(Request $request, User $user): \Illuminate\Http\JsonResponse
     {
         $year = $request->input('year');
         $month = $request->input('month') + 1; // Tambahkan 1 untuk menyesuaikan dengan format PHP
@@ -357,6 +450,7 @@ class ActivityController extends Controller
                 'events' => [],
                 'isWarning' => false,
                 'isDanger' => false,
+                'isDangerBold' => false,
                 'isToday' => false,
                 'workload' => '00:00',
                 'workload_hours' => 0,
@@ -383,6 +477,7 @@ class ActivityController extends Controller
                     'name' => $activity->name,
                     'start_date' => $activity->start_date,
                     'end_date' => $activity->end_date,
+                    'is_allowed' => $activity->is_allowed,
                 ];
             }
 
@@ -402,6 +497,13 @@ class ActivityController extends Controller
             }
             if ($workload_hours > 80) {
                 $dayObj['isDanger'] = true;
+                foreach ($dayObj['events'] as $event) {
+                    if ($event['is_allowed'] == 0) {
+                        $dayObj['isDanger'] = false;
+                        $dayObj['isDangerBold'] = true;
+                        break; // Hentikan iterasi jika ditemukan
+                    }
+                }
             }
 
             $days[] = $dayObj;
@@ -471,8 +573,8 @@ class ActivityController extends Controller
 
         foreach ($activities as $activity) {
             $userName = $activity->user->username;       // Mengambil nama user dari activity
-            $staseName = $activity->unitStase->stase->name;  // Mengambil nama stase dari relasi unit_stase
-            $staseLocation = $activity->unitStase->stase->staseLocation->name;  // Mengambil lokasi stase dari relasi unit_stase
+            $staseName = $activity->stase->name;  // Mengambil nama stase dari relasi unit_stase
+            // $staseLocation = $activity->location->name;  // Mengambil lokasi stase dari relasi unit_stase
 
             // Jika user belum ada di array, inisialisasi dengan array kosong
             if (!isset($userStaseCounts[$userName])) {
@@ -483,17 +585,27 @@ class ActivityController extends Controller
             }
 
             // Jika stase belum ada di array user, inisialisasi dengan 0
-            if (!isset($userStaseCounts[$userName]['stases'][$staseName . '|' . $staseLocation])) {
-                $userStaseCounts[$userName]['stases'][$staseName . '|' . $staseLocation] = [
+            // if (!isset($userStaseCounts[$userName]['stases'][$staseName . '|' . $staseLocation])) {
+            //     $userStaseCounts[$userName]['stases'][$staseName . '|' . $staseLocation] = [
+            //         'stase_id' => $activity->unitStase->stase->id,
+            //         'name' => $staseName,
+            //         'location' => $staseLocation,
+            //         'count' => 0
+            //     ];
+            // }
+
+            // Jika stase belum ada di array user, inisialisasi dengan 0
+            if (!isset($userStaseCounts[$userName]['stases'][$staseName])) {
+                $userStaseCounts[$userName]['stases'][$staseName] = [
                     'stase_id' => $activity->unitStase->stase->id,
                     'name' => $staseName,
-                    'location' => $staseLocation,
                     'count' => 0
                 ];
             }
 
             // Tambah jumlah pengambilan stase oleh user
-            $userStaseCounts[$userName]['stases'][$staseName . '|' . $staseLocation]['count']++;
+            // $userStaseCounts[$userName]['stases'][$staseName . '|' . $staseLocation]['count']++;
+            $userStaseCounts[$userName]['stases'][$staseName]['count']++;
         }
         foreach ($userStaseCounts as &$userStaseCount) {
             $userStaseCount['stases'] = array_values($userStaseCount['stases']);
@@ -510,8 +622,9 @@ class ActivityController extends Controller
                 }
             }
         })
-            ->join('stase_locations', 'stases.stase_location_id', '=', 'stase_locations.id')
-            ->selectRaw('stases.id,stases.name,stase_locations.name AS location')->get();
+            // ->join('stase_locations', 'stases.stase_location_id', '=', 'stase_locations.id')
+            // ->selectRaw('stases.id,stases.name,stase_locations.name AS location')->get();
+            ->get();
 
         $units = Unit::all();
 
@@ -535,5 +648,19 @@ class ActivityController extends Controller
         return Inertia::render('Activities/Schedule', [
             'schedule' => Storage::url("public/" . $schedule_document_path),
         ]);
+    }
+
+    public function allowActivity(Activity $activity): RedirectResponse
+    {
+        //
+        try {
+            $activity->update([
+                'is_allowed' => 1,
+            ]);
+
+            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Activity allow successfully');
+        } catch (\Exception $e) {
+            return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
+        }
     }
 }

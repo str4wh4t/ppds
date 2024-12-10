@@ -8,6 +8,7 @@ use App\Models\Location;
 use App\Models\User;
 use App\Models\Stase;
 use App\Models\StaseLocation;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -140,6 +141,26 @@ class StaseController extends Controller
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
+        }
+    }
+
+    public function getAvailLocation(Stase $stase): JsonResponse
+    {
+        try {
+            // Mengambil lokasi terkait dari relasi locations()
+            $locations = $stase->locations()->get();
+
+            // Mengembalikan data sebagai JSON
+            return response()->json([
+                'success' => true,
+                'data' => $locations,
+            ], 200);
+        } catch (\Exception $e) {
+            // Menangani error dan mengembalikan pesan JSON
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 }

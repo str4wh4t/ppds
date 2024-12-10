@@ -23,7 +23,9 @@ return new class extends Migration
             $table->bigInteger('workload_as_seconds');
             $table->string('workload');
             $table->bigInteger('workload_hours');
+            $table->bigInteger('workload_hours_not_allowed');
             $table->timestamps();
+            $table->unique(['user_id', 'week_group_id']);
         });
     }
 

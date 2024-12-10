@@ -76,9 +76,11 @@ const searchPosts = () => {
                                 <div class="whitespace-nowrap">
                                     {{ stase.name }}
                                 </div>
+                                <!--
                                 <div class="text-gray-500 text-xs">
                                     {{ stase.location }}
                                 </div>
+                                -->
                             </th>
                         </tr>
                     </thead>

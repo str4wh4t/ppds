@@ -18,6 +18,8 @@ import moment from 'moment';
 import { ClockIcon, PencilSquareIcon, PlusCircleIcon } from '@heroicons/vue/24/outline';
 import DangerButton from '@/Components/DangerButton.vue';
 import QuillEditor from '@/Components/QuillEditor.vue';
+import { ExclamationTriangleIcon } from '@heroicons/vue/20/solid';
+import OrangeButton from '@/Components/OrangeButton.vue';
 
 const props = defineProps({
     show: Boolean,
@@ -27,6 +29,7 @@ const props = defineProps({
 
 const activityOptions = usePage().props.constants.activity_types;
 const staseOptions = usePage().props.stases;
+const locationOptions = ref([]);
 
 const emit = defineEmits(['updateProps']);
 
@@ -34,6 +37,7 @@ const isFormShow = ref(false);
 const showConfirmDelete = ref(false);
 const activityType = ref(null);
 const activityStase = ref(null);
+const activityLocation = ref(null);
 const selectedActivity = ref(null);
 const confirmDeleteDialog = ref(null);
 const btnConfirmDelete = ref(false);
@@ -47,6 +51,8 @@ const form = useForm({
     finish_time: '',
     description: '',
     stase_id: '',
+    location_id: '',
+    is_allowed: '',
 });
 
 watch(
@@ -57,6 +63,7 @@ watch(
             form.clearErrors();
             activityType.value = null;
             activityStase.value = null;
+            activityLocation.value = null;
             showConfirmDelete.value = false;
             btnConfirmDelete.value = false;
             isUpdate.value = false;
@@ -74,6 +81,7 @@ watch(
             form.clearErrors();
             activityType.value = null;
             activityStase.value = null;
+            activityLocation.value = null;
             showConfirmDelete.value = false;
             btnConfirmDelete.value = false;
             isUpdate.value = false;
@@ -93,11 +101,13 @@ const openUpdate = (activity) => {
     form.name = activity.name;
     form.type = activity.type;
     activityType.value = activity.type;
-    activityStase.value = activity.unit_stase?.stase ? {
-        id: activity.unit_stase?.stase.id,
-        name: activity.unit_stase?.stase.name,
-        label: activity.unit_stase?.stase.name + " - " + activity.unit_stase?.stase.stase_location.name
-    } : null;
+    // activityStase.value = activity.unit_stase?.stase ? {
+    //     id: activity.unit_stase?.stase.id,
+    //     name: activity.unit_stase?.stase.name,
+    //     label: activity.unit_stase?.stase.name + " - " + activity.unit_stase?.stase.stase_location.name
+    // } : null;
+    activityStase.value = activity.stase ?? null;
+    activityLocation.value = activity.location ?? null;
     form.start_time = moment(activity.start_date).format('HH:mm');
     form.finish_time = moment(activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(activity.end_date).format('HH:mm');
     // form.start_time = mmDate({ date: activity.start_date, formatOutput: 'HH:mm' });
@@ -108,8 +118,9 @@ const openUpdate = (activity) => {
 }
 
 const submit = () => {
-    form.type = activityType.value?.name ?? activityType.value;
+    form.type = activityType.value.name ?? activityType.value;
     form.stase_id = activityStase.value?.id ?? null;
+    form.location_id = activityLocation.value?.id ?? null;
     form.date = props.selectedDay.date;
     if (isUpdate.value === false) {
         form.post(route('activities.store'), {
@@ -117,6 +128,7 @@ const submit = () => {
                 form.reset();
                 activityType.value = null;
                 activityStase.value = null;
+                activityLocation.value = null;
                 emit('updateProps', data.props, props.selectedDay);
             },
         });
@@ -174,6 +186,50 @@ const totalWorkload = (activities) => {
     return formattedDuration;
 };
 
+const isLoading = ref(false);
+const getAvailLocation = async (stase) => {
+    try {
+        isLoading.value = true;
+        const responseData = await axios
+            .get(route('stases.avail-location', { stase: stase }))
+            .catch(error => {
+                console.error('Error fetching users:', error);
+            });
+        return responseData;
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    } finally {
+        //
+        isLoading.value = false;
+    }
+}
+
+watch(
+    () => activityStase.value,
+    async (newValue, oldValue) => {
+        if (newValue !== null) {
+            const response = await getAvailLocation(newValue);
+            locationOptions.value = response.data.data;
+        }
+    }
+);
+
+const handleUpdateStase = (value) => {
+    activityLocation.value = null;
+}
+
+const allowActivity = () => {
+    form.is_allowed = 1;
+    form.post(route('activities.allow', { activity: selectedActivity.value }), {
+        onSuccess: (data) => {
+            form.reset();
+            showConfirmDelete.value = false;
+            emit('updateProps', data.props, props.selectedDay);
+            isFormShow.value = false;
+        }
+    })
+}
+
 </script>
 
 <template>
@@ -189,6 +245,25 @@ const totalWorkload = (activities) => {
             </div>
             <div class="px-4 py-5 sm:p-6">
                 <div v-show="!isFormShow">
+                    <div class="flex mb-2" v-if="selectedDay.workload_hours > 80">
+                        <div class="flex-auto">
+                            <div class="border-2 border-red-400 bg-yellow-50 p-4 text-center">
+                                <div class="flex">
+                                    <div class="shrink-0">
+                                        <ExclamationTriangleIcon class="size-5 text-red-400" aria-hidden="true" />
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">
+                                            <b>Perhatian :</b> jam kerja anda telah melebihi 80 jam dalam seminggu.
+                                            {{ ' ' }}
+                                            <!-- <a href="#"
+                                                class="font-medium text-red-700 underline hover:text-yellow-600">lihat</a> -->
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex">
                         <div class="flex-auto">
                             <time :datetime="selectedDay.date" class="mt-1 mb-1 flex items-center text-gray-700">
@@ -227,14 +302,15 @@ const totalWorkload = (activities) => {
                             </thead>
                             <tbody>
                                 <tr v-if="$hasItems(activities)" v-for="(activity, index) in activities"
-                                    :key="activity.id">
+                                    :key="activity.id"
+                                    :class="{ 'bg-red-200 hover:bg-red-300': activity.is_allowed == 0 }">
                                     <td
                                         :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-4 pr-3 text-sm sm:pl-6']">
                                         <div class="font-medium text-gray-900">
                                             {{ activity.name }}
                                         </div>
                                         <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
-                                            <span>{{ activity.type }} / {{ activity.unit_stase?.stase.name ?? '' }}
+                                            <span>{{ activity.type }} / {{ activity.stase?.name ?? '' }}
                                             </span>
                                         </div>
                                         <div v-if="index !== 0"
@@ -247,8 +323,8 @@ const totalWorkload = (activities) => {
                                         </div>
                                         <div v-if="activity.type == 'jaga'"
                                             class="hidden mt-1 flex flex-col text-gray-500 sm:block">
-                                            <span class="sm:block">{{ activity.unit_stase.stase.name }}</span>
-                                            <span>{{ activity.unit_stase.stase.stase_location.name }}</span>
+                                            <span class="sm:block">{{ activity.stase.name }}</span>
+                                            <span>{{ activity.location.name }}</span>
                                         </div>
                                         <div v-if="index !== 0"
                                             class="absolute -top-px left-6 right-0 h-px bg-gray-200" />
@@ -306,8 +382,18 @@ const totalWorkload = (activities) => {
                                 (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'jaga'))">
                         <InputLabel for="stase" value="Stases" />
                         <SelectInput id="stase" class="mt-1 block w-full" v-model="activityStase"
-                            :options="staseOptions" required />
+                            @update:modelValue="handleUpdateStase" :options="staseOptions" required />
                         <InputError class="mt-2" :message="form.errors.stase_id" />
+                    </div>
+
+                    <div class="mt-2"
+                        v-if="activityType &&
+                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'jaga') ||
+                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'jaga'))">
+                        <InputLabel for="location" value="Lokasi" />
+                        <SelectInput id="location" class="mt-1 block w-full" v-model="activityLocation"
+                            :options="locationOptions" required />
+                        <InputError class="mt-2" :message="form.errors.location_id" />
                     </div>
 
                     <div class="mt-2">
@@ -336,6 +422,10 @@ const totalWorkload = (activities) => {
                             leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
                             <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
                         </Transition>
+                        <OrangeButton class="ml-2" v-if="!selectedActivity?.is_allowed && $hasRoles('kaprodi')"
+                            :disabled="form.processing" @click="allowActivity()">
+                            Ijinkan
+                        </OrangeButton>
                         <SecondaryButton class="ml-2" :disabled="form.processing" @click="isFormShow = false">
                             Cancel
                         </SecondaryButton>

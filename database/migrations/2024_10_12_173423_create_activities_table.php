@@ -35,11 +35,19 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('unit_stases')
                 ->onDelete('restrict');
-            $table->integer('week_group_id');
-            $table->foreign('week_group_id')
-                ->references('week_group_id') // Kolom yang dirujuk di tabel `activities`
-                ->on('week_monitors')            // Tabel yang dirujuk
+            $table->foreignId('stase_location_id')
+                ->nullable()
+                ->constrained('stase_locations')
                 ->onDelete('restrict');
+            $table->foreignId('stase_id')
+                ->nullable()
+                ->constrained('stases')
+                ->onDelete('restrict');
+            $table->foreignId('location_id')
+                ->nullable()
+                ->constrained('locations')
+                ->onDelete('restrict');
+            $table->integer('week_group_id');
             $table->boolean('is_generated')->default(false);
             $table->boolean('is_allowed')->default(true);
             $table->softDeletes();

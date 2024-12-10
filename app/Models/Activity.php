@@ -25,8 +25,12 @@ class Activity extends Model
         'approved_by',
         'approved_at',
         'unit_stase_id',
+        'stase_location_id',
+        'stase_id',
+        'location_id',
         'week_group_id',
         'is_generated',
+        'is_allowed',
     ];
 
     public function user()
@@ -44,10 +48,27 @@ class Activity extends Model
         return $this->belongsTo(UnitStase::class);
     }
 
+    public function stase()
+    {
+        return $this->belongsTo(Stase::class);
+    }
+
+    public function staseLocation()
+    {
+        return $this->belongsTo(StaseLocation::class);
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+
     protected static function booted()
     {
         static::addGlobalScope('generated', function ($query) {
-            $query->where('is_generated', 0)->orderByDesc('start_date');
+            $query->where('is_generated', 0)
+                // ->where('is_allowed', 1)
+                ->orderByDesc('start_date');
         });
     }
 }

@@ -140,7 +140,7 @@ const openModalGlobal = () => {
                             </div>
                             <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
                                 <span>{{ activity.type }}</span>
-                                <span>{{ activity?.unit_stase?.stase.name }}</span>
+                                <span>{{ activity.stase?.name }}</span>
                                 <span>{{ activity.time_spend }}</span>
                             </div>
                         </td>
@@ -150,8 +150,8 @@ const openModalGlobal = () => {
                                 {{ activity.type }}
                             </div>
                             <div class="mt-1 flex flex-col text-gray-500 text-xs sm:block">
-                                <span class="sm:block">{{ activity?.unit_stase?.stase.name }}</span>
-                                <span>{{ activity?.unit_stase?.stase.stase_location.name }}</span>
+                                <span class="sm:block">{{ activity.stase?.name }}</span>
+                                <span>{{ activity.location?.name }}</span>
                             </div>
                         </td>
                         <td

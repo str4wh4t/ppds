@@ -38,4 +38,14 @@ class ActivityPolicy
         //
         return $user->id === $model->user_id;
     }
+
+    public function permitActivity(User $user, Activity $model): bool
+    {
+        //
+        if ($user->hasRole('kaprodi')) {
+            return true;
+        }
+
+        return false;
+    }
 }

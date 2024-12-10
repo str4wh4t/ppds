@@ -31,6 +31,7 @@ const ownedExceededWorkloads = exceededWorkloads.value.filter(workload =>
 watch(
     () => exceededWorkloads.value,
     (newValue, oldValue) => {
+        // usePage().props.auth.user == '';
         if (exceededWorkloads.value.length > 0) {
             ownedExceededWorkloads.length > 0
                 ? hasExceededWorkloadNotifications.value = true

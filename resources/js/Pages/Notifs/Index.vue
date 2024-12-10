@@ -59,7 +59,7 @@ const ownedUnreadConsults = unreadConsults.value.filter(consult =>
                                     beban
                                     kerja sebesar <span class="font-bold">{{
                                         exceededWorkload.workload_hours
-                                        }}</span> jam
+                                    }}</span> jam
                                     pada minggu ke
                                     <span class="font-bold">{{ exceededWorkload.week }}</span> tahun
                                     <span class="font-bold">{{ exceededWorkload.year }}</span>
@@ -106,7 +106,7 @@ const ownedUnreadConsults = unreadConsults.value.filter(consult =>
                                 <li>
                                     Kelebihan beban kerja sebesar <span class="font-bold">{{
                                         exceededWorkload.workload_hours
-                                    }}</span> jam
+                                        }}</span> jam
                                     pada minggu ke
                                     <span class="font-bold">{{ exceededWorkload.week }}</span> tahun
                                     <span class="font-bold">{{ exceededWorkload.year }}</span>
@@ -197,7 +197,7 @@ const ownedUnreadConsults = unreadConsults.value.filter(consult =>
                                 <li>
                                     Terdapat permintaan konsultasi dengan judul <span class="font-bold">{{
                                         unreadConsult.consult_title
-                                    }}</span> belum di balas
+                                        }}</span> belum di balas
                                 </li>
                             </ul>
                         </div>
@@ -221,7 +221,7 @@ const ownedUnreadConsults = unreadConsults.value.filter(consult =>
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-green-800">Selamat</h3>
                         <div class="mt-2 text-sm text-green-700">
-                            <p>Anda tidak memiliki beban kerja yang melebihi aturan.</p>
+                            <p>Anda tidak memiliki permintaan konsultasi.</p>
                         </div>
                     </div>
                 </div>

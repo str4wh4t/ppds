@@ -34,7 +34,7 @@ const generateDays = async (year, month, callback = null) => {
     try {
         isLoading.value = true;
         await axios
-            .post(route('calendar.generatedays', { user: usePage().props.selectedUser }), {
+            .post(route('activities.calendar-generatedays', { user: usePage().props.selectedUser }), {
                 year: labelYear.value,
                 month: pointerMonth.value,
             })
@@ -235,7 +235,7 @@ const replaceProps = async (props, selected = null) => {
                             :class="[day.isCurrentMonth ? (day.isDanger ? 'bg-red-200' : (day.isWarning ? 'bg-yellow-100' : 'bg-white')) : 'bg-gray-50 text-gray-500', 'relative px-3 py-1 h-32 cursor-pointer']"> -->
                         <div @click="day.isCurrentMonth ? chooseDate(day.date) : '#'" v-for="day in days"
                             :key="day.date"
-                            :class="[day.isCurrentMonth ? 'font-semibold ' + (day.isDanger ? 'bg-red-200 hover:bg-red-300' : (day.isWarning ? 'bg-yellow-100 hover:bg-yellow-200' : 'hover:bg-gray-100 bg-white')) : 'bg-gray-200 text-gray-500', 'relative px-3 py-1 h-32 cursor-pointer']">
+                            :class="[day.isCurrentMonth ? 'font-semibold ' + (day.isDanger ? 'bg-red-200 hover:bg-red-300' : (day.isWarning ? 'bg-yellow-100 hover:bg-yellow-200' : (day.isDangerBold ? 'bg-rose-300 hover:bg-rose-400' : 'hover:bg-gray-100 bg-white'))) : 'bg-gray-200 text-gray-500', 'relative px-3 py-1 h-32 cursor-pointer']">
                             <!-- <time :datetime="day.date"
                                 :class="day.isToday ? 'flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white' : undefined">{{
                                     day.date.split('-').pop().replace(/^0/, '') }}</time> -->

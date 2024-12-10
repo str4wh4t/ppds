@@ -106,6 +106,7 @@ Route::middleware(['permission:logbook.*'])->group(function () {
     Route::get('/activities/{user}/calendar', [\App\Http\Controllers\ActivityController::class, 'calendar'])->name('activities.calendar');
     Route::get('/activities/{user}/report', [\App\Http\Controllers\ActivityController::class, 'report'])->name('activities.report');
     Route::get('/activities/{user}/schedule', [\App\Http\Controllers\ActivityController::class, 'schedule'])->name('activities.schedule');
+    Route::post('/activities/{activity}/allow-activity', [\App\Http\Controllers\ActivityController::class, 'allowActivity'])->name('activities.allow');
 });
 
 Route::middleware(['permission:report-logbook'])->group(function () {
@@ -142,8 +143,8 @@ Route::middleware(['permission:week-monitor.index'])->group(function () {
 
 Route::middleware(['permission:schedule.*'])->group(function () {
     Route::get('/schedules/{unit}/index', [\App\Http\Controllers\ScheduleController::class, 'index'])->name('schedules.index');
-    Route::post('/schedule/{schedule}/upload-document', [\App\Http\Controllers\ScheduleController::class, 'uploadDocument'])->name('schedules.upload-document');
-    Route::delete('/schedule/{schedule}/delete-document', [\App\Http\Controllers\ScheduleController::class, 'deleteDocument'])->name('schedules.delete-document');
+    Route::post('/schedules/{schedule}/upload-document', [\App\Http\Controllers\ScheduleController::class, 'uploadDocument'])->name('schedules.upload-document');
+    Route::delete('/schedules/{schedule}/delete-document', [\App\Http\Controllers\ScheduleController::class, 'deleteDocument'])->name('schedules.delete-document');
 });
 
 

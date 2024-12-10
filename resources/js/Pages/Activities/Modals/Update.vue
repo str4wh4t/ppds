@@ -31,12 +31,16 @@ const form = useForm({
     finish_time: '',
     description: '',
     stase_id: '',
+    location_id: '',
 });
 
 const activityOptions = usePage().props.constants.activity_types;
 const staseOptions = usePage().props.stases;
+const locationOptions = ref([]);
+
 const activityType = ref(null);
 const activityStase = ref(null);
+const activityLocation = ref(null);
 
 watch(
     () => props.show,
@@ -49,14 +53,16 @@ watch(
             form.name = props.activity.name;
             form.type = props.activity.type;
             activityType.value = props.activity.type;
-            activityStase.value = props.activity.unit_stase?.stase ? {
-                id: props.activity.unit_stase?.stase.id,
-                name: props.activity.unit_stase?.stase.name,
-                label: props.activity.unit_stase?.stase.name + " - " + props.activity.unit_stase?.stase.stase_location.name
-            } : null;
+            // activityStase.value = props.activity.unit_stase?.stase ? {
+            //     id: props.activity.unit_stase?.stase.id,
+            //     name: props.activity.unit_stase?.stase.name,
+            //     label: props.activity.unit_stase?.stase.name + " - " + props.activity.unit_stase?.stase.stase_location.name
+            // } : null;
+            activityStase.value = props.activity.stase ?? null;
+            activityLocation.value = props.activity.location ?? null;
             form.start_time = moment(props.activity.start_date).format('HH:mm');
             form.finish_time = moment(props.activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(props.activity.end_date).format('HH:mm');
-            form.description = props.activity?.description ?? '';
+            form.description = props.activity.description ?? '';
             form.date = moment(props.activity.start_date).format('YYYY-MM-DD');  // cont : 2021-08-01
         }
     },
@@ -64,8 +70,9 @@ watch(
 );
 
 const submit = () => {
-    form.type = activityType.value?.name ?? activityType.value;
+    form.type = activityType.value.name ?? activityType.value;
     form.stase_id = activityStase.value?.id ?? null;
+    form.location_id = activityLocation.value?.id ?? null;
     form.put(route('activities.update', { activity: props.activity }), {
         onSuccess: (data) => {
             form.clearErrors();
@@ -91,6 +98,38 @@ const deleteItem = () => {
             emit('exitUpdate');
         },
     });
+}
+
+const isLoading = ref(false);
+const getAvailLocation = async (stase) => {
+    try {
+        isLoading.value = true;
+        const responseData = await axios
+            .get(route('stases.avail-location', { stase: stase }))
+            .catch(error => {
+                console.error('Error fetching users:', error);
+            });
+        return responseData;
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    } finally {
+        //
+        isLoading.value = false;
+    }
+}
+
+watch(
+    () => activityStase.value,
+    async (newValue, oldValue) => {
+        if (newValue !== null) {
+            const response = await getAvailLocation(newValue);
+            locationOptions.value = response.data.data;
+        }
+    }
+);
+
+const handleUpdateStase = (value) => {
+    activityLocation.value = null;
 }
 
 </script>
@@ -126,8 +165,18 @@ const deleteItem = () => {
                                 (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'jaga'))">
                         <InputLabel for="stase" value="Stases" />
                         <SelectInput id="stase" class="mt-1 block w-full" v-model="activityStase"
-                            :options="staseOptions" required />
+                            @update:modelValue="handleUpdateStase" :options="staseOptions" required />
                         <InputError class="mt-2" :message="form.errors.stase_id" />
+                    </div>
+
+                    <div class="mt-2"
+                        v-if="activityType &&
+                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'jaga') ||
+                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'jaga'))">
+                        <InputLabel for="location" value="Lokasi" />
+                        <SelectInput id="location" class="mt-1 block w-full" v-model="activityLocation"
+                            :options="locationOptions" required />
+                        <InputError class="mt-2" :message="form.errors.location_id" />
                     </div>
 
                     <div class="mt-2">

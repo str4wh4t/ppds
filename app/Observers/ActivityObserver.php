@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Events\WorkloadExceeded;
 use App\Models\Activity;
 use App\Models\WeekMonitor;
+use Illuminate\Support\Facades\Log;
 
 class ActivityObserver
 {
@@ -44,13 +45,28 @@ class ActivityObserver
         $totalWorkload = sprintf('%02d:%02d', $hours, $minutes);
 
         // Log atau simpan workload mingguan
-        $weekMonitor = WeekMonitor::updateOrCreate(
-            ['user_id' => $user->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
-            ['year' => substr($weekGroupId, 0, 4), 'week' => substr($weekGroupId, 4, 2), 'workload_hours' => $hours, 'workload' => $totalWorkload, 'workload_as_seconds' => $totalSeconds]           // Data yang akan diupdate/insert
-        );
+        // $weekMonitor = WeekMonitor::updateOrCreate(
+        //     ['user_id' => $user->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
+        //     ['year' => substr($weekGroupId, 0, 4), 'week' => substr($weekGroupId, 4, 2), 'workload_hours' => $hours, 'workload' => $totalWorkload, 'workload_as_seconds' => $totalSeconds]           // Data yang akan diupdate/insert
+        // );
+
+        $weekMonitor = WeekMonitor::where('user_id', $user->id)
+            ->where('week_group_id', $weekGroupId)
+            ->first();
+
+        if (!empty($weekMonitor)) {
+            // $weekMonitor->user_id = $user->id;
+            // $weekMonitor->week_group_id = $weekGroupId;
+            $weekMonitor->year = substr($weekGroupId, 0, 4);
+            $weekMonitor->week = substr($weekGroupId, 4, 2);
+            $weekMonitor->workload_hours = $hours;
+            $weekMonitor->workload = $totalWorkload;
+            $weekMonitor->workload_as_seconds = $totalSeconds;
+            $weekMonitor->save();
+        }
 
         if ($hours > 80) {
-            event(new WorkloadExceeded($weekMonitor));
+            event(new WorkloadExceeded($weekMonitor, $activity));
         }
     }
 
@@ -68,7 +84,10 @@ class ActivityObserver
     public function saved(Activity $activity): void
     {
         //
-        $this->calculateWorkload($activity);
+        if (!$activity->is_generated) {
+            $this->calculateWorkload($activity);
+            // Log::info('Activity saved');
+        }
     }
 
     /**

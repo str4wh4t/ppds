@@ -16,6 +16,7 @@ class WeekMonitor extends Model
         'week',
         'workload',
         'workload_hours',
+        'workload_hours_not_allowed',
         'workload_as_seconds',
     ];
 
@@ -27,7 +28,7 @@ class WeekMonitor extends Model
     protected static function booted()
     {
         static::addGlobalScope('latest', function ($query) {
-            $query->where('workload_hours', '!=', 0)->orderBy('user_id')->orderBy('week', 'desc');
+            // $query->where('workload_hours', '!=', 0)->orderBy('user_id')->orderBy('week', 'desc');
         });
     }
 }

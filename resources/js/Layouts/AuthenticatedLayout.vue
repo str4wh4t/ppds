@@ -104,9 +104,9 @@ const modalStore = useModalStore();
 const flashmsg = computed(() => usePage().props.flashmsg);
 
 watch(
-    () => flashmsg.value.ko,
+    () => flashmsg.value,
     (newValue, oldValue) => {
-        if (newValue !== null) {
+        if (newValue.ko !== null) {
             modalStore.openModal('Error', 'Terjadi kesalahan saat mengirim data.');
         }
     }, { immediate: true }
