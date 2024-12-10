@@ -12,13 +12,14 @@ How to install :
 
 1. clone this repo !!!
 2. composer install
-3. npm run build
-4. php artisan migrate
-5. php artisan db:seed
-6. php artisan db:seed --class=RoleSeeder
-7. php artisan db:seed --class=PermissionSeeder
-8. login with user : super , pass : 12345678
-9. enjoy
+3. npm install
+4. npm run build
+5. php artisan migrate
+6. php artisan db:seed
+7. php artisan db:seed --class=RoleSeeder
+8. php artisan db:seed --class=PermissionSeeder
+9. login with user : super , pass : 12345678
+10. enjoy
 
 Todolist :
 
