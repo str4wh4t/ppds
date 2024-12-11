@@ -19,7 +19,7 @@ class PermissionController extends Controller
     public function index()
     {
         //
-        $permissions = Permission::where('name', '!=', 'global')->with('roles')->orderBy('name')->paginate(10);
+        $permissions = Permission::where('name', '!=', 'global')->with('roles')->orderBy('name')->paginate(20);
         $roles = Role::where('name', '!=', 'system')->get();
         return Inertia::render('Permissions/Index', [
             'permissions' => $permissions,
