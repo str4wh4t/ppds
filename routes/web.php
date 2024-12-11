@@ -103,9 +103,9 @@ Route::middleware(['permission:logbook.*'])->group(function () {
     // Menambahkan middleware 'can' untuk aksi update dan delete pada resource activities
     Route::resource('/activities', \App\Http\Controllers\ActivityController::class)
         ->except(['index', 'show']);
-    Route::get('/activities/{user}/calendar', [\App\Http\Controllers\ActivityController::class, 'calendar'])->name('activities.calendar');
+    Route::get('/activities/{user}/calendar/{month_number?}/{year?}', [\App\Http\Controllers\ActivityController::class, 'calendar'])->name('activities.calendar');
     Route::get('/activities/{user}/report', [\App\Http\Controllers\ActivityController::class, 'report'])->name('activities.report');
-    Route::get('/activities/{user}/schedule', [\App\Http\Controllers\ActivityController::class, 'schedule'])->name('activities.schedule');
+    Route::get('/activities/{user}/schedule/{month_number}/month/{year}/year', [\App\Http\Controllers\ActivityController::class, 'schedule'])->name('activities.schedule');
     Route::post('/activities/{activity}/allow-activity', [\App\Http\Controllers\ActivityController::class, 'allowActivity'])->name('activities.allow');
 });
 

@@ -38,9 +38,14 @@ class User extends Authenticatable
 
     protected $roles_belong_to_dosen = ['dekan', 'kaprodi', 'dosen_pembimbing']; // belum dipakai
 
+    public function activities()
+    {
+        return $this->hasMany(Activity::class);
+    }
+
     public function studentUnit()
     {
-        return $this->belongsTo(Unit::class, 'student_unit_id', 'id');
+        return $this->belongsTo(Unit::class, 'student_unit_id', 'id'); // MENDAPATKAN PRODI MAHASISWA
     }
 
     public function dosbingUser()

@@ -49,14 +49,32 @@ class HandleInertiaRequests extends Middleware
             ],
             'constants' => config('constants.public'), // Bagikan semua konstanta
             'exceededWorkloads' => $request->user() ?
-                (($request->user()->hasRole('student') ?
-                    WeekMonitor::where('workload_hours', '>', 80)->where('user_id', $request->user()->id)->get() :
-                    WeekMonitor::where('workload_hours', '>', 80)->with('user', 'user.studentUnit')->get())) :
+                ($request->user()->hasRole('student') ?
+                    WeekMonitor::where('workload_hours', '>', 80)
+                    ->where('user_id', $request->user()->id)
+                    ->whereHas('activities', function ($query) use ($request) {
+                        $query->where('user_id', $request->user()->id)
+                            ->where('is_allowed', 0);
+                    })
+                    ->get() : ($request->user()->hasRole('kaprodi') ?
+                        WeekMonitor::where('workload_hours', '>', 80)
+                        ->with('user', 'user.studentUnit')
+                        ->whereHas('activities', function ($query) use ($request) {
+                            $query->where('is_allowed', 0);
+                        })
+                        ->whereHas('user', function ($query) use ($request) {
+                            $query->whereIn('student_unit_id', $request->user()->kaprodiUnits->pluck('id')->toArray());
+                        })
+                        ->get() : null)) :
                 null,
             'unreadConsults' => $request->user() ?
-                (($request->user()->hasRole('student') ?
-                    Consult::where('reply_at', null)->where('user_id', $request->user()->id)->get() :
-                    Consult::where('reply_at', null)->with('user', 'user.studentUnit')->get())) :
+                ($request->user()->hasRole('student') ?
+                    Consult::where('reply_at', null)
+                    ->where('user_id', $request->user()->id)
+                    ->get() : ($request->user()->hasRole('dosen') ?
+                        Consult::where('reply_at', null)
+                        ->with('user', 'user.studentUnit')
+                        ->get() : null)) :
                 null,
         ];
 

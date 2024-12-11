@@ -24,21 +24,22 @@ const kaprodiUnits = computed(() => {
     return usePage().props.auth.user.kaprodi_units;
 });
 
-const ownedExceededWorkloads = exceededWorkloads.value.filter(workload =>
+const ownedExceededWorkloads = exceededWorkloads.value?.filter(workload =>
     kaprodiUnits.value.some(unit => unit.id === workload.user.student_unit_id)
-);
+) ?? [];
 
 watch(
     () => exceededWorkloads.value,
     (newValue, oldValue) => {
-        // usePage().props.auth.user == '';
-        if (exceededWorkloads.value.length > 0) {
-            ownedExceededWorkloads.length > 0
-                ? hasExceededWorkloadNotifications.value = true
-                : hasExceededWorkloadNotifications.value = false;
-            hasExceededWorkloadNotifications.value = true;
-        } else {
-            hasExceededWorkloadNotifications.value = false;
+        if (exceededWorkloads.value != null) {
+            if (exceededWorkloads.value.length > 0) {
+                ownedExceededWorkloads.length > 0
+                    ? hasExceededWorkloadNotifications.value = true
+                    : hasExceededWorkloadNotifications.value = false;
+                hasExceededWorkloadNotifications.value = true;
+            } else {
+                hasExceededWorkloadNotifications.value = false;
+            }
         }
     },
     { immediate: true }
@@ -54,19 +55,21 @@ const dosbingStudents = computed(() => {
     return usePage().props.auth.user.dosbing_students;
 });
 
-const ownedUnreadConsults = unreadConsults.value.filter(consult =>
+const ownedUnreadConsults = unreadConsults.value?.filter(consult =>
     dosbingStudents.value.some(student => student.id === consult.user_id)
 );
 
 watch(
     () => unreadConsults.value,
     (newValue, oldValue) => {
-        if (unreadConsults.value.length > 0) {
-            ownedUnreadConsults.length > 0
-                ? hasUnreadConsultNotifications.value = true
-                : hasUnreadConsultNotifications.value = false;
-        } else {
-            hasUnreadConsultNotifications.value = false;
+        if (unreadConsults.value != null) {
+            if (unreadConsults.value.length > 0) {
+                ownedUnreadConsults.length > 0
+                    ? hasUnreadConsultNotifications.value = true
+                    : hasUnreadConsultNotifications.value = false;
+            } else {
+                hasUnreadConsultNotifications.value = false;
+            }
         }
     },
     { immediate: true }

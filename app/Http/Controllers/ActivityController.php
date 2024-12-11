@@ -7,6 +7,7 @@ use App\Http\Requests\Activity\StoreRequest;
 use App\Http\Requests\Activity\UpdateRequest;
 use App\Models\Activity;
 use App\Models\Location;
+use App\Models\Schedule;
 use App\Models\Stase;
 use App\Models\StaseLocation;
 use App\Models\Unit;
@@ -295,6 +296,11 @@ class ActivityController extends Controller
                     } else {
                         if ($activity->is_allowed == 0) {
                             $changeToAllow = true;
+                        } else {
+                            Activity::where('is_allowed', 0)
+                                ->where('user_id',  $request->user()->id)
+                                ->where('week_group_id', $activity->week_group_id)
+                                ->update(['is_allowed' => 1]);
                         }
                     }
                 }
@@ -364,13 +370,12 @@ class ActivityController extends Controller
     }
 
     // create function named calendar
-    public function calendar(Request $request, User $user): Response
+    public function calendar(Request $request, User $user, int $month_number = null, int $year = null): Response
     {
         $weekGroupId = $request->input('weekGroupId');
         $userId = $request->input('userId');
-        $month = date('m');
-        $month = $month - 1;
-        $year = date('Y');
+        $month =  $month_number ?? date('m') - 1;
+        $year = $year ?? date('Y');
         // dd($weekGroupId);
         if (!empty($weekGroupId)) {
             $year = substr($weekGroupId, 0, 4);
@@ -641,11 +646,21 @@ class ActivityController extends Controller
     }
 
     // tampilkan view Activity/Schedule
-    public function schedule(Request $request, User $user): Response
+    public function schedule(Request $request, User $user, int $month_number, int $year): Response
     {
         //
-        $schedule_document_path = $user->studentUnit->schedule_document_path;
+        $schedule_document_path = null;
+        $schedule = Schedule::where([
+            'unit_id' => $user->student_unit_id,
+            'month_number' => $month_number + 1,
+            'year' => $year,
+        ])->first();
+        if (!empty($schedule)) {
+            $schedule_document_path = $schedule->document_path;
+        }
         return Inertia::render('Activities/Schedule', [
+            'month_number' => $month_number,
+            'year' => $year,
             'schedule' => Storage::url("public/" . $schedule_document_path),
         ]);
     }

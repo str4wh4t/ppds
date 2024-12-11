@@ -137,7 +137,7 @@ const replaceProps = async (props, selected = null) => {
         <div v-if="!isLoading" class="lg:flex lg:h-full lg:flex-col mt-4">
             <header class="flex items-center justify-between border-b border-gray-200 pb-5 lg:flex-none">
                 <Link v-if="$hasRoles('student')"
-                    :href="route('activities.schedule', { user: usePage().props.auth.user })"
+                    :href="route('activities.schedule', { user: usePage().props.auth.user, month_number: pointerMonth, year: labelYear })"
                     class="hidden sm:inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     type="button">
                 <CalendarDaysIcon class="-ml-0.5 h-4 w-4 u" aria-hidden="true" /> Lihat Jadwal

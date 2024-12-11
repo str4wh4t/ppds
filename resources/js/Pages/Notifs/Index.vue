@@ -14,9 +14,9 @@ const kaprodiUnits = computed(() => {
 });
 
 // Membuat array ownedExceededWorkloads
-const ownedExceededWorkloads = exceededWorkloads.value.filter(workload =>
+const ownedExceededWorkloads = exceededWorkloads.value?.filter(workload =>
     kaprodiUnits.value.some(unit => unit.id === workload.user.student_unit_id)
-);
+) ?? [];
 
 const unreadConsults = computed(() => {
     return usePage().props.unreadConsults;
@@ -27,9 +27,9 @@ const dosbingStudents = computed(() => {
 });
 
 // Membuat array ownedUnreadConsults
-const ownedUnreadConsults = unreadConsults.value.filter(consult =>
+const ownedUnreadConsults = unreadConsults.value?.filter(consult =>
     dosbingStudents.value.some(student => student.id === consult.user_id)
-);
+) ?? [];
 
 </script>
 
@@ -86,7 +86,8 @@ const ownedUnreadConsults = unreadConsults.value.filter(consult =>
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-green-800">Selamat</h3>
                         <div class="mt-2 text-sm text-green-700">
-                            <p>Tidak ditemukan mahasiswa yang memiliki beban kerja yang melebihi aturan.</p>
+                            <p>Tidak ditemukan mahasiswa yang memiliki <b>(usulan)</b> beban kerja yang melebihi aturan.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -133,7 +134,7 @@ const ownedUnreadConsults = unreadConsults.value.filter(consult =>
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-green-800">Selamat</h3>
                         <div class="mt-2 text-sm text-green-700">
-                            <p>Anda tidak memiliki beban kerja yang melebihi aturan.</p>
+                            <p>Anda tidak memiliki <b>(usulan)</b> beban kerja yang melebihi aturan.</p>
                         </div>
                     </div>
                 </div>

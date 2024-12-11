@@ -25,6 +25,11 @@ class WeekMonitor extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function activities()
+    {
+        return $this->hasMany(Activity::class, 'week_group_id', 'week_group_id');
+    }
+
     protected static function booted()
     {
         static::addGlobalScope('latest', function ($query) {
