@@ -111,9 +111,9 @@ const searchPosts = () => {
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Username</th>
-                        <th scope="col"
+                        <!-- <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            Identity</th>
+                            Identity</th> -->
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Email</th>
@@ -144,9 +144,9 @@ const searchPosts = () => {
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ user.username }}</td>
-                        <td
+                        <!-- <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ user.identity }}</td>
+                            {{ user.identity }}</td> -->
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ user.email }}</td>

@@ -70,9 +70,9 @@ const openModalGlobal = () => {
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Username</th>
-                        <th scope="col"
+                        <!-- <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            Identity</th>
+                            Identity</th> -->
                         <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Unit</th>
                         <th scope="col"
@@ -103,9 +103,9 @@ const openModalGlobal = () => {
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ user.username }}</td>
-                        <td
+                        <!-- <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ user.identity }}</td>
+                            {{ user.identity }}</td> -->
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <div class="sm:hidden">{{ (user?.kaprodi_units ?? []).map(unit => unit.name).join(', ') }}
