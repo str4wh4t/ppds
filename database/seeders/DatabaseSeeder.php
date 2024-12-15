@@ -17,7 +17,6 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-
         \App\Models\User::factory()->create([
             'username' => 'Super',
             'fullname' => 'Super User',
@@ -26,13 +25,13 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make(config('constants.password_default')),
         ]);
 
-        Role::create(['name' => 'system']);
+        $this->call([
+            RoleSeeder::class,
+            PermissionSeeder::class,
+            RoleHasPermissionsSeeder::class,
+        ]);
 
         $user = \App\Models\User::first();
         $user->assignRole('system');
-
-        Permission::firstOrCreate(['name' => 'access-control']);
-        $role = Role::findByName('system');
-        $role->givePermissionTo('access-control');
     }
 }
