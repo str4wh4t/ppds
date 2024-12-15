@@ -24,13 +24,6 @@ const closeUploadSchedule = () => {
     isUploadSchedule.value = false;
 };
 
-// const yearSelected = (selected) => {
-//     router.get(route('schedules.index', {
-//         unit: usePage().props.unit
-//     }), { years: selected }, { replace: true });
-// };
-
-
 const startYear = 2024;
 const endYear = 2029;
 
@@ -39,6 +32,7 @@ const yearList = Array.from({ length: endYear - startYear + 1 }, (_, i) => ({
     id: i + 1,
     name: String(startYear + i),
 }));
+const unitList = usePage().props.units;
 
 // Mengambil nilai yearSelected dari props
 const yearSelected = ref(usePage().props.filters.yearSelected);
@@ -46,17 +40,20 @@ const yearSelected = ref(usePage().props.filters.yearSelected);
 // Menemukan objek tahun yang sesuai dengan yearSelected
 const yearSelectedOpt = ref(yearList.find(year => year.name == yearSelected.value) || null);
 
+const unitSelected = ref(usePage().props.filters.unit);
+const unitSelectedOpt = ref(unitList.find(unit => unit.name == unitSelected.value.name) || null);
+
 watch(
-    () => yearSelectedOpt.value, // Properti reactive
-    (newValue, oldValue) => {
-        // Pastikan newValue tidak null sebelum melanjutkan
-        router.get(route('schedules.index', {
-            unit: usePage().props.unit, // Akses unit dari props
-        }), {
-            yearSelected: newValue?.name || null, // Gunakan newValue secara langsung
-        }, {
-            replace: true,
-        });
+    [() => yearSelectedOpt.value, () => unitSelectedOpt.value], // Properti reactive
+    ([newYear, newUnit], [oldYear, oldUnit]) => {
+        // Cek apakah ada perubahan pada salah satu properti
+        if (newYear || newUnit) {
+            router.get(
+                route('schedules.index', { unit: newUnit?.id || null }), // Gunakan nilai terbaru
+                { yearSelected: newYear?.name || null }, // Kirim nilai terbaru
+                { replace: true }
+            );
+        }
     }
 );
 
@@ -70,19 +67,16 @@ watch(
             Schedule List
         </template>
         <div class="sm:flex sm:items-center mt-4">
-            <div class="mt-4 sm:mt-0 sm:flex-none">
-                <Link :href="route('units.index')"
-                    class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-400 px-3 py-2 text-sm font-semibold border-2 border-yellow-600 shadow-sm hover:bg-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-600">
-                <ArrowLeftCircleIcon class="h-4 w-4 u" aria-hidden="true" />
-                Back
-                </Link>
-            </div>
-            <div class="divide-y divide-gray-100 rounded-md border border-red-400 px-5 py-2 ml-2 sm:flex-auto">
+            <div class="divide-y divide-gray-100 rounded-md border border-red-400 px-5 py-2 sm:flex-auto">
                 Tahun : <span class="font-bold">{{ yearSelected ?? usePage().props.currentYear }}</span>
             </div>
-            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-initial w-64">
+            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-initial w-48">
                 <SelectInput id="yearSelected" class="block w-full" v-model="yearSelectedOpt" :options="yearList"
                     required autofocus autocomplete="yearSelected" placeholder="Select year" />
+            </div>
+            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto">
+                <SelectInput id="unitSelected" class="block w-full" v-model="unitSelectedOpt" :options="unitList"
+                    required autofocus autocomplete="unitSelected" placeholder="Select unit" />
             </div>
         </div>
         <div class="-mx-4 mt-5 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg">

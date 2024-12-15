@@ -28,6 +28,7 @@ class Activity extends Model
         'stase_location_id',
         'stase_id',
         'location_id',
+        'dosen_user_id',
         'week_group_id',
         'is_generated',
         'is_allowed',
@@ -36,6 +37,11 @@ class Activity extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function dosenUser()
+    {
+        return $this->belongsTo(User::class, 'dosen_user_id', 'id');
     }
 
     public function weekMonitor()

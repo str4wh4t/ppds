@@ -26,7 +26,9 @@ class StoreRequest extends FormRequest
             'is_approved' => 'boolean',
             'approved_by' => 'nullable|integer|exists:users,id',
             'approved_at' => 'nullable|date',
-            'stase_id' => 'nullable|integer|exists:stases,id|required_if:type,stase',
+            'stase_id' => 'nullable|integer|exists:stases,id|required_if:type,jaga',
+            'location_id' => 'nullable|integer|exists:locations,id|required_if:type,jaga',
+            'dosen_user_id' => 'nullable|integer|exists:users,id',
         ];
     }
 

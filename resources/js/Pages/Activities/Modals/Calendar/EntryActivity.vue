@@ -28,8 +28,17 @@ const props = defineProps({
 });
 
 const activityOptions = usePage().props.constants.activity_types;
+const dosen_list = usePage().props.dosen_list;
+
+const dosenList = dosen_list.map(user => ({
+    ...user,
+    name: user.fullname, // Mengganti fullname dengan name
+    fullname: undefined // Menghapus key fullname
+}));
+
 const staseOptions = usePage().props.stases;
 const locationOptions = ref([]);
+const dosenSelected = ref(null);
 
 const emit = defineEmits(['updateProps']);
 
@@ -52,6 +61,7 @@ const form = useForm({
     description: '',
     stase_id: '',
     location_id: '',
+    dosen_user_id: '',
     is_allowed: '',
 });
 
@@ -64,6 +74,7 @@ watch(
             activityType.value = null;
             activityStase.value = null;
             activityLocation.value = null;
+            dosenSelected.value = null;
             showConfirmDelete.value = false;
             btnConfirmDelete.value = false;
             isUpdate.value = false;
@@ -82,6 +93,7 @@ watch(
             activityType.value = null;
             activityStase.value = null;
             activityLocation.value = null;
+            dosenSelected.value = null;
             showConfirmDelete.value = false;
             btnConfirmDelete.value = false;
             isUpdate.value = false;
@@ -108,6 +120,10 @@ const openUpdate = (activity) => {
     // } : null;
     activityStase.value = activity.stase ?? null;
     activityLocation.value = activity.location ?? null;
+    dosenSelected.value = {
+        id: activity.dosen_user?.id,
+        name: activity.dosen_user?.fullname
+    };
     form.start_time = moment(activity.start_date).format('HH:mm');
     form.finish_time = moment(activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(activity.end_date).format('HH:mm');
     // form.start_time = mmDate({ date: activity.start_date, formatOutput: 'HH:mm' });
@@ -121,6 +137,7 @@ const submit = () => {
     form.type = activityType.value.name ?? activityType.value;
     form.stase_id = activityStase.value?.id ?? null;
     form.location_id = activityLocation.value?.id ?? null;
+    form.dosen_user_id = dosenSelected.value?.id ?? null;
     form.date = props.selectedDay.date;
     if (isUpdate.value === false) {
         form.post(route('activities.store'), {
@@ -129,6 +146,7 @@ const submit = () => {
                 activityType.value = null;
                 activityStase.value = null;
                 activityLocation.value = null;
+                dosenSelected.value = null;
                 emit('updateProps', data.props, props.selectedDay);
             },
         });
@@ -394,6 +412,13 @@ const allowActivity = () => {
                         <SelectInput id="location" class="mt-1 block w-full" v-model="activityLocation"
                             :options="locationOptions" required />
                         <InputError class="mt-2" :message="form.errors.location_id" />
+                    </div>
+
+                    <div class="mt-2">
+                        <InputLabel for="dosen_user_id" value="Dosen" />
+                        <SelectInput id="dosen_user_id" class="mt-1 block w-full" v-model="dosenSelected"
+                            :options="dosenList" required />
+                        <InputError class="mt-2" :message="form.errors.dosen_user_id" />
                     </div>
 
                     <div class="mt-2">

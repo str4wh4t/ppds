@@ -27,7 +27,9 @@ class UpdateRequest extends FormRequest
             // 'approved_by' => 'nullable|integer|exists:users,id', // Assuming users table exists for approved_by
             // 'approved_at' => 'nullable|date',
             // 'unit_stase_id' => 'nullable|integer|exists:units,id|required_with:stase_id',
-            'stase_id' => 'nullable|integer|exists:stases,id|required_if:type,stase',
+            'stase_id' => 'nullable|integer|exists:stases,id|required_if:type,jaga',
+            'location_id' => 'nullable|integer|exists:locations,id|required_if:type,jaga',
+            'dosen_user_id' => 'nullable|integer|exists:users,id',
         ];
     }
 

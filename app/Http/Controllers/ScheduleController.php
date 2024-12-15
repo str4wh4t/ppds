@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Schedule;
-use App\Http\Requests\Schedule\StoreRequest;
-use App\Http\Requests\Schedule\UpdateRequest;
 use App\Models\Unit;
 use Carbon\Carbon;
 use Inertia\Inertia;
@@ -23,6 +21,14 @@ class ScheduleController extends Controller
      */
     public function index(Request $request, Unit $unit): Response
     {
+
+        $unit_ids_all = $request->user()->adminUnits->pluck('id')->toArray();
+        if (empty($unit->id)) {
+            $unit = Unit::whereIn('id', $unit_ids_all)->first();
+        }
+
+        $unit_ids = [$unit->id];
+
         $yearSelected = $request->input('yearSelected');
         $currentYear = Carbon::now()->year;
 
@@ -30,26 +36,25 @@ class ScheduleController extends Controller
             $currentYear = $yearSelected;
         }
 
-        // Query untuk mendapatkan jadwal berdasarkan unit dan tahun
-        $schedules = Schedule::where('unit_id', $unit->id)
-            ->where('year', $currentYear);
-
-
-
-        // Periksa apakah jadwal untuk tahun tersebut kosong
-        if ($schedules->doesntExist()) {
-            // Buat jadwal baru untuk 12 bulan
-            $newSchedules = collect();
-            for ($i = 1; $i <= 12; $i++) {
-                $newSchedules->push([
-                    'unit_id' => $unit->id,
-                    'user_id' => $request->user()->id,
-                    'year' => $currentYear,
-                    'month_number' => $i,
-                    'month_name' => Carbon::createFromDate($currentYear, $i, 1)->monthName,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+        // Buat jadwal baru untuk 12 bulan
+        $newSchedules = collect();
+        foreach ($unit_ids as $unit_id) {
+            // Query untuk mendapatkan jadwal berdasarkan unit dan tahun
+            $schedules = Schedule::where('unit_id', $unit_id)
+                ->where('year', $currentYear);
+            // Periksa apakah jadwal untuk tahun tersebut kosong
+            if ($schedules->doesntExist()) {
+                for ($i = 1; $i <= 12; $i++) {
+                    $newSchedules->push([
+                        'unit_id' => $unit_id,
+                        'user_id' => $request->user()->id,
+                        'year' => $currentYear,
+                        'month_number' => $i,
+                        'month_name' => Carbon::createFromDate($currentYear, $i, 1)->monthName,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
 
             // Insert data secara batch untuk meningkatkan efisiensi
@@ -57,17 +62,17 @@ class ScheduleController extends Controller
         }
 
         // Paginate jadwal berdasarkan query
-        $schedulesToPaginate = Schedule::where('unit_id', $unit->id)
+        $schedulesToPaginate = Schedule::where('unit_id', $unit_ids[0])
             ->where('year', $currentYear)
             ->paginate(12)
             ->withQueryString();
-
         return Inertia::render('Schedules/Index', [
             'schedules' => $schedulesToPaginate,
-            'unit' => $unit,
+            'units' => Unit::whereIn('id', $unit_ids_all)->get(),
             'currentYear' => $currentYear,
             'filters' => [
-                'yearSelected' => $yearSelected,
+                'unit' => $unit,
+                'yearSelected' => $yearSelected ?? $currentYear,
             ]
         ]);
     }
@@ -122,7 +127,7 @@ class ScheduleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreRequest $request)
+    public function store(Request $request)
     {
         //
     }
@@ -146,7 +151,7 @@ class ScheduleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateRequest $request, Schedule $schedule)
+    public function update(Request $request, Schedule $schedule)
     {
         //
     }

@@ -196,6 +196,10 @@ class ActivityController extends Controller
                             'approved_by' => null,
                             'approved_at' => null,
                             'unit_stase_id' => null,
+                            'stase_id' => null,
+                            'stase_location_id' => null,
+                            'location_id' => null,
+                            'dosen_user_id' => null,
                             'week_group_id' => $weekGroupId,
                             'is_generated' => 1,
                         ]);
@@ -233,6 +237,7 @@ class ActivityController extends Controller
                     'stase_id' =>  $request->type == 'nonjaga' ? null : $request->stase_id,
                     'stase_location_id' =>  $request->type == 'nonjaga' ? null : $stase_location_id,
                     'location_id' =>  $request->type == 'nonjaga' ? null : $request->location_id,
+                    'dosen_user_id' => $request->dosen_user_id ?? null,
                     'week_group_id' => $weekGroupId,
                     'is_generated' => 0,
                     'is_allowed' => $isWorkloadExceeded ? 0 : 1,
@@ -326,6 +331,7 @@ class ActivityController extends Controller
                     'stase_id' =>  $request->type == 'nonjaga' ? null : $request->stase_id,
                     'stase_location_id' =>  $request->type == 'nonjaga' ? null : $stase_location_id,
                     'location_id' =>  $request->type == 'nonjaga' ? null : $request->location_id,
+                    'dosen_user_id' =>  $request->dosen_user_id ?? null,
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'time_spend' => $timeSpend,
@@ -393,7 +399,7 @@ class ActivityController extends Controller
         }
 
         $activities = Activity::where('user_id', $user->id)
-            ->with('unitStase', 'staseLocation', 'stase', 'location')
+            ->with('unitStase', 'staseLocation', 'stase', 'location', 'dosenUser')
             ->with('weekMonitor', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->get();
@@ -405,12 +411,17 @@ class ActivityController extends Controller
             // ->selectRaw('stases.id,stases.name,CONCAT(stases.name," - ",stase_locations.name) AS label')->get();
             ->get();
 
+        $dosenList = User::whereHas('roles', function ($query) {
+            $query->whereIn('name', ['dosen']);
+        })->get();
+
         return Inertia::render('Activities/Calendar', [
             'activities' => $activities,
             'stases' => $stases,
             'month' => $month,
             'year' => $year,
             'selectedUser' => $user,
+            'dosen_list' => $dosenList,
             'filters' => [
                 // 'search' => $search,
             ]

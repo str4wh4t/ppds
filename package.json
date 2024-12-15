@@ -24,6 +24,7 @@
         "moment": "^2.30.1",
         "pinia": "^2.2.4",
         "pusher-js": "^8.4.0-rc2",
-        "quill": "^2.0.2"
+        "quill": "^2.0.2",
+        "vue-pdf-embed": "^2.1.1"
     }
 }

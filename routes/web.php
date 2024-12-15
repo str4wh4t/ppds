@@ -142,7 +142,7 @@ Route::middleware(['permission:week-monitor.index'])->group(function () {
 });
 
 Route::middleware(['permission:schedule.*'])->group(function () {
-    Route::get('/schedules/{unit}/index', [\App\Http\Controllers\ScheduleController::class, 'index'])->name('schedules.index');
+    Route::get('/schedules/{unit?}', [\App\Http\Controllers\ScheduleController::class, 'index'])->name('schedules.index');
     Route::post('/schedules/{schedule}/upload-document', [\App\Http\Controllers\ScheduleController::class, 'uploadDocument'])->name('schedules.upload-document');
     Route::delete('/schedules/{schedule}/delete-document', [\App\Http\Controllers\ScheduleController::class, 'deleteDocument'])->name('schedules.delete-document');
 });

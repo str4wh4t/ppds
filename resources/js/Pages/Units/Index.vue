@@ -94,8 +94,6 @@ const searchPosts = () => {
                         <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Stase</th>
                         <th scope="col" class="hidden px-3 py-2 text-sm font-semibold text-gray-900 lg:table-cell">
-                            Jadwal</th>
-                        <th scope="col" class="hidden px-3 py-2 text-sm font-semibold text-gray-900 lg:table-cell">
                             Pedoman</th>
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
@@ -126,24 +124,6 @@ const searchPosts = () => {
                         <td :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500']">
                             <div class="sm:hidden">{{ (unit?.stases ?? []).map(stase => stase.name).join(', ') }}</div>
                             <div class="hidden sm:block">{{ (unit?.stases ?? []).map(stase => stase.name).join(', ') }}
-                            </div>
-                        </td>
-                        <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            <div class="flex justify-center items-center">
-                                <Link :href="route('schedules.index', { unit: unit })"
-                                    class="relative inline-flex items-center rounded-md bg-white px-2 py-2 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
-                                    as="button">
-                                <span class="sr-only">Schedule</span>
-                                <CalendarDaysIcon class="h-4 w-4 u" aria-hidden="true" />
-                                </Link>
-                                <!--
-                                <CheckCircleIcon v-if="unit.schedule_document_path"
-                                    class="h-4 w-4 u text-green-400 cursor-pointer" @click="openUploadSchedule(unit)"
-                                    aria-hidden="true" />
-                                <XCircleIcon v-else class="h-4 w-4 u text-red-400 cursor-pointer"
-                                    @click="openUploadSchedule(unit)" aria-hidden="true" />
-                                -->
                             </div>
                         </td>
                         <td

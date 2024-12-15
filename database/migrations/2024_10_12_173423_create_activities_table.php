@@ -47,6 +47,10 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('locations')
                 ->onDelete('restrict');
+            $table->foreignId('dosen_user_id')
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('restrict');
             $table->integer('week_group_id');
             $table->boolean('is_generated')->default(false);
             $table->boolean('is_allowed')->default(true);
