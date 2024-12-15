@@ -5,7 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { useForm } from '@inertiajs/vue3';
 import { CloudArrowUpIcon, PrinterIcon, XCircleIcon } from '@heroicons/vue/24/outline';
 import WarningButton from '@/Components/WarningButton.vue';
-import VuePdfEmbed from 'vue-pdf-embed'
+// import VuePdfEmbed from 'vue-pdf-embed'
 
 
 const emit = defineEmits(['exitUpdate']);
