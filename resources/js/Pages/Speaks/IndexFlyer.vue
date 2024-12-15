@@ -16,25 +16,25 @@ const products = [
     {
         id: 1,
         href: 'https://gazebu-fk.apps.undip.ac.id',
-        imageSrc: '/storage/flyers/gazebu-fk-784-1168.jpg',
+        imageSrc: '/flyers/gazebu-fk-784-1168.jpg',
         imageAlt: "GAZEBU FK UNDIP",
     },
     {
         id: 2,
         href: 'https://curcol-fk.apps.undip.ac.id',
-        imageSrc: '/storage/flyers/curcol-fk-784-1168.jpg',
+        imageSrc: '/flyers/curcol-fk-784-1168.jpg',
         imageAlt: "CURCOL FK UNDIP",
     },
     {
         id: 3,
         href: 'https://petik.rskariadi.id',
-        imageSrc: '/storage/flyers/sipetik-rskariadi-784-1168.jpg',
+        imageSrc: '/flyers/sipetik-rskariadi-784-1168.jpg',
         imageAlt: "SIPETIK RS KARIADI",
     },
     {
         id: 4,
         href: 'https://wa.me/6282325051078',
-        imageSrc: '/storage/flyers/helpline-rskariadi-784-1168.jpg',
+        imageSrc: '/flyers/helpline-rskariadi-784-1168.jpg',
         imageAlt: "HELP LINE RS KARIADI",
     },
 ]
