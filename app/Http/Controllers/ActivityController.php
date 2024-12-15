@@ -66,7 +66,7 @@ class ActivityController extends Controller
                     $query->whereIn('name', $unitNames);
                 });
             }
-        })->with('user', 'user.studentUnit', 'unitStase', 'stase', 'staseLocation', 'location');
+        })->with('user', 'user.studentUnit', 'unitStase', 'stase', 'staseLocation', 'location', 'dosenUser');
 
         if ($request->user()->hasRole('student')) {
             $activities = $activities->where('user_id', $request->user()->id);
@@ -90,11 +90,15 @@ class ActivityController extends Controller
             ->get();
 
         $units = Unit::all();
+        $dosenList = User::whereHas('roles', function ($query) {
+            $query->whereIn('name', ['dosen']);
+        })->get();
 
         return Inertia::render('Activities/Index', [
             'activities' => $activities,
             'stases' => $stases,
             'units' => $units,
+            'dosen_list' => $dosenList,
             'filters' => [
                 'search' => $search,
                 'units' => $unitSelected,

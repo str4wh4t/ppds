@@ -32,11 +32,20 @@ const form = useForm({
     description: '',
     stase_id: '',
     location_id: '',
+    dosen_user_id: '',
 });
 
 const activityOptions = usePage().props.constants.activity_types;
 const staseOptions = usePage().props.stases;
 const locationOptions = ref([]);
+const dosen_list = usePage().props.dosen_list;
+
+const dosenList = dosen_list.map(user => ({
+    ...user,
+    name: user.fullname, // Mengganti fullname dengan name
+    fullname: undefined // Menghapus key fullname
+}));
+const dosenSelected = ref(null);
 
 const activityType = ref(null);
 const activityStase = ref(null);
@@ -60,6 +69,10 @@ watch(
             // } : null;
             activityStase.value = props.activity.stase ?? null;
             activityLocation.value = props.activity.location ?? null;
+            dosenSelected.value = {
+                id: props.activity.dosen_user?.id,
+                name: props.activity.dosen_user?.fullname
+            };
             form.start_time = moment(props.activity.start_date).format('HH:mm');
             form.finish_time = moment(props.activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(props.activity.end_date).format('HH:mm');
             form.description = props.activity.description ?? '';
@@ -73,6 +86,7 @@ const submit = () => {
     form.type = activityType.value.name ?? activityType.value;
     form.stase_id = activityStase.value?.id ?? null;
     form.location_id = activityLocation.value?.id ?? null;
+    form.dosen_user_id = dosenSelected.value?.id ?? null;
     form.put(route('activities.update', { activity: props.activity }), {
         onSuccess: (data) => {
             form.clearErrors();
@@ -177,6 +191,13 @@ const handleUpdateStase = (value) => {
                         <SelectInput id="location" class="mt-1 block w-full" v-model="activityLocation"
                             :options="locationOptions" required />
                         <InputError class="mt-2" :message="form.errors.location_id" />
+                    </div>
+
+                    <div class="mt-2">
+                        <InputLabel for="dosen_user_id" value="Dosen" />
+                        <SelectInput id="dosen_user_id" class="mt-1 block w-full" v-model="dosenSelected"
+                            :options="dosenList" required />
+                        <InputError class="mt-2" :message="form.errors.dosen_user_id" />
                     </div>
 
                     <div class="mt-2">
