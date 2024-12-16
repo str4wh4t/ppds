@@ -7,9 +7,11 @@ import ModalUpdate from './Modals/Update.vue';
 import CreateButton from '@/Components/CreateButton.vue';
 import { ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/vue/20/solid';
 import { ref, computed } from 'vue';
-import { CalendarDaysIcon, PrinterIcon } from '@heroicons/vue/24/outline';
+import { CalendarDaysIcon, DocumentArrowUpIcon, PrinterIcon } from '@heroicons/vue/24/outline';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import moment from 'moment';
+import ButtonLink from '@/Components/ButtonLink.vue';
+import PdfViewer from '@/Components/PdfViewer.vue';
 
 const pdfIframe = ref(null);
 
@@ -38,24 +40,29 @@ const labelYear = ref(year);
             <header class="flex items-center justify-between border-b border-gray-200 pb-5 lg:flex-none">
                 <Link
                     :href="route('activities.calendar', { user: usePage().props.auth.user, month_number: month_number, year: year })"
-                    class="hidden sm:inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    type="button">
+                    class="hidden sm:inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 uppercase text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    as="button">
                 <CalendarDaysIcon class="-ml-0.5 h-4 w-4 u" aria-hidden="true" /> Lihat Kalender
                 </Link>
                 <h1 class="text-base font-semibold leading-6 text-gray-900">
                     <span>Jadwal {{ labelMonth }} {{ labelYear }}</span>
                 </h1>
                 <div class="flex items-center">
-                    <PrimaryButton @click="printPDF">
+                    <!-- <PrimaryButton @click="printPDF">
                         <PrinterIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Cetak Jadwal
-                    </PrimaryButton>
+                    </PrimaryButton> -->
+                    <ButtonLink class="ml-1" :href="$storagePath($page.props.schedule)" target="_blank">
+                        <DocumentArrowUpIcon class="-ml-0.5 h-4 w-4 mr-1" aria-hidden="true" />
+                        Open PDF
+                    </ButtonLink>
                 </div>
             </header>
             <div class="sm:flex sm:items-center w-full">
-                <div class="pdf-container">
-                    <iframe ref="pdfIframe" :src="$page.props.schedule" width="100%" height="1000px"
+                <!-- <div class="pdf-container">
+                    <iframe ref="pdfIframe" :src="$storagePath($page.props.schedule)" width="100%" height="1000px"
                         frameborder="0"></iframe>
-                </div>
+                </div> -->
+                <PdfViewer width="800" :source="$storagePath($page.props.schedule)" v-if="$page.props.schedule" />
             </div>
         </div>
     </AuthenticatedLayout>

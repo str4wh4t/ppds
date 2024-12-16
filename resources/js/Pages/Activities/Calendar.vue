@@ -138,7 +138,7 @@ const replaceProps = async (props, selected = null) => {
             <header class="flex items-center justify-between border-b border-gray-200 pb-5 lg:flex-none">
                 <Link v-if="$hasRoles('student')"
                     :href="route('activities.schedule', { user: usePage().props.auth.user, month_number: pointerMonth, year: labelYear })"
-                    class="hidden sm:inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    class="hidden sm:inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 uppercase text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     type="button">
                 <CalendarDaysIcon class="-ml-0.5 h-4 w-4 u" aria-hidden="true" /> Lihat Jadwal
                 </Link>
@@ -153,7 +153,7 @@ const replaceProps = async (props, selected = null) => {
                             <ChevronLeftIcon class="h-4 w-4 u" aria-hidden="true" />
                         </button>
                         <button @click="goThisMonth()" type="button"
-                            class="hidden border-y border-gray-300 px-3.5 text-sm font-semibold text-gray-900 hover:bg-indigo-50 hover:text-indigo-500 focus:relative md:block">Bulan
+                            class="hidden border-y border-gray-300 px-3.5 text-xs uppercase font-semibold text-gray-900 hover:bg-indigo-50 hover:text-indigo-500 focus:relative md:block">Bulan
                             ini</button>
                         <span class="relative -mx-px h-5 w-px bg-gray-300 md:hidden" />
                         <button @click="goNextMonth()" type="button"

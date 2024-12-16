@@ -676,7 +676,7 @@ class ActivityController extends Controller
         return Inertia::render('Activities/Schedule', [
             'month_number' => $month_number,
             'year' => $year,
-            'schedule' => Storage::url("public/" . $schedule_document_path),
+            'schedule' => $schedule_document_path,
         ]);
     }
 

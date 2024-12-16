@@ -7,6 +7,7 @@ import { CloudArrowUpIcon, DocumentArrowUpIcon, PrinterIcon, XCircleIcon } from 
 import WarningButton from '@/Components/WarningButton.vue';
 import ButtonLink from '@/Components/ButtonLink.vue';
 import VuePdfEmbed from 'vue-pdf-embed'
+import PdfViewer from '@/Components/PdfViewer.vue';
 
 
 const emit = defineEmits(['exitUpdate']);
@@ -62,12 +63,16 @@ const pdfFrame = ref(null);
             <div class="px-4 py-5 sm:p-6">
                 <!-- Content goes here -->
                 <form @submit.prevent="submit" class="mt-1 text-sm text-gray-600">
-                    <div class="sm:flex sm:items-center w-full bg-slate-500 p-2">
+                    <div class="sm:flex sm:items-center w-full">
                         <!-- <iframe ref="pdfFrame" :src="$storagePath($page.props.guideline)" width="100%" height="1000px"
                             frameborder="0"></iframe> -->
                         <!-- <embed ref="pdfFrame" :src="$storagePath($page.props.guideline)" type="application/pdf"
                             width="100%" height="1000px" frameborder="0" /> -->
-                        <VuePdfEmbed width="800" ref="pdfFrame" :source="$storagePath($page.props.guideline)" />
+                        <!-- <div class="bg-slate-500 p-2 w-full">
+                            <VuePdfEmbed width="800" ref="pdfFrame" :source="$storagePath($page.props.guideline)" />
+                        </div> -->
+                        <PdfViewer width="800" :source="$storagePath($page.props.guideline)"
+                            v-if="$page.props.guideline" />
                     </div>
                     <div class="flex items-center justify-center mt-4">
                         <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
@@ -91,15 +96,3 @@ const pdfFrame = ref(null);
         </div>
     </Modal>
 </template>
-<style scoped>
-.vue-pdf-embed {
-    margin: 0 auto;
-    height: 600px;
-    overflow-y: scroll;
-}
-
-.vue-pdf-embed__page {
-    margin-bottom: 8px;
-    box-shadow: 0 2px 8px 4px rgba(0, 0, 0, 0.1);
-}
-</style>

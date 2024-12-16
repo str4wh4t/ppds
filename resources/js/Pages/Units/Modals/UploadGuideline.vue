@@ -6,13 +6,14 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import SelectInput from '@/Components/SelectInputBasic.vue';
 import MultiselectBasic from '@/Components/MultiselectBasic.vue';
 import InputUpload from '@/Components/InputUpload.vue';
-import { CloudArrowUpIcon, XCircleIcon } from '@heroicons/vue/24/outline';
+import { CloudArrowUpIcon, DocumentArrowUpIcon, XCircleIcon } from '@heroicons/vue/24/outline';
+import ButtonLink from '@/Components/ButtonLink.vue';
 
 
 const emit = defineEmits(['exitUpdate']);
@@ -105,6 +106,11 @@ const clearDocument = () => {
                             :disabled="form.processing">
                             <XCircleIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Delete
                         </DangerButton>
+                        <ButtonLink class="ml-1" :href="$storagePath(form.document_path)" target="_blank"
+                            v-if="form.document_path">
+                            <DocumentArrowUpIcon class="-ml-0.5 h-4 w-4 mr-1" aria-hidden="true" />
+                            Open PDF
+                        </ButtonLink>
                     </div>
                     <div v-if="showConfirmDelete" ref="confirmDeleteDialog" tabindex="-1"
                         class="flex flex-col items-center justify-center mt-4 border-2 border-yellow-400 bg-yellow-50 p-4 text-center">
