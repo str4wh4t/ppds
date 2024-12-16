@@ -64,15 +64,15 @@ const pdfFrame = ref(null);
                 <!-- Content goes here -->
                 <form @submit.prevent="submit" class="mt-1 text-sm text-gray-600">
                     <div class="sm:flex sm:items-center w-full">
-                        <!-- <iframe ref="pdfFrame" :src="$storagePath($page.props.guideline)" width="100%" height="1000px"
-                            frameborder="0"></iframe> -->
+                        <iframe ref="pdfFrame" :src="$storagePath($page.props.guideline)" width="100%" height="1000px"
+                            frameborder="0"></iframe>
                         <!-- <embed ref="pdfFrame" :src="$storagePath($page.props.guideline)" type="application/pdf"
                             width="100%" height="1000px" frameborder="0" /> -->
                         <!-- <div class="bg-slate-500 p-2 w-full">
                             <VuePdfEmbed width="800" ref="pdfFrame" :source="$storagePath($page.props.guideline)" />
                         </div> -->
-                        <PdfViewer width="800" :source="$storagePath($page.props.guideline)"
-                            v-if="$page.props.guideline" />
+                        <!-- <PdfViewer width="800" :source="$storagePath($page.props.guideline)"
+                            v-if="$page.props.guideline" /> -->
                     </div>
                     <div class="flex items-center justify-center mt-4">
                         <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
