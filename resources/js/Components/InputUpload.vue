@@ -8,8 +8,8 @@
                 <!-- <button @click="removeDocument" class="mb-4 px-4 py-2 bg-red-600 text-white rounded-md">
                     Hapus Dokumen
                 </button> -->
-                <iframe :src="documentUrl || initialDocumentUrl" :type="validTypes[fileType]"
-                    class="w-full h-64 border rounded-md" frameborder="0">
+                <iframe sandbox="allow-forms allow-scripts allow-same-origin" :src="documentUrl || initialDocumentUrl"
+                    :type="validTypes[fileType]" class="w-full h-64 border rounded-md" frameborder="0">
                 </iframe>
             </div>
         </div>
