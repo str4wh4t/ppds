@@ -6,7 +6,7 @@ import { useForm } from '@inertiajs/vue3';
 import { CloudArrowUpIcon, DocumentArrowUpIcon, PrinterIcon, XCircleIcon } from '@heroicons/vue/24/outline';
 import WarningButton from '@/Components/WarningButton.vue';
 import ButtonLink from '@/Components/ButtonLink.vue';
-// import VuePdfEmbed from 'vue-pdf-embed'
+import VuePdfEmbed from 'vue-pdf-embed'
 
 
 const emit = defineEmits(['exitUpdate']);
@@ -62,13 +62,12 @@ const pdfFrame = ref(null);
             <div class="px-4 py-5 sm:p-6">
                 <!-- Content goes here -->
                 <form @submit.prevent="submit" class="mt-1 text-sm text-gray-600">
-                    <div class="sm:flex sm:items-center w-full">
+                    <div class="sm:flex sm:items-center w-full bg-slate-500 p-2">
                         <!-- <iframe ref="pdfFrame" :src="$storagePath($page.props.guideline)" width="100%" height="1000px"
                             frameborder="0"></iframe> -->
-                        <embed ref="pdfFrame" :src="$storagePath($page.props.guideline)" type="application/pdf"
-                            width="100%" height="1000px" frameborder="0" />
-                        <!-- <VuePdfEmbed width="800" ref="pdfFrame" scale="5"
-                            :source="$storagePath($page.props.guideline)" /> -->
+                        <!-- <embed ref="pdfFrame" :src="$storagePath($page.props.guideline)" type="application/pdf"
+                            width="100%" height="1000px" frameborder="0" /> -->
+                        <VuePdfEmbed width="800" ref="pdfFrame" :source="$storagePath($page.props.guideline)" />
                     </div>
                     <div class="flex items-center justify-center mt-4">
                         <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
@@ -95,6 +94,8 @@ const pdfFrame = ref(null);
 <style scoped>
 .vue-pdf-embed {
     margin: 0 auto;
+    height: 600px;
+    overflow-y: scroll;
 }
 
 .vue-pdf-embed__page {
