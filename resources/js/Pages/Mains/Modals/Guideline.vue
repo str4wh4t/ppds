@@ -6,8 +6,7 @@ import { useForm } from '@inertiajs/vue3';
 import { CloudArrowUpIcon, DocumentArrowUpIcon, PrinterIcon, XCircleIcon } from '@heroicons/vue/24/outline';
 import WarningButton from '@/Components/WarningButton.vue';
 import ButtonLink from '@/Components/ButtonLink.vue';
-import VuePdfEmbed from 'vue-pdf-embed'
-import PdfViewer from '@/Components/PdfViewer.vue';
+// import PdfViewer from '@/Components/PdfViewer.vue';
 
 
 const emit = defineEmits(['exitUpdate']);

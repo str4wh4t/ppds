@@ -11,7 +11,7 @@ import { CalendarDaysIcon, DocumentArrowUpIcon, PrinterIcon } from '@heroicons/v
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import moment from 'moment';
 import ButtonLink from '@/Components/ButtonLink.vue';
-import PdfViewer from '@/Components/PdfViewer.vue';
+// import PdfViewer from '@/Components/PdfViewer.vue';
 
 const pdfIframe = ref(null);
 
@@ -58,11 +58,11 @@ const labelYear = ref(year);
                 </div>
             </header>
             <div class="sm:flex sm:items-center w-full">
-                <!-- <div class="pdf-container">
+                <div class="pdf-container">
                     <iframe ref="pdfIframe" :src="$storagePath($page.props.schedule)" width="100%" height="1000px"
                         frameborder="0"></iframe>
-                </div> -->
-                <PdfViewer width="800" :source="$storagePath($page.props.schedule)" v-if="$page.props.schedule" />
+                </div>
+                <!-- <PdfViewer width="800" :source="$storagePath($page.props.schedule)" v-if="$page.props.schedule" /> -->
             </div>
         </div>
     </AuthenticatedLayout>
