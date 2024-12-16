@@ -3,8 +3,9 @@ import { ref, watch, nextTick } from 'vue'
 import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { useForm } from '@inertiajs/vue3';
-import { CloudArrowUpIcon, PrinterIcon, XCircleIcon } from '@heroicons/vue/24/outline';
+import { CloudArrowUpIcon, DocumentArrowUpIcon, PrinterIcon, XCircleIcon } from '@heroicons/vue/24/outline';
 import WarningButton from '@/Components/WarningButton.vue';
+import ButtonLink from '@/Components/ButtonLink.vue';
 // import VuePdfEmbed from 'vue-pdf-embed'
 
 
@@ -41,12 +42,11 @@ const submit = () => {
 
 const pdfFrame = ref(null);
 
-const cetakPdf = () => {
-    // Mengambil dokumen dalam iframe dan memanggil perintah cetak
-    if (pdfFrame.value && pdfFrame.value.contentWindow) {
-        pdfFrame.value.contentWindow.print();
-    }
-};
+// const cetakPdf = () => {
+//     if (pdfFrame.value && pdfFrame.value.contentWindow) {
+//         pdfFrame.value.contentWindow.print();
+//     }
+// };
 
 </script>
 <template>
@@ -63,8 +63,10 @@ const cetakPdf = () => {
                 <!-- Content goes here -->
                 <form @submit.prevent="submit" class="mt-1 text-sm text-gray-600">
                     <div class="sm:flex sm:items-center w-full">
-                        <iframe ref="pdfFrame" :src="$storagePath($page.props.guideline)" width="100%" height="1000px"
-                            frameborder="0"></iframe>
+                        <!-- <iframe ref="pdfFrame" :src="$storagePath($page.props.guideline)" width="100%" height="1000px"
+                            frameborder="0"></iframe> -->
+                        <embed ref="pdfFrame" :src="$storagePath($page.props.guideline)" type="application/pdf"
+                            width="100%" height="1000px" frameborder="0" />
                         <!-- <VuePdfEmbed width="800" ref="pdfFrame" scale="5"
                             :source="$storagePath($page.props.guideline)" /> -->
                     </div>
@@ -73,12 +75,17 @@ const cetakPdf = () => {
                             leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
                             <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
                         </Transition>
-                        <WarningButton class="ml-4" :disabled="form.processing" type="submit">
+                        <WarningButton class="ml-1" :disabled="form.processing" type="submit">
                             <CloudArrowUpIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Sudah Baca
                         </WarningButton>
-                        <PrimaryButton class="ml-4" @click="cetakPdf" type="button">
+                        <!-- <PrimaryButton class="ml-1" @click="cetakPdf" type="button">
                             <PrinterIcon class="-ml-0.5 h-4 w-4 u mr-1" aria-hidden="true" /> Download
-                        </PrimaryButton>
+                        </PrimaryButton> -->
+                        <ButtonLink class="ml-1" :href="$storagePath($page.props.guideline)" target="_blank"
+                            v-if="$page.props.guideline">
+                            <DocumentArrowUpIcon class="-ml-0.5 h-4 w-4 mr-1" aria-hidden="true" />
+                            Open PDF
+                        </ButtonLink>
                     </div>
                 </form>
             </div>
