@@ -147,7 +147,7 @@ onUnmounted(() => {
         <!-- Dropdown with Teleport -->
         <teleport to="body">
             <div v-if="isOpen" ref="dropdownMenu"
-                class="absolute bg-white ring-1 ring-gray-200 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto z-50"
+                class="absolute bg-white mt-1 ring-1 ring-gray-200 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto z-50"
                 :style="dropdownPosition">
                 <!-- Search Input -->
                 <div class="p-2">
