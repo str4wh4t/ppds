@@ -166,13 +166,11 @@ class UnitController extends Controller
                 }
 
                 $stases = $request->stases;
-                if (!empty($stases)) {
-                    $ids = array_map(function ($stase) {
-                        return $stase['id'];
-                    }, $stases);
+                $ids = array_map(function ($stase) {
+                    return $stase['id'];
+                }, $stases);
 
-                    $unit->stases()->sync($ids);
-                }
+                $unit->stases()->sync($ids);
 
                 // $stase_ids = $request->stases;
                 // $unit->stases()->sync($stase_ids);
