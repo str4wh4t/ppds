@@ -154,16 +154,14 @@ class UnitController extends Controller
                 }
 
                 $unit_admins = $request->unit_admins;
-                if (!empty($unit_admins)) {
-                    $ids = array_map(function ($unit_admin) {
-                        return $unit_admin['id'];
-                    }, $unit_admins);
+                $ids = array_map(function ($unit_admin) {
+                    return $unit_admin['id'];
+                }, $unit_admins);
 
-                    $roleAs = 'admin_prodi'; // Role yang sama untuk semua
+                $roleAs = 'admin_prodi'; // Role yang sama untuk semua
 
-                    $syncData = array_fill_keys($ids, ['role_as' => $roleAs]);
-                    $unit->unitAdmins()->sync($syncData);
-                }
+                $syncData = array_fill_keys($ids, ['role_as' => $roleAs]);
+                $unit->unitAdmins()->sync($syncData);
 
                 $stases = $request->stases;
                 $ids = array_map(function ($stase) {
