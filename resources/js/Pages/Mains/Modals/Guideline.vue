@@ -32,7 +32,7 @@ watch(
 );
 
 const submit = () => {
-    form.post(route('students.read-guideline', { user: props.user }), {
+    form.post(route('students.read-guideline', { user: props.user.id }), {
         onSuccess: (data) => {
             form.clearErrors();
             emit('exitUpdate');

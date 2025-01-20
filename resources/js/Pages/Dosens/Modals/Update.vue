@@ -50,7 +50,7 @@ watch(
 );
 
 const submit = () => {
-    form.put(route('dosens.update', { user: props.user }), {
+    form.put(route('dosens.update', { user: props.user.id }), {
         onSuccess: (data) => {
             form.clearErrors();
             showConfirmDelete.value = false;
@@ -68,7 +68,7 @@ const onShowConfirmDelete = () => {
 }
 
 const deleteItem = () => {
-    form.delete(route('users.destroy', { user: props.user }), {
+    form.delete(route('users.destroy', { user: props.user.id }), {
         onSuccess: (data) => {
             form.reset();
             showConfirmDelete.value = false;
@@ -78,7 +78,7 @@ const deleteItem = () => {
 }
 
 const onResetPassword = () => {
-    form.patch(route('users.reset-password', { user: props.user }), {
+    form.patch(route('users.reset-password', { user: props.user.id }), {
         onSuccess: (data) => {
             showConfirmDelete.value = false;
         },
