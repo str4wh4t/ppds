@@ -24,6 +24,9 @@ class RoleSeeder extends Seeder
             'dekan',
             'komkordik',
             'student',
+            'wd1',
+            'dirsdm',
+            'kadep',
         ];
 
         foreach ($roles as $role) {
