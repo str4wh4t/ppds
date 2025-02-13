@@ -96,7 +96,7 @@ const clearDocument = () => {
                 <!-- Content goes here -->
                 <!-- We use less vertical padding on card headers on desktop than on body sections -->
                 <h2 class="text-lg font-medium text-gray-900">
-                    Update Portofolio
+                    Update Datadiri
                 </h2>
             </div>
             <div class="px-4 py-5 sm:p-6">

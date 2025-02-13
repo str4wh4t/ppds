@@ -45,7 +45,7 @@ const closeUpdate = () => {
     <Head title="Portofolio List" />
     <AuthenticatedLayout>
         <template #header>
-            Daftar Portofolio
+            Daftar Datadiri
         </template>
         <div class="sm:flex sm:items-center mt-4" v-if="!$hasRoles('student')">
             <div class="sm:flex-auto">
@@ -76,7 +76,7 @@ const closeUpdate = () => {
             </div>
             <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-none">
                 <CreateButton @click="isCreate = true">
-                    Tambah portofolio
+                    Tambah datadiri
                 </CreateButton>
             </div>
         </div>
