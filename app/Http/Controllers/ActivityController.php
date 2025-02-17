@@ -237,10 +237,10 @@ class ActivityController extends Controller
                     'is_approved' => 0, // default value
                     'approved_by' => null,
                     'approved_at' => null,
-                    'unit_stase_id' =>  $request->type == 'nonjaga' ? null : $unit_stase_id,
-                    'stase_id' =>  $request->type == 'nonjaga' ? null : $request->stase_id,
-                    'stase_location_id' =>  $request->type == 'nonjaga' ? null : $stase_location_id,
-                    'location_id' =>  $request->type == 'nonjaga' ? null : $request->location_id,
+                    'unit_stase_id' =>  $request->type == 'jaga' ? null : $unit_stase_id,
+                    'stase_id' =>  $request->type == 'jaga' ? null : $request->stase_id,
+                    'stase_location_id' =>  $request->type == 'jaga' ? null : $stase_location_id,
+                    'location_id' =>  $request->type == 'jaga' ? null : $request->location_id,
                     'dosen_user_id' => $request->dosen_user_id ?? null,
                     'week_group_id' => $weekGroupId,
                     'is_generated' => 0,
@@ -331,10 +331,10 @@ class ActivityController extends Controller
                 $activity->update([
                     'name' => $request->name,
                     'type' => $request->type,
-                    'unit_stase_id' => $request->type == 'nonjaga' ? null : $unit_stase_id,
-                    'stase_id' =>  $request->type == 'nonjaga' ? null : $request->stase_id,
-                    'stase_location_id' =>  $request->type == 'nonjaga' ? null : $stase_location_id,
-                    'location_id' =>  $request->type == 'nonjaga' ? null : $request->location_id,
+                    'unit_stase_id' => $request->type == 'jaga' ? null : $unit_stase_id,
+                    'stase_id' =>  $request->type == 'jaga' ? null : $request->stase_id,
+                    'stase_location_id' =>  $request->type == 'jaga' ? null : $stase_location_id,
+                    'location_id' =>  $request->type == 'jaga' ? null : $request->location_id,
                     'dosen_user_id' =>  $request->dosen_user_id ?? null,
                     'start_date' => $startDate,
                     'end_date' => $endDate,
@@ -550,9 +550,11 @@ class ActivityController extends Controller
     {
         $search = $request->input('search');
         $unitSelected = $request->input('units');
+        $monthSelected = $request->input('monthSelected');
 
         // ambil data activities berdasarkan user_id
-        $activities = Activity::where('type', 'jaga')
+        // $activities = Activity::where('type', 'nonjaga')
+        $activities = Activity::whereHas('unitStase')
             ->when($search, function ($query, $search) {
                 $query->whereHas('user', function ($query) use ($search) {
                     $query->where('fullname', 'like', "%{$search}%");
@@ -656,6 +658,7 @@ class ActivityController extends Controller
             'filters' => [
                 'search' => $search,
                 'units' => $unitSelected,
+                'monthSelected' => $monthSelected,
             ]
         ]);
     }

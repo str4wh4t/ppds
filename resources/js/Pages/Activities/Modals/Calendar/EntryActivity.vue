@@ -339,7 +339,7 @@ const allowActivity = () => {
                                         <div class="font-medium text-gray-900">
                                             {{ activity.type }}
                                         </div>
-                                        <div v-if="activity.type == 'jaga'"
+                                        <div v-if="activity.type == 'nonjaga'"
                                             class="hidden mt-1 flex flex-col text-gray-500 sm:block">
                                             <span class="sm:block">{{ activity.stase.name }}</span>
                                             <span>{{ activity.location.name }}</span>
@@ -396,8 +396,8 @@ const allowActivity = () => {
 
                     <div class="mt-2"
                         v-if="activityType &&
-                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'jaga') ||
-                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'jaga'))">
+                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'nonjaga') ||
+                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'nonjaga'))">
                         <InputLabel for="stase" value="Stases" />
                         <SelectInput id="stase" class="mt-1 block w-full" v-model="activityStase"
                             @update:modelValue="handleUpdateStase" :options="staseOptions" required />
@@ -406,8 +406,8 @@ const allowActivity = () => {
 
                     <div class="mt-2"
                         v-if="activityType &&
-                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'jaga') ||
-                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'jaga'))">
+                            ((typeof activityType === 'string' && activityType.toLowerCase() === 'nonjaga') ||
+                                (typeof activityType === 'object' && activityType.name && activityType.name.toLowerCase() === 'nonjaga'))">
                         <InputLabel for="location" value="Lokasi" />
                         <SelectInput id="location" class="mt-1 block w-full" v-model="activityLocation"
                             :options="locationOptions" required />
