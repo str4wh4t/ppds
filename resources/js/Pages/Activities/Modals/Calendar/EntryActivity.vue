@@ -341,8 +341,8 @@ const allowActivity = () => {
                                         </div>
                                         <div v-if="activity.type == 'nonjaga'"
                                             class="hidden mt-1 flex flex-col text-gray-500 sm:block">
-                                            <span class="sm:block">{{ activity.stase.name }}</span>
-                                            <span>{{ activity.location.name }}</span>
+                                            <span class="sm:block">{{ activity?.stase?.name || null }}</span>
+                                            <span>{{ activity?.location?.name || null }}</span>
                                         </div>
                                         <div v-if="index !== 0"
                                             class="absolute -top-px left-6 right-0 h-px bg-gray-200" />
