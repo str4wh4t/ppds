@@ -151,12 +151,29 @@ class ActivityController extends Controller
                     ->where('week_group_id', $weekGroupId)
                     ->first();
                 if (empty($weekMonitor)) {
-                    // Jika record ditemukan, update data
+                    // Jika record week monitor tidak ditemukan
+
+                    // Mengambil tahun dan minggu dari weekGroupId
+                    $year = substr($weekGroupId, 0, 4);
+                    $week = substr($weekGroupId, 4, 2);
+
+                    // Menentukan tanggal pertama dari minggu tersebut
+                    $date = Carbon::now()->setISODate($year, $week);
+
+                    // Menentukan bulan berdasarkan tanggal minggu tersebut
+                    $month = $date->month;
+
+                    // Menentukan minggu keberapa dalam bulan tersebut
+                    $firstDayOfMonth = Carbon::create($year, $month, 1);
+                    $weekMonth = $date->diffInWeeks($firstDayOfMonth) + 1;
+
                     $weekMonitor = new WeekMonitor();
                     $weekMonitor->user_id = $request->user()->id;
                     $weekMonitor->week_group_id = $weekGroupId;
-                    $weekMonitor->year = substr($weekGroupId, 0, 4);
-                    $weekMonitor->week = substr($weekGroupId, 4, 2);
+                    $weekMonitor->year = $year;
+                    $weekMonitor->week = $week;
+                    $weekMonitor->month = $month;
+                    $weekMonitor->week_month = $weekMonth;
                     $weekMonitor->workload_hours = 0;
                     $weekMonitor->workload = 0;
                     $weekMonitor->workload_as_seconds = 0;
@@ -550,7 +567,7 @@ class ActivityController extends Controller
     {
         $search = $request->input('search');
         $unitSelected = $request->input('units');
-        $monthSelected = $request->input('monthSelected');
+        $monthIndexSelected = $request->input('monthIndexSelected');
 
         // ambil data activities berdasarkan user_id
         // $activities = Activity::where('type', 'nonjaga')
@@ -658,7 +675,7 @@ class ActivityController extends Controller
             'filters' => [
                 'search' => $search,
                 'units' => $unitSelected,
-                'monthSelected' => $monthSelected,
+                'monthIndexSelected' => $monthIndexSelected ?? 0,
             ]
         ]);
     }

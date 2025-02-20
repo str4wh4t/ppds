@@ -5,8 +5,27 @@ import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/20/solid';
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import MultiselectBasic from '@/Components/MultiselectBasic.vue';
+import SelectInput from '@/Components/SelectInputBasic.vue';
+import moment from 'moment';
 
 const week_monitors = usePage().props.week_monitors;
+
+const monthList = moment.months().map((month, index) => ({
+    id: index,
+    name: month
+}));
+
+const monthIndexSelected = ref(usePage().props.filters.monthIndexSelected);
+const monthSelectedOpt = ref(monthList.find(month => month.id == monthIndexSelected.value) || null);
+
+const categoryWorkLoadList = [
+    { id: 1, name: '<71 jam' },
+    { id: 2, name: '71 jam - 80 jam' },
+    { id: 3, name: '81 jam - 88 jam' },
+];
+
+const categoryWorkloadSelected = ref(usePage().props.filters.categoryWorkloadSelected);
+const categoryWorkloadSelectedOpt = ref(categoryWorkLoadList.find(categoryWorkLoad => categoryWorkLoad.id == categoryWorkloadSelected.value) || null);
 
 const units = usePage().props.units;
 const filters = ref({ search: usePage().props.filters.search ?? '', units: JSON.parse(usePage().props.filters.units) ?? [] });
@@ -14,17 +33,52 @@ const filters = ref({ search: usePage().props.filters.search ?? '', units: JSON.
 const unitSelectedAsString = ref(JSON.stringify(filters.value.units));
 const unitSelected = (selected) => {
     unitSelectedAsString.value = JSON.stringify(selected);
-    router.get(route('week-monitors.index', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+    router.get(route('week-monitors.index', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value, monthIndexSelected: monthIndexSelected.value + 1 || null, categoryWorkloadSelected: categoryWorkloadSelected.value || null}, { replace: true });
 };
 
 const searchPosts = () => {
-    router.get(route('week-monitors.index', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+    router.get(route('week-monitors.index', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value, monthIndexSelected: monthIndexSelected.value + 1 || null, categoryWorkloadSelected: categoryWorkloadSelected.value || null}, { replace: true });
 };
 
 const openCalendar = (weekGroupId, userId) => {
     router.get(route('activities.calendar', { user: usePage().props.auth.user }), { weekGroupId: weekGroupId, userId: userId }, { replace: true });
 };
 
+watch(
+  () => monthSelectedOpt.value, // Amati perubahan `monthSelectedOpt.value`
+  (newMonth, oldMonth) => {
+    // if (newMonth) {
+      router.get(
+        route("week-monitors.index", { user: usePage().props.auth.user }), // Gunakan nilai terbaru
+        { 
+          search: filters.value.search, 
+          units: unitSelectedAsString.value, 
+          monthIndexSelected: newMonth?.id + 1 || null,
+          categoryWorkloadSelected: categoryWorkloadSelected.value || null
+        },
+        { replace: true }
+      );
+    // }
+  },
+);
+
+watch(
+  () => categoryWorkloadSelectedOpt.value, // Amati perubahan `monthSelectedOpt.value`
+  (newCategoryWorkload, oldCategoryWorkload) => {
+    // if (newCategoryWorkload) {
+      router.get(
+        route("week-monitors.index", { user: usePage().props.auth.user }), // Gunakan nilai terbaru
+        { 
+          search: filters.value.search, 
+          units: unitSelectedAsString.value, 
+          monthIndexSelected: monthIndexSelected.value + 1 || null,
+          categoryWorkloadSelected: newCategoryWorkload?.id || null
+        },
+        { replace: true }
+      );
+    // }
+  },
+);
 </script>
 
 <template>
@@ -47,9 +101,18 @@ const openCalendar = (weekGroupId, userId) => {
                         class="block w-full rounded-full border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                 </div>
             </div>
-            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">
+            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-initial w-48">
+                <SelectInput id="monthSelected" class="block w-full" v-model="monthSelectedOpt" :options="monthList"
+                    required autofocus autocomplete="monthSelected" placeholder="Select month" />
+            </div>
+            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-initial w-48">
+                <SelectInput id="categoryWorkloadSelected" class="block w-full" v-model="categoryWorkloadSelectedOpt" :options="categoryWorkLoadList"
+                    required autofocus autocomplete="categoryWorkloadSelected" placeholder="Select category" />
+            </div>
+            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto">
                 <MultiselectBasic :options="units" v-model="filters.units" @optionSelected="unitSelected" />
             </div>
+            
         </div>
         <div class="mt-4 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg">
             <table class="min-w-full divide-y divide-gray-300">
@@ -63,6 +126,8 @@ const openCalendar = (weekGroupId, userId) => {
                             Unit</th>
                         <th scope="col" class="px-3 py-2 text-sm font-semibold text-gray-900 lg:table-cell">
                             Tahun</th>
+                        <th scope="col" class="px-3 py-2 text-sm font-semibold text-gray-900 lg:table-cell">
+                            Bulan</th>
                         <th scope="col" class="px-3 py-2 text-sm font-semibold text-gray-900 lg:table-cell">
                             Minggu</th>
                         <th scope="col" class="px-3 py-2 text-sm font-semibold text-gray-900 lg:table-cell">
@@ -93,7 +158,10 @@ const openCalendar = (weekGroupId, userId) => {
                             {{ week_monitor.year }}</td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-center text-gray-500 lg:table-cell']">
-                            {{ week_monitor.week }}</td>
+                            {{ moment().month(week_monitor.month - 1).format("MMMM") }}</td>
+                        <td
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-center text-gray-500 lg:table-cell']">
+                            {{ week_monitor.week_month }}</td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-center text-gray-500 lg:table-cell']">
                             {{ week_monitor.workload }}

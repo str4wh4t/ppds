@@ -6,6 +6,7 @@ use App\Events\WorkloadExceeded;
 use App\Models\Activity;
 use App\Models\WeekMonitor;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class ActivityObserver
 {
@@ -57,8 +58,26 @@ class ActivityObserver
         if (!empty($weekMonitor)) {
             // $weekMonitor->user_id = $user->id;
             // $weekMonitor->week_group_id = $weekGroupId;
-            $weekMonitor->year = substr($weekGroupId, 0, 4);
-            $weekMonitor->week = substr($weekGroupId, 4, 2);
+
+            // Mengambil tahun dan minggu dari weekGroupId
+            $year = substr($weekGroupId, 0, 4);
+            $week = substr($weekGroupId, 4, 2);
+
+            // Menentukan tanggal pertama dari minggu tersebut
+            $date = Carbon::now()->setISODate($year, $week);
+
+            // Menentukan bulan berdasarkan tanggal minggu tersebut
+            $month = $date->month;
+
+            // Menentukan minggu keberapa dalam bulan tersebut
+            $firstDayOfMonth = Carbon::create($year, $month, 1);
+            $weekMonth = $date->diffInWeeks($firstDayOfMonth) + 1;
+
+            $weekMonitor->year = $year;
+            $weekMonitor->week = $week;
+            $weekMonitor->month = $month;
+            $weekMonitor->week_month = $weekMonth;
+
             $weekMonitor->workload_hours = $hours;
             $weekMonitor->workload = $totalWorkload;
             $weekMonitor->workload_as_seconds = $totalSeconds;

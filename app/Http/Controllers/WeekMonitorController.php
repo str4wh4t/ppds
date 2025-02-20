@@ -20,11 +20,30 @@ class WeekMonitorController extends Controller
     {
         $search = $request->input('search');
         $unitSelected = $request->input('units');
+        $monthIndexSelected = $request->input('monthIndexSelected');
+        $categoryWorkloadSelected = $request->input('categoryWorkloadSelected');
         //
         $week_monitors = WeekMonitor::when($search, function ($query, $search) {
             $query->whereHas('user', function ($query) use ($search) {
                 $query->where('fullname', 'like', "%{$search}%");
             });
+        })->when($monthIndexSelected, function ($query, $monthIndexSelected) {
+            $query->where('month', $monthIndexSelected);
+        })->when($categoryWorkloadSelected, function ($query, $categoryWorkloadSelected) {
+            switch ($categoryWorkloadSelected) {
+                case 1:
+                    $query->where('workload_hours', '<', 71); // lebih dari 70
+                    break;
+                case 2:
+                    $query->whereBetween('workload_hours', [71, 80]); // antara 71 sampai 80
+                    break;
+                case 3:
+                    $query->where('workload_hours', '>', 80); // lebih dari 80
+                    break;
+                default:
+                    // Jika tidak ada kategori yang cocok, tidak ada filter diterapkan
+                    break;
+            }            
         })->when($unitSelected, function ($query, $unitSelected) {
             $array = json_decode($unitSelected, true);
             if (!empty($array)) {
@@ -47,7 +66,10 @@ class WeekMonitorController extends Controller
             }
         }
 
-        $week_monitors = $week_monitors->paginate(10)
+        $week_monitors = $week_monitors->orderBy('year', 'asc')  // Urutkan berdasarkan year
+            ->orderBy('month', 'asc') // Lalu berdasarkan month
+            ->orderBy('week_month', 'asc') // Terakhir berdasarkan week_month
+            ->paginate(10)
             ->withQueryString();
 
         $units = Unit::all();
@@ -57,6 +79,8 @@ class WeekMonitorController extends Controller
             'filters' => [
                 'search' => $search,
                 'units' => $unitSelected,
+                'monthIndexSelected' =>  (int) $monthIndexSelected - 1 ?? null, // karena index 0 merupakan januari tapi 0 ketika dikirim jadi null
+                'categoryWorkloadSelected' => (int) $categoryWorkloadSelected ?? null
             ]
         ]);
     }
