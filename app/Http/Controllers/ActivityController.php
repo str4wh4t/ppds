@@ -728,7 +728,7 @@ class ActivityController extends Controller
         });
 
         // Data untuk Pie Chart (Distribusi workload_hours per unit)
-        $pieData = Unit::select('units.name as name', DB::raw('SUM(week_monitors.workload_hours) as value'))
+        $pieData = Unit::select('units.name as name', DB::raw('COUNT(week_monitors.id) as value'))
             ->join('users', 'users.student_unit_id', '=', 'units.id')
             ->join('week_monitors', 'week_monitors.user_id', '=', 'users.id')
             ->groupBy('units.id')
