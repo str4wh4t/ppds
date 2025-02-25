@@ -111,6 +111,7 @@ Route::middleware(['permission:logbook.*'])->group(function () {
 
 Route::middleware(['permission:report-logbook'])->group(function () {
     Route::get('/activities/{user}/report', [\App\Http\Controllers\ActivityController::class, 'report'])->name('activities.report');
+    Route::get('/activities/{user}/statistic', [\App\Http\Controllers\ActivityController::class, 'statistic'])->name('activities.statistic');
 });
 
 Route::middleware(['permission:portofolio.*'])->group(function () {

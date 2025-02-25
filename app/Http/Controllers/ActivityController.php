@@ -680,6 +680,72 @@ class ActivityController extends Controller
         ]);
     }
 
+    public function statistic(Request $request, User $user): Response
+    {
+        // 
+        $unitSelected = $request->input('units');
+
+        // Ambil total user per unit
+        $totalUsersPerUnit = User::withoutGlobalScopes()
+            ->select('student_unit_id', DB::raw('COUNT(id) as total_users'))
+            ->groupBy('student_unit_id')
+            ->pluck('total_users', 'student_unit_id'); // Menghasilkan array [unit_id => total_users]
+
+        // Ambil jumlah user yang ada di week_monitors per unit (Gunakan LEFT JOIN agar unit tetap muncul meskipun 0%)
+        $monitoredUsersPerUnit = Unit::select(
+                'units.id',
+                'units.name as name',
+                DB::raw('COALESCE(COUNT(DISTINCT week_monitors.user_id), 0) as monitored_users')
+            )
+            ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
+            ->leftJoin('week_monitors', 'week_monitors.user_id', '=', 'users.id')
+            ->groupBy('units.id')
+            ->get();
+
+        // Hitung persentase user yang ada di week_monitors dibanding total user di unit
+        $barData = $monitoredUsersPerUnit->map(function ($unit) use ($totalUsersPerUnit) {
+            $totalUsers = $totalUsersPerUnit[$unit->id] ?? 1; // Hindari pembagian dengan 0
+            return [
+                'name' => $unit->name,
+                'value' => round(($unit->monitored_users / $totalUsers) * 100, 2) // Hitung persen
+            ];
+        });
+
+        // Hitung persentase user yang memiliki week_monitor dibanding total user
+        $tableData = $monitoredUsersPerUnit->map(function ($unit) use ($totalUsersPerUnit) {
+            $totalUsers = $totalUsersPerUnit[$unit->id] ?? 0;
+            $monitoredUsers = $unit->monitored_users;
+            $notMonitoredUsers = $totalUsers - $monitoredUsers;
+            $percentage = $totalUsers > 0 ? round(($monitoredUsers / $totalUsers) * 100, 2) : 0;
+
+            return [
+                'name' => $unit->name,
+                'total_users' => $totalUsers,
+                'monitored_users' => $monitoredUsers,
+                'not_monitored_users' => max($notMonitoredUsers, 0),
+                'percentage' => $percentage
+            ];
+        });
+
+        // Data untuk Pie Chart (Distribusi workload_hours per unit)
+        $pieData = Unit::select('units.name as name', DB::raw('SUM(week_monitors.workload_hours) as value'))
+            ->join('users', 'users.student_unit_id', '=', 'units.id')
+            ->join('week_monitors', 'week_monitors.user_id', '=', 'users.id')
+            ->groupBy('units.id')
+            ->orderByDesc('value')
+            ->get();
+
+        return Inertia::render('Activities/Statistic', [
+            'barData' => $barData,
+            'pieData' => $pieData,
+            'tableData' => $tableData,
+            'filters' => [
+                'units' => $unitSelected,
+            ]
+        ]);
+
+    }
+
     // tampilkan view Activity/Schedule
     public function schedule(Request $request, User $user, int $month_number, int $year): Response
     {
