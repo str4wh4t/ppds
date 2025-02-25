@@ -728,12 +728,16 @@ class ActivityController extends Controller
         });
 
         // Data untuk Pie Chart (Distribusi workload_hours per unit)
-        $pieData = Unit::select('units.name as name', DB::raw('COUNT(week_monitors.id) as value'))
-            ->join('users', 'users.student_unit_id', '=', 'units.id')
-            ->join('week_monitors', 'week_monitors.user_id', '=', 'users.id')
-            ->groupBy('units.id')
-            ->orderByDesc('value')
-            ->get();
+        $pieData = Unit::select(
+                    'units.name as name', 
+                    DB::raw('COUNT(DISTINCT week_monitors.user_id) as value') // Menghitung user unik dalam week_monitors
+                )
+                ->join('users', 'users.student_unit_id', '=', 'units.id')
+                ->join('week_monitors', 'week_monitors.user_id', '=', 'users.id')
+                ->groupBy('units.id')
+                ->orderByDesc('value')
+                ->get();
+    
 
         return Inertia::render('Activities/Statistic', [
             'barData' => $barData,
