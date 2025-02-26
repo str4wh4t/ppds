@@ -137,7 +137,10 @@ class ActivityController extends Controller
                 $date = Carbon::parse($startDate); // Buat objek Carbon dari tanggal input
 
                 // Membuat week_group_id dengan format Tahun + Minggu (ISO-8601)
-                $weekGroupId = intval($date->year . $date->isoWeek);
+                $year = $date->year;
+                $month = $date->month;
+                $week = $date->isoWeek;
+                $weekGroupId = intval($year . $week);
 
                 // init week monitor
                 // WeekMonitor::updateOrCreate(
@@ -154,14 +157,14 @@ class ActivityController extends Controller
                     // Jika record week monitor tidak ditemukan
 
                     // Mengambil tahun dan minggu dari weekGroupId
-                    $year = substr($weekGroupId, 0, 4);
-                    $week = substr($weekGroupId, 4, 2);
+                    // $year = substr($weekGroupId, 0, 4);
+                    // $week = substr($weekGroupId, 4, 2);
 
                     // Menentukan tanggal pertama dari minggu tersebut
-                    $date = Carbon::now()->setISODate($year, $week);
+                    // $date = Carbon::now()->setISODate($year, $week);
 
                     // Menentukan bulan berdasarkan tanggal minggu tersebut
-                    $month = $date->month;
+                    // $month = $date->month;
 
                     // Menentukan minggu keberapa dalam bulan tersebut
                     $firstDayOfMonth = Carbon::create($year, $month, 1);
