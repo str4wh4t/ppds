@@ -21,12 +21,15 @@ class WeekMonitorController extends Controller
         $search = $request->input('search');
         $unitSelected = $request->input('units');
         $monthIndexSelected = $request->input('monthIndexSelected');
+        $yearSelected = $request->input('yearSelected');
         $categoryWorkloadSelected = $request->input('categoryWorkloadSelected');
         //
         $week_monitors = WeekMonitor::when($search, function ($query, $search) {
             $query->whereHas('user', function ($query) use ($search) {
                 $query->where('fullname', 'like', "%{$search}%");
             });
+        })->when($yearSelected, function ($query, $yearSelected) {
+            $query->where('year', $yearSelected);
         })->when($monthIndexSelected, function ($query, $monthIndexSelected) {
             $query->where('month', $monthIndexSelected);
         })->when($categoryWorkloadSelected, function ($query, $categoryWorkloadSelected) {
@@ -80,6 +83,7 @@ class WeekMonitorController extends Controller
                 'search' => $search,
                 'units' => $unitSelected,
                 'monthIndexSelected' =>  (int) $monthIndexSelected - 1 ?? null, // karena index 0 merupakan januari tapi 0 ketika dikirim jadi null
+                'yearSelected' => (int) $yearSelected ?? null,
                 'categoryWorkloadSelected' => (int) $categoryWorkloadSelected ?? null
             ]
         ]);

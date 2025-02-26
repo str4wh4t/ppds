@@ -569,6 +569,21 @@ class ActivityController extends Controller
         $unitSelected = $request->input('units');
         $monthIndexSelected = $request->input('monthIndexSelected');
 
+        if (!$request->user()->hasRole('student')) {
+            if($unitSelected == null){
+                $unitSelectedDefault = Unit::firstOrFail();
+                $unitSelectedArray = [
+                    [
+                        'id' => $unitSelectedDefault->id,
+                        'name' => $unitSelectedDefault->name,
+                    ]
+                ];
+                $unitSelected = json_encode($unitSelectedArray);
+            }
+        }
+
+        // dd($user);
+
         // ambil data activities berdasarkan user_id
         // $activities = Activity::where('type', 'nonjaga')
         $activities = Activity::whereHas('unitStase')
@@ -683,7 +698,9 @@ class ActivityController extends Controller
     public function statistic(Request $request, User $user): Response
     {
         // 
-        $unitSelected = $request->input('units');
+        $yearSelected = $request->input('yearSelected');
+        $monthIndexSelected = $request->input('monthIndexSelected');
+        $weekIndexSelected = $request->input('weekIndexSelected');
 
         // Ambil total user per unit
         $totalUsersPerUnit = User::withoutGlobalScopes()
@@ -698,7 +715,20 @@ class ActivityController extends Controller
                 DB::raw('COALESCE(COUNT(DISTINCT week_monitors.user_id), 0) as monitored_users')
             )
             ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
-            ->leftJoin('week_monitors', 'week_monitors.user_id', '=', 'users.id')
+            ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
+                $join->on('week_monitors.user_id', '=', 'users.id');
+                
+                // Tambahkan kondisi hanya di dalam LEFT JOIN
+                if ($yearSelected) {
+                    $join->where('week_monitors.year', $yearSelected);
+                }
+                if ($monthIndexSelected) {
+                    $join->where('week_monitors.month', $monthIndexSelected);
+                }
+                if ($weekIndexSelected) {
+                    $join->where('week_monitors.week_month', $weekIndexSelected);
+                }
+            })
             ->groupBy('units.id')
             ->get();
 
@@ -727,13 +757,80 @@ class ActivityController extends Controller
             ];
         });
 
+        $weekMonitorStats = Unit::select(
+                'units.name as name',
+                DB::raw('COUNT(DISTINCT week_monitors.user_id) as total_monitored_users'),
+                DB::raw('SUM(CASE WHEN week_monitors.workload_hours < 71 THEN 1 ELSE 0 END) as workload_below_71'),
+                DB::raw('SUM(CASE WHEN week_monitors.workload_hours BETWEEN 71 AND 80 THEN 1 ELSE 0 END) as workload_71_to_80'),
+                DB::raw('SUM(CASE WHEN week_monitors.workload_hours > 80 THEN 1 ELSE 0 END) as workload_above_80')
+            )
+            ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
+            ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
+                $join->on('week_monitors.user_id', '=', 'users.id');
+                
+                // Tambahkan kondisi hanya di dalam LEFT JOIN
+                if ($yearSelected) {
+                    $join->where('week_monitors.year', $yearSelected);
+                }
+                if ($monthIndexSelected) {
+                    $join->where('week_monitors.month', $monthIndexSelected);
+                }
+                if ($weekIndexSelected) {
+                    $join->where('week_monitors.week_month', $weekIndexSelected);
+                }
+            })
+            ->groupBy('units.id')
+            ->get();
+
+        $workloadPieRecord = Unit::leftJoin('users', 'users.student_unit_id', '=', 'units.id')
+            ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
+                $join->on('week_monitors.user_id', '=', 'users.id');
+        
+                // Filter hanya di week_monitors
+                if ($yearSelected) {
+                    $join->where('week_monitors.year', $yearSelected);
+                }
+                if ($monthIndexSelected) {
+                    $join->where('week_monitors.month', $monthIndexSelected);
+                }
+                if ($weekIndexSelected) {
+                    $join->where('week_monitors.week_month', $weekIndexSelected);
+                }
+            })
+            ->select(
+                DB::raw('COALESCE(SUM(CASE WHEN week_monitors.workload_hours < 71 THEN 1 ELSE 0 END), 0) as workload_below_71'),
+                DB::raw('COALESCE(SUM(CASE WHEN week_monitors.workload_hours BETWEEN 71 AND 80 THEN 1 ELSE 0 END), 0) as workload_71_to_80'),
+                DB::raw('COALESCE(SUM(CASE WHEN week_monitors.workload_hours > 80 THEN 1 ELSE 0 END), 0) as workload_above_80')
+            )
+            ->first();
+        
+        // Format data untuk Pie Chart
+        $pieChartData = [
+            ['name' => 'Workload < 71', 'value' => $workloadPieRecord->workload_below_71],
+            ['name' => 'Workload 71 - 80', 'value' => $workloadPieRecord->workload_71_to_80],
+            ['name' => 'Workload > 80', 'value' => $workloadPieRecord->workload_above_80]
+        ];
+
         // Data untuk Pie Chart (Distribusi workload_hours per unit)
         $pieData = Unit::select(
                     'units.name as name', 
                     DB::raw('COUNT(DISTINCT week_monitors.user_id) as value') // Menghitung user unik dalam week_monitors
                 )
                 ->join('users', 'users.student_unit_id', '=', 'units.id')
-                ->join('week_monitors', 'week_monitors.user_id', '=', 'users.id')
+                ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
+                    $join->on('week_monitors.user_id', '=', 'users.id');
+                    
+                    // Tambahkan kondisi hanya di dalam LEFT JOIN
+                    if ($yearSelected) {
+                        $join->where('week_monitors.year', $yearSelected);
+                    }
+                    if ($monthIndexSelected) {
+                        $join->where('week_monitors.month', $monthIndexSelected);
+                    }
+                    if ($weekIndexSelected) {
+                        $join->where('week_monitors.week_month', $weekIndexSelected);
+                    }
+                })
                 ->groupBy('units.id')
                 ->orderByDesc('value')
                 ->get();
@@ -743,8 +840,12 @@ class ActivityController extends Controller
             'barData' => $barData,
             'pieData' => $pieData,
             'tableData' => $tableData,
+            'weekMonitorStats' => $weekMonitorStats,
+            'pieChartData' => $pieChartData,
             'filters' => [
-                'units' => $unitSelected,
+                'monthIndexSelected' =>  (int) $monthIndexSelected - 1 ?? null, // karena index 0 merupakan januari tapi 0 ketika dikirim jadi null
+                'yearSelected' => (int) $yearSelected ?? null,
+                'weekIndexSelected' => (int) $weekIndexSelected ?? null,
             ]
         ]);
 

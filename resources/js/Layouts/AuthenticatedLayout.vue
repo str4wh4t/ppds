@@ -51,7 +51,7 @@ const navigation = [
     { name: 'Beban Kerja', href: route('week-monitors.index', { user: usePage().props.auth.user }), icon: PresentationChartBarIcon, current: route().current('week-monitors.index'), method: 'get' },
     { name: 'Konsultasi', href: route('consults.index', { user: usePage().props.auth.user }), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.index'), method: 'get' },
     { name: 'Datadiri', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
-    { name: 'Report', href: route('activities.report', { user: usePage().props.auth.user }), icon: ClipboardDocumentCheckIcon, current: route().current('activities.report'), method: 'get' },
+    { name: 'Report Stase', href: route('activities.report', { user: usePage().props.auth.user }), icon: ClipboardDocumentCheckIcon, current: route().current('activities.report'), method: 'get' },
     { name: 'Laporkan', href: route('speaks.index-flyer'), icon: ExclamationCircleIcon, current: route().current('speaks.index-flyer'), method: 'get' },
 ];
 
@@ -61,7 +61,7 @@ const adminNavigation = [
     { name: 'Beban Kerja', href: route('week-monitors.index', { user: usePage().props.auth.user }), icon: PresentationChartBarIcon, current: route().current('week-monitors.index') || route().current('activities.calendar'), method: 'get' },
     { name: 'Konsultasi', href: route('consults.student-list'), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.student-list') || route().current('consults.index'), method: 'get' },
     { name: 'Datadiri', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
-    { name: 'Report', href: route('activities.report', { user: usePage().props.auth.user }), icon: ClipboardDocumentCheckIcon, current: route().current('activities.report'), method: 'get' },
+    { name: 'Report Stase', href: route('activities.report', { user: usePage().props.auth.user }), icon: ClipboardDocumentCheckIcon, current: route().current('activities.report'), method: 'get' },
     { name: 'Statistic', href: route('activities.statistic', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.statistic'), method: 'get' },
     // { name: 'Laporkan', href: route('speaks.student-list'), icon: ExclamationCircleIcon, current: route().current('speaks.student-list') || route().current('speaks.index'), method: 'get' },
 ];

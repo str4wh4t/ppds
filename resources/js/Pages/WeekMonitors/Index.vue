@@ -10,6 +10,17 @@ import moment from 'moment';
 
 const week_monitors = usePage().props.week_monitors;
 
+const startYear = 2024;
+const endYear = 2029;
+
+const yearList = Array.from({ length: endYear - startYear + 1 }, (_, i) => ({
+    id: i + 1,
+    name: String(startYear + i),
+}));
+
+const yearSelected = ref(usePage().props.filters.yearSelected);
+const yearSelectedOpt = ref(yearList.find(year => year.name == yearSelected.value) || null);
+
 const monthList = moment.months().map((month, index) => ({
     id: index,
     name: month
@@ -33,16 +44,35 @@ const filters = ref({ search: usePage().props.filters.search ?? '', units: JSON.
 const unitSelectedAsString = ref(JSON.stringify(filters.value.units));
 const unitSelected = (selected) => {
     unitSelectedAsString.value = JSON.stringify(selected);
-    router.get(route('week-monitors.index', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value, monthIndexSelected: monthIndexSelected.value + 1 || null, categoryWorkloadSelected: categoryWorkloadSelected.value || null}, { replace: true });
+    router.get(route('week-monitors.index', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value, yearSelected: yearSelected.value || null, monthIndexSelected: monthIndexSelected.value + 1 || null, categoryWorkloadSelected: categoryWorkloadSelected.value || null}, { replace: true });
 };
 
 const searchPosts = () => {
-    router.get(route('week-monitors.index', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value, monthIndexSelected: monthIndexSelected.value + 1 || null, categoryWorkloadSelected: categoryWorkloadSelected.value || null}, { replace: true });
+    router.get(route('week-monitors.index', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value, yearSelected: yearSelected.value || null, monthIndexSelected: monthIndexSelected.value + 1 || null, categoryWorkloadSelected: categoryWorkloadSelected.value || null}, { replace: true });
 };
 
 const openCalendar = (weekGroupId, userId) => {
     router.get(route('activities.calendar', { user: usePage().props.auth.user }), { weekGroupId: weekGroupId, userId: userId }, { replace: true });
 };
+
+watch(
+  () => yearSelectedOpt.value, // Amati perubahan `yearSelectedOpt.value`
+  (newYear, oldYear) => {
+    // if (newYear) {
+      router.get(
+        route("week-monitors.index", { user: usePage().props.auth.user }), // Gunakan nilai terbaru
+        { 
+          search: filters.value.search, 
+          units: unitSelectedAsString.value, 
+          yearSelected: newYear?.name || null,
+          monthIndexSelected: monthIndexSelected.value + 1  || null,
+          categoryWorkloadSelected: categoryWorkloadSelected.value || null
+        },
+        { replace: true }
+      );
+    // }
+  },
+);
 
 watch(
   () => monthSelectedOpt.value, // Amati perubahan `monthSelectedOpt.value`
@@ -53,6 +83,7 @@ watch(
         { 
           search: filters.value.search, 
           units: unitSelectedAsString.value, 
+          yearSelected: yearSelected.value || null,
           monthIndexSelected: newMonth?.id + 1 || null,
           categoryWorkloadSelected: categoryWorkloadSelected.value || null
         },
@@ -71,6 +102,7 @@ watch(
         { 
           search: filters.value.search, 
           units: unitSelectedAsString.value, 
+          yearSelected: yearSelected.value || null,
           monthIndexSelected: monthIndexSelected.value + 1 || null,
           categoryWorkloadSelected: newCategoryWorkload?.id || null
         },
@@ -100,6 +132,10 @@ watch(
                     <input v-model="filters.search" @keyup.enter="searchPosts" type="text" placeholder="Pencarian data"
                         class="block w-full rounded-full border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                 </div>
+            </div>
+            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-initial w-48">
+                <SelectInput id="yearSelected" class="block w-full" v-model="yearSelectedOpt" :options="yearList"
+                    required autofocus autocomplete="yearSelected" placeholder="Select year" />
             </div>
             <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-initial w-48">
                 <SelectInput id="monthSelected" class="block w-full" v-model="monthSelectedOpt" :options="monthList"

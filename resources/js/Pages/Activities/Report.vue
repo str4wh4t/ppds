@@ -4,8 +4,10 @@ import { Link, Head, usePage, router } from '@inertiajs/vue3';
 import { PaperClipIcon, UserCircleIcon, ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/vue/20/solid';
 import { PlusCircleIcon } from '@heroicons/vue/24/outline';
 import MultiselectBasic from '@/Components/MultiselectBasic.vue';
+import SelectInput from '@/Components/SelectInputBasic.vue';
 import CreateButton from '@/Components/CreateButton.vue';
-import { ref, nextTick } from 'vue';
+import moment from 'moment';
+import { ref, watch } from 'vue';
 
 // Mengambil props dari server (Laravel Inertia)
 const units = usePage().props.units;
@@ -31,7 +33,35 @@ const searchPosts = () => {
     router.get(route('activities.report', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
 };
 
+// const monthList = moment.months().map((month, index) => ({
+//     id: index,
+//     name: month
+// }));
 
+// const monthIndexSelected = ref(usePage().props.filters.monthIndexSelected);
+// console.log('1', monthIndexSelected.value);
+// console.log('3', monthList.value);
+// const monthSelectedOpt = ref(monthList.find(month => month.id == monthIndexSelected.value) || null);
+// console.log('2', monthSelectedOpt.value);
+// console.log(monthSelectedOpt.value);
+/*
+watch(
+  () => monthSelectedOpt.value, // Amati perubahan `monthSelectedOpt.value`
+  (newMonth, oldMonth) => {
+    // if (newMonth) {
+      router.get(
+        route("activities.report", { user: usePage().props.auth.user }), // Gunakan nilai terbaru
+        { 
+          search: filters.value.search, 
+          units: unitSelectedAsString.value, 
+          monthIndexSelected: newMonth?.id || null
+        },
+        { replace: true }
+      );
+    // }
+  },
+);
+*/
 </script>
 
 <template>
@@ -57,6 +87,12 @@ const searchPosts = () => {
             <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">
                 <MultiselectBasic :options="units" v-model="filters.units" @optionSelected="unitSelected" />
             </div>
+            <!--
+            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">
+                <SelectInput id="monthSelected" v-model="monthSelectedOpt" :options="monthList"
+                        required autofocus autocomplete="monthSelected" placeholder="Select month" />
+            </div>
+            -->
         </div>
         <div class="mt-4 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg">
             <div class="overflow-x-auto w-full">
@@ -68,8 +104,14 @@ const searchPosts = () => {
                                 Mahasiswa</th>
                             <th scope="col"
                                 class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                                Identity
+                                NIM
                             </th>
+                            <!--
+                            <th scope="col"
+                                class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                                Bulan
+                            </th>
+                            -->
                             <!-- Loop untuk membuat header kolom berdasarkan stases -->
                             <th v-for="stase in stases" :key="stase.id" scope="col"
                                 class="px-3 py-2 text-sm font-semibold text-gray-900 lg:table-cell">
@@ -101,6 +143,11 @@ const searchPosts = () => {
                             <td
                                 :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                                 {{ user_stase_count.user.identity }}</td>
+                            <!--
+                            <td
+                                :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                                {{ '' }}</td>
+                            -->
                             <!-- Loop untuk mengisi kolom berdasarkan stases -->
                             <td v-for="(stase, staseIndex) in stases" :key="stase.id"
                                 :class="[index === 0 ? '' : staseIndex === stases.length - 1 ? 'border-t border-transparent relative' : 'border-t border-gray-200 px-3 py-2 ', 'text-sm text-center text-gray-500 lg:table-cell']">
@@ -111,7 +158,7 @@ const searchPosts = () => {
                             </td>
                         </tr>
                         <tr v-else>
-                            <td :colspan="5 + stases.length" class="h-10 text-center font-bold text-indigo-600">Empty
+                            <td :colspan="2 + stases.length" class="h-10 text-center font-bold text-indigo-600">Empty
                             </td>
                         </tr>
                     </tbody>
