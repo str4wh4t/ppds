@@ -194,6 +194,9 @@ class ActivityController extends Controller
                         throw new \Exception('Workload exceeded');
                     }
                     $next_workhours = $weekMonitor->workload_hours + $hours;
+                    if ($next_workhours > 88) {
+                        throw new \Exception('Workload more than 88 hours');
+                    }
                     if ($next_workhours > 80) {
                         $isWorkloadExceeded = true;
                     }
