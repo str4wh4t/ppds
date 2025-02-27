@@ -120,36 +120,44 @@ class ActivityController extends Controller
     public function store(StoreRequest $request): RedirectResponse
     {
         try {
+            // Menghitung time_spend sebagai selisih antara end_date dan start_date
+            $startDate = Carbon::parse($request->date . ' ' . $request->start_time);
+
+            // buat logika untuk meng compare bulan sekarang dan bulan dari $startDate jika selisih 2 bulan maka tidak boleh insert
+            $now = Carbon::now();
+            $diff = $now->diffInMonths($startDate);
+            if ($diff > 2) {
+                throw new \Exception('Cannot insert activity more than 2 months');
+            }
+
+            $endDate = Carbon::parse($request->date . ' ' . $request->finish_time);
+            $timeSpendInSeconds = $startDate->diffInSeconds($endDate);
+
+            // Menghitung jam, menit, dan detik
+            $hours = floor($timeSpendInSeconds / 3600);
+            $minutes = floor(($timeSpendInSeconds % 3600) / 60);
+            $seconds = $timeSpendInSeconds % 60;
+
+            // Format dengan sprintf untuk memastikan dua digit
+            $timeSpend = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+
+            $date = $startDate; // membuat instance Carbon dari start_date untuk me-looping satu minggu
+
+            // Membuat week_group_id dengan format Tahun + Minggu (ISO-8601)
+            $year = $date->year;
+            $month = $date->month;
+            $week = $date->isoWeek;
+            $weekGroupId = intval($year . $week);
+
+            // init week monitor
+            // WeekMonitor::updateOrCreate(
+            //     ['user_id' => $request->user()->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
+            //     ['year' => $date->year, 'week' => $date->isoWeek, 'workload' => 0, 'workload_hours' => 0, 'workload_as_seconds' => 0]           // Data yang akan diupdate/insert
+            // );
+
+            $isWorkloadExceeded = false;
+
             DB::transaction(function () use ($request) {
-                // Menghitung time_spend sebagai selisih antara end_date dan start_date
-                $startDate = Carbon::parse($request->date . ' ' . $request->start_time);
-                $endDate = Carbon::parse($request->date . ' ' . $request->finish_time);
-                $timeSpendInSeconds = $startDate->diffInSeconds($endDate);
-
-                // Menghitung jam, menit, dan detik
-                $hours = floor($timeSpendInSeconds / 3600);
-                $minutes = floor(($timeSpendInSeconds % 3600) / 60);
-                $seconds = $timeSpendInSeconds % 60;
-
-                // Format dengan sprintf untuk memastikan dua digit
-                $timeSpend = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
-
-                $date = Carbon::parse($startDate); // Buat objek Carbon dari tanggal input
-
-                // Membuat week_group_id dengan format Tahun + Minggu (ISO-8601)
-                $year = $date->year;
-                $month = $date->month;
-                $week = $date->isoWeek;
-                $weekGroupId = intval($year . $week);
-
-                // init week monitor
-                // WeekMonitor::updateOrCreate(
-                //     ['user_id' => $request->user()->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
-                //     ['year' => $date->year, 'week' => $date->isoWeek, 'workload' => 0, 'workload_hours' => 0, 'workload_as_seconds' => 0]           // Data yang akan diupdate/insert
-                // );
-
-                $isWorkloadExceeded = false;
-
                 $weekMonitor = WeekMonitor::where('user_id', $request->user()->id)
                     ->where('week_group_id', $weekGroupId)
                     ->first();
@@ -861,20 +869,27 @@ class ActivityController extends Controller
     public function schedule(Request $request, User $user, int $month_number, int $year): Response
     {
         //
-        $schedule_document_path = null;
-        $schedule = Schedule::where([
-            'unit_id' => $user->student_unit_id,
-            'month_number' => $month_number + 1,
-            'year' => $year,
-        ])->first();
-        if (!empty($schedule)) {
-            $schedule_document_path = $schedule->document_path;
+        try{
+            if($year == '2024'){
+                throw new \Exception('Year 2024 is not allowed');
+            }
+            $schedule_document_path = null;
+            $schedule = Schedule::where([
+                'unit_id' => $user->student_unit_id,
+                'month_number' => $month_number + 1,
+                'year' => $year,
+            ])->first();
+            if (!empty($schedule)) {
+                $schedule_document_path = $schedule->document_path;
+            }
+            return Inertia::render('Activities/Schedule', [
+                'month_number' => $month_number,
+                'year' => $year,
+                'schedule' => $schedule_document_path,
+            ]);
+        } catch (\Exception $e) {
+            return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
         }
-        return Inertia::render('Activities/Schedule', [
-            'month_number' => $month_number,
-            'year' => $year,
-            'schedule' => $schedule_document_path,
-        ]);
     }
 
     public function allowActivity(Activity $activity): RedirectResponse

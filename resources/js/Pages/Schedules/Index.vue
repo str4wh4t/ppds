@@ -24,8 +24,8 @@ const closeUploadSchedule = () => {
     isUploadSchedule.value = false;
 };
 
-const startYear = 2024;
-const endYear = 2029;
+const startYear = 2025;
+const endYear = 2030;
 
 // Membuat daftar tahun sebagai array of objects
 const yearList = Array.from({ length: endYear - startYear + 1 }, (_, i) => ({
