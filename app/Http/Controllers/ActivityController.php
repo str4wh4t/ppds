@@ -487,8 +487,8 @@ class ActivityController extends Controller
         $startDate = Carbon::createFromDate($year, $month, 1);
         $endDate = $startDate->copy()->endOfMonth();
         
-        if($startDate->year == '2024'){
-            abort(403, 'Tidak bisa melihat tahun 2024');
+        if($startDate->year == '2023'){
+            abort(403, 'Tidak bisa melihat tahun 2023');
         }
 
         // Tentukan hari dalam seminggu di mana bulan ini dimulai
