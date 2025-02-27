@@ -141,7 +141,7 @@ class ActivityController extends Controller
             // Format dengan sprintf untuk memastikan dua digit
             $timeSpend = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
 
-            $date = $startDate; // membuat instance Carbon dari start_date untuk me-looping satu minggu
+            $date = Carbon::parse($startDate); // membuat instance Carbon dari start_date untuk me-looping satu minggu
 
             // Membuat week_group_id dengan format Tahun + Minggu (ISO-8601)
             $year = $date->year;
