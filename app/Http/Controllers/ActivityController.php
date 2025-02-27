@@ -706,10 +706,8 @@ class ActivityController extends Controller
         // dd($userStaseCounts);
 
         $stases = Stase::whereHas('units', function ($query) use ($user, $unitSelected) {
-            if ($user->roles->count() == 1) {
-                if ($user->hasRole('student')) {
-                    $query->where('units.id', $user->student_unit_id);
-                }
+            if ($user->hasRole('student')) {
+                $query->where('units.id', $user->student_unit_id);
             }else{
                 $query->where('units.id', $unitSelected);
             }
