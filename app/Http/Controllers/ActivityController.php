@@ -120,20 +120,22 @@ class ActivityController extends Controller
     public function store(StoreRequest $request): RedirectResponse
     {
         try {
-            $startDate = Carbon::parse($request->date . ' ' . $request->start_time);
+            $startDate = Carbon::parse($request->date . ' ' . $request->start_time); // Tanggal asli tetap digunakan
+            $startOfMonthDate = $startDate->copy()->startOfMonth(); // Variabel baru untuk awal bulan
+
             $now = Carbon::now();
+            $nowStartOfMonth = $now->copy()->startOfMonth(); // Variabel baru untuk awal bulan saat ini
 
-            // Hitung selisih bulan ke depan
-            $diffForward = $now->diffInMonths($startDate, false); // `false` agar bisa bernilai negatif
+            // Hitung selisih bulan dari awal bulan ini
+            $diffForward = $nowStartOfMonth->diffInMonths($startOfMonthDate, false); // `false` agar bisa negatif
 
-            // Cek jika lebih dari 2 bulan ke depan atau lebih dari 1 bulan ke belakang
-            if ($diffForward > 2) {
-                throw new \Exception('Cannot insert activity more than 2 months ahead');
+            // Validasi jika lebih dari 2 bulan ke depan atau lebih dari 1 bulan ke belakang
+            if ($diffForward > 1) {
+                throw new \Exception('Cannot insert activity more than 1 months ahead');
             } elseif ($diffForward < -1) {
                 throw new \Exception('Cannot insert activity more than 1 month in the past');
             }
-            
-            
+
             DB::transaction(function () use ($request, $startDate) {
                 $endDate = Carbon::parse($request->date . ' ' . $request->finish_time);
                 // Menghitung time_spend sebagai selisih antara end_date dan start_date
