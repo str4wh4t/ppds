@@ -23,15 +23,31 @@ const getStaseInfo = (stases, staseId) => {
     return stase?.count ?? 0; // Ganti some_related_data dengan informasi yang relevan
 };
 
-const unitSelectedAsString = ref(JSON.stringify(filters.value.units));
-const unitSelected = (selected) => {
-    unitSelectedAsString.value = JSON.stringify(selected);
-    router.get(route('activities.report', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+const unitSelected = ref(usePage().props.filters.unitSelected);
+const unitSelectedOpt = ref(units.find(unit => unit.id == unitSelected.value) || null);
+
+const unitsSelectedAsString = ref(JSON.stringify(filters.value.units));
+const unitsSelected = (selected) => {
+    unitsSelectedAsString.value = JSON.stringify(selected);
+    router.get(route('activities.report', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitsSelectedAsString.value, unitSelected: unitSelected.value }, { replace: true });
 };
 
 const searchPosts = () => {
-    router.get(route('activities.report', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+    router.get(route('activities.report', { user: usePage().props.auth.user }), { search: filters.value.search, units: unitsSelectedAsString.value, unitSelected: unitSelected.value }, { replace: true });
 };
+
+watch(
+  () => unitSelectedOpt.value, // Amati perubahan `unitSelectedOpt.value`
+  (newUnit, oldYear) => {
+    // if (newUnit) {
+        router.get(route('activities.report', { user: usePage().props.auth.user }), { 
+            search: filters.value.search || null, 
+            units: unitsSelectedAsString.value || null, 
+            unitSelected: newUnit?.id || null 
+        }, { replace: true });
+    // }
+  },
+);
 
 // const monthList = moment.months().map((month, index) => ({
 //     id: index,
@@ -53,7 +69,7 @@ watch(
         route("activities.report", { user: usePage().props.auth.user }), // Gunakan nilai terbaru
         { 
           search: filters.value.search, 
-          units: unitSelectedAsString.value, 
+          units: unitsSelectedAsString.value, 
           monthIndexSelected: newMonth?.id || null
         },
         { replace: true }
@@ -84,8 +100,14 @@ watch(
                         class="block w-full rounded-full border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                 </div>
             </div>
+            <!--
             <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">
-                <MultiselectBasic :options="units" v-model="filters.units" @optionSelected="unitSelected" />
+                <MultiselectBasic :options="units" v-model="filters.units" @optionSelected="unitsSelected" />
+            </div>
+            -->
+            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">
+                <SelectInput id="unitSelected" class="block w-full" v-model="unitSelectedOpt" :options="units"
+                    required autofocus autocomplete="unitSelected" placeholder="Select unit" />
             </div>
             <!--
             <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">

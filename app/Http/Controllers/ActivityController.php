@@ -593,19 +593,23 @@ class ActivityController extends Controller
     public function report(Request $request, User $user): Response
     {
         $search = $request->input('search');
-        $unitSelected = $request->input('units');
+        $unitsSelected = $request->input('units');
+        $unitSelected = $request->input('unitSelected');
         $monthIndexSelected = $request->input('monthIndexSelected');
 
         if (!$request->user()->hasRole('student')) {
+            $unitFirst = Unit::firstOrFail();
+            // if($unitsSelected == null){
+            //     $unitsSelectedArray = [
+            //         [
+            //             'id' => $unitFirst->id,
+            //             'name' => $unitFirst->name,
+            //         ]
+            //     ];
+            //     $unitsSelected = json_encode($unitsSelectedArray);
+            // }
             if($unitSelected == null){
-                $unitSelectedDefault = Unit::firstOrFail();
-                $unitSelectedArray = [
-                    [
-                        'id' => $unitSelectedDefault->id,
-                        'name' => $unitSelectedDefault->name,
-                    ]
-                ];
-                $unitSelected = json_encode($unitSelectedArray);
+                $unitSelected = $unitFirst->id;
             }
         }
 
@@ -620,18 +624,23 @@ class ActivityController extends Controller
                 });
             })
             ->when($unitSelected, function ($query, $unitSelected) {
-                $array = json_decode($unitSelected, true);
-                if (!empty($array)) {
-                    $unitNames = array_map(function ($item) {
-                        return $item['name'];
-                    }, $array);
-
-                    // Filter hanya user yang memiliki setidaknya satu role yang dipilih
-                    $query->whereHas('user.studentUnit', function ($query) use ($unitNames) {
-                        $query->whereIn('name', $unitNames);
-                    });
-                }
+                $query->whereHas('user.studentUnit', function ($query) use ($unitSelected) {
+                    $query->where('id', $unitSelected);
+                });
             })
+            // ->when($unitsSelected, function ($query, $unitsSelected) {
+            //     $array = json_decode($unitsSelected, true);
+            //     if (!empty($array)) {
+            //         $unitNames = array_map(function ($item) {
+            //             return $item['name'];
+            //         }, $array);
+
+            //         // Filter hanya user yang memiliki setidaknya satu role yang dipilih
+            //         $query->whereHas('user.studentUnit', function ($query) use ($unitNames) {
+            //             $query->whereIn('name', $unitNames);
+            //         });
+            //     }
+            // })
             ->with('unitStase', 'unitStase.stase', 'user');
 
         if ($user->roles->count() == 1) {
@@ -716,7 +725,8 @@ class ActivityController extends Controller
             'units' => $units,
             'filters' => [
                 'search' => $search,
-                'units' => $unitSelected,
+                'units' => $unitsSelected,
+                'unitSelected' => $unitSelected,
                 'monthIndexSelected' => $monthIndexSelected ?? 0,
             ]
         ]);
