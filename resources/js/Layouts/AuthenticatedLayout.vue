@@ -110,7 +110,7 @@ watch(
     () => flashmsg.value,
     (newValue, oldValue) => {
         if (newValue.ko !== null) {
-            modalStore.openModal('Error', 'Terjadi kesalahan saat mengirim data.');
+            modalStore.openModal('Error', newValue.ko);
         }
     }, { immediate: true }
 );

@@ -123,7 +123,6 @@ class ActivityController extends Controller
             // Menghitung time_spend sebagai selisih antara end_date dan start_date
             $startDate = Carbon::parse($request->date . ' ' . $request->start_time);
 
-            // buat logika untuk meng compare bulan sekarang dan bulan dari $startDate jika selisih 2 bulan maka tidak boleh insert
             $now = Carbon::now();
             $diff = $now->diffInMonths($startDate);
             if ($diff > 2) {
@@ -466,17 +465,23 @@ class ActivityController extends Controller
 
     public function calendarGenerateDays(Request $request, User $user): \Illuminate\Http\JsonResponse
     {
+        
         $year = $request->input('year');
         $month = $request->input('month') + 1; // Tambahkan 1 untuk menyesuaikan dengan format PHP
         $days = [];
-
+        
+        
         if ($request->user()->hasRole('student')) {
             $user =  $request->user();
         }
-
+        
         // Tentukan tanggal pertama dan terakhir dari bulan yang diminta
         $startDate = Carbon::createFromDate($year, $month, 1);
         $endDate = $startDate->copy()->endOfMonth();
+        
+        if($startDate->year == '2024'){
+            abort(403, 'Tidak bisa melihat tahun 2024');
+        }
 
         // Tentukan hari dalam seminggu di mana bulan ini dimulai
         $startDayOfWeek = ($startDate->dayOfWeek + 6) % 7; // Konversi agar Senin = 0
@@ -870,9 +875,6 @@ class ActivityController extends Controller
     {
         //
         try{
-            if($year == '2024'){
-                throw new \Exception('Year 2024 is not allowed');
-            }
             $schedule_document_path = null;
             $schedule = Schedule::where([
                 'unit_id' => $user->student_unit_id,

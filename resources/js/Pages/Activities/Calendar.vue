@@ -17,6 +17,7 @@ import {
 } from '@heroicons/vue/20/solid'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { CalendarDaysIcon } from '@heroicons/vue/24/outline';
+import { useModalStore } from '@/stores/modalStore';
 
 const month = usePage().props.month;
 const year = usePage().props.year;
@@ -30,30 +31,39 @@ const isLoading = ref(true);
 const selectedDay = ref({});
 // days.value = generateDays(labelYear.value, pointerMonth.value);
 
+const modalStore = useModalStore();
+
 const generateDays = async (year, month, callback = null) => {
     try {
         isLoading.value = true;
-        await axios
-            .post(route('activities.calendar-generatedays', { user: usePage().props.selectedUser }), {
+
+        const response = await axios.post(
+            route('activities.calendar-generatedays', { user: usePage().props.selectedUser }),
+            {
                 year: labelYear.value,
                 month: pointerMonth.value,
-            })
-            .then(response => {
-                days.value = response.data.days;
-                if (callback) {
-                    callback();
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching users:', error);
-            });
+            }
+        );
+
+        // Hanya dipanggil jika `await axios.post()` berhasil
+        days.value = response.data.days;
+
+        if (callback) {
+            callback();
+        }
+
     } catch (error) {
-        console.error("Error fetching data:", error);
+        if (error.response) {
+            modalStore.openModal('Error', error.response.data.message);
+        } else {
+            modalStore.openModal('Error', error.message || 'Terjadi kesalahan');
+        }
+        await goThisMonth(); // jika error maka kembali ke bulan aktif
     } finally {
-        //
         isLoading.value = false;
     }
-}
+};
+
 
 onMounted(async () => {
     await generateDays(labelYear.value, pointerMonth.value);
