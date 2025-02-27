@@ -10,7 +10,7 @@ import moment from 'moment';
 
 const week_monitors = usePage().props.week_monitors;
 
-const startYear = 2025;
+const startYear = 2024;
 const endYear = 2030;
 
 const yearList = Array.from({ length: endYear - startYear + 1 }, (_, i) => ({

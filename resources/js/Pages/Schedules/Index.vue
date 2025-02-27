@@ -24,7 +24,7 @@ const closeUploadSchedule = () => {
     isUploadSchedule.value = false;
 };
 
-const startYear = 2025;
+const startYear = 2024;
 const endYear = 2030;
 
 // Membuat daftar tahun sebagai array of objects
