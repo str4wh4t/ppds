@@ -128,35 +128,36 @@ class ActivityController extends Controller
             if ($diff > 2) {
                 throw new \Exception('Cannot insert activity more than 2 months');
             }
+            
+            DB::transaction(function () use ($request, $startDate) {
 
-            $endDate = Carbon::parse($request->date . ' ' . $request->finish_time);
-            $timeSpendInSeconds = $startDate->diffInSeconds($endDate);
+                $endDate = Carbon::parse($request->date . ' ' . $request->finish_time);
+                $timeSpendInSeconds = $startDate->diffInSeconds($endDate);
 
-            // Menghitung jam, menit, dan detik
-            $hours = floor($timeSpendInSeconds / 3600);
-            $minutes = floor(($timeSpendInSeconds % 3600) / 60);
-            $seconds = $timeSpendInSeconds % 60;
+                // Menghitung jam, menit, dan detik
+                $hours = floor($timeSpendInSeconds / 3600);
+                $minutes = floor(($timeSpendInSeconds % 3600) / 60);
+                $seconds = $timeSpendInSeconds % 60;
 
-            // Format dengan sprintf untuk memastikan dua digit
-            $timeSpend = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+                // Format dengan sprintf untuk memastikan dua digit
+                $timeSpend = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
 
-            $date = Carbon::parse($startDate); // membuat instance Carbon dari start_date untuk me-looping satu minggu
+                $date = Carbon::parse($startDate); // membuat instance Carbon dari start_date untuk me-looping satu minggu
 
-            // Membuat week_group_id dengan format Tahun + Minggu (ISO-8601)
-            $year = $date->year;
-            $month = $date->month;
-            $week = $date->isoWeek;
-            $weekGroupId = intval($year . $week);
+                // Membuat week_group_id dengan format Tahun + Minggu (ISO-8601)
+                $year = $date->year;
+                $month = $date->month;
+                $week = $date->isoWeek;
+                $weekGroupId = intval($year . $week);
 
-            // init week monitor
-            // WeekMonitor::updateOrCreate(
-            //     ['user_id' => $request->user()->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
-            //     ['year' => $date->year, 'week' => $date->isoWeek, 'workload' => 0, 'workload_hours' => 0, 'workload_as_seconds' => 0]           // Data yang akan diupdate/insert
-            // );
+                // init week monitor
+                // WeekMonitor::updateOrCreate(
+                //     ['user_id' => $request->user()->id, 'week_group_id' => $weekGroupId],  // Kondisi pencarian
+                //     ['year' => $date->year, 'week' => $date->isoWeek, 'workload' => 0, 'workload_hours' => 0, 'workload_as_seconds' => 0]           // Data yang akan diupdate/insert
+                // );
 
-            $isWorkloadExceeded = false;
+                $isWorkloadExceeded = false;
 
-            DB::transaction(function () use ($request) {
                 $weekMonitor = WeekMonitor::where('user_id', $request->user()->id)
                     ->where('week_group_id', $weekGroupId)
                     ->first();
