@@ -67,6 +67,10 @@ class WeekMonitorController extends Controller
             if ($user->id != $request->user()->id) {
                 $week_monitors = $week_monitors->where('user_id', $user->id);
             }
+            $week_monitors = $week_monitors->join('users', function ($join) {
+                $join->on('users.id', '=', 'week_monitors.user_id')
+                     ->where('users.is_active_student', 1);
+            });
         }
 
         $week_monitors = $week_monitors->orderBy('year', 'asc')  // Urutkan berdasarkan year

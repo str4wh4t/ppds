@@ -5,7 +5,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import ModalCreate from './Modals/Create.vue';
 import ModalUpdate from './Modals/Update.vue';
 import CreateButton from '@/Components/CreateButton.vue';
-import { ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/vue/20/solid';
+import { CheckCircleIcon, ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon, XCircleIcon } from '@heroicons/vue/20/solid';
 import { ref, computed } from 'vue';
 import MultiselectBasic from '@/Components/MultiselectBasic.vue';
 
@@ -35,6 +35,25 @@ const unitSelected = (selected) => {
 
 const searchPosts = () => {
     router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+};
+
+const activateStudent = async (user_id, is_active_student) => {
+    try {
+        const response = await axios.post(
+            route('students.activate', { user: user_id }),
+            {
+                is_active_student: is_active_student,
+            }
+        );
+    } catch (error) {
+        if (error.response) {
+            // console.log(error.response.data.message);
+        } else {
+            // console.log(error.message || 'Terjadi kesalahan');
+        }
+    } finally {
+        router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+    }
 };
 
 </script>
@@ -86,9 +105,9 @@ const searchPosts = () => {
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Doswal</th>
-                        <!-- <th scope="col"
+                        <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            Email</th> -->
+                            Stts</th>
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             CreatedAt</th>
@@ -126,9 +145,14 @@ const searchPosts = () => {
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ user.doswal_user?.fullname ?? '' }}</td>
-                        <!-- <td
+                        <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ user.email }}</td> -->
+                            <CheckCircleIcon v-if="user.is_active_student"
+                                class="h-4 w-4 u text-green-400 cursor-pointer" @click="activateStudent(user.id, 0)"
+                                aria-hidden="true" />
+                            <XCircleIcon v-else class="h-4 w-4 u text-red-400 cursor-pointer"
+                                @click="activateStudent(user.id, 1)" aria-hidden="true" />
+                            </td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ $formatDate({ date: user.created_at }) }}</td>

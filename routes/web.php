@@ -59,6 +59,7 @@ Route::middleware(['permission:mahasiswa.*'])->group(function () {
     Route::resource('/students', \App\Http\Controllers\StudentController::class)->parameters([
         'students' => 'user'
     ]);
+    Route::post('/students/activate/{user}', [\App\Http\Controllers\StudentController::class, 'activate'])->name('students.activate');
 });
 
 Route::middleware(['permission:dosen.*'])->group(function () {

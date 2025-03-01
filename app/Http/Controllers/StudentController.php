@@ -173,4 +173,16 @@ class StudentController extends Controller
             return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
         }
     }
+
+    public function activate(Request $request, User $user)
+    {
+        try {
+            $user->is_active_student = $request->is_active_student;
+            $user->save();
+
+            return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Guideline document process successfully');
+        } catch (\Exception $e) {
+            return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
+        }
+    }
 }

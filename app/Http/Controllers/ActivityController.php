@@ -130,11 +130,11 @@ class ActivityController extends Controller
             $diffForward = $nowStartOfMonth->diffInMonths($startOfMonthDate, false); // `false` agar bisa negatif
 
             // Validasi jika lebih dari 2 bulan ke depan atau lebih dari 1 bulan ke belakang
-            if ($diffForward > 1) {
-                throw new \Exception('Cannot insert activity more than 1 months ahead');
-            } elseif ($diffForward < -1) {
-                throw new \Exception('Cannot insert activity more than 1 month in the past');
-            }
+            // if ($diffForward > 1) {
+            //     throw new \Exception('Cannot insert activity more than 1 months ahead');
+            // } elseif ($diffForward < -1) {
+            //     throw new \Exception('Cannot insert activity more than 1 month in the past');
+            // }
 
             DB::transaction(function () use ($request, $startDate) {
                 $endDate = Carbon::parse($request->date . ' ' . $request->finish_time);
@@ -154,8 +154,14 @@ class ActivityController extends Controller
                 // Membuat week_group_id dengan format Tahun + Minggu (ISO-8601)
                 $year = $date->year;
                 $month = $date->month;
-                $week = $date->isoWeek;
-                $weekGroupId = intval($year . $week);
+                $yearIso = $date->isoWeekYear;
+                $weekIso = $date->isoWeek;
+
+                // dd($year, $month, $yearIso, $weekIso);  
+
+                $weekGroupId = intval($yearIso . $weekIso);
+
+                // dd($weekGroupId);
 
                 // init week monitor
                 // WeekMonitor::updateOrCreate(
@@ -189,7 +195,7 @@ class ActivityController extends Controller
                     $weekMonitor->user_id = $request->user()->id;
                     $weekMonitor->week_group_id = $weekGroupId;
                     $weekMonitor->year = $year;
-                    $weekMonitor->week = $week;
+                    $weekMonitor->week = $weekIso;
                     $weekMonitor->month = $month;
                     $weekMonitor->week_month = $weekMonth;
                     $weekMonitor->workload_hours = 0;
@@ -395,11 +401,12 @@ class ActivityController extends Controller
     {
         try {
             DB::transaction(function () use ($request, $activity) {
+                $updated_workload_hours = null;
                 if ($activity->is_allowed == 1) {
-                    list($prev_activity_hours, $prev_activity_minutes, $prev_activity_seconds) = explode(':', $activity->time_spend);
                     $weekMonitor = WeekMonitor::where('user_id', $request->user()->id)
                         ->where('week_group_id', $activity->week_group_id)
                         ->first();
+                    list($prev_activity_hours, $prev_activity_minutes, $prev_activity_seconds) = explode(':', $activity->time_spend);
                     $updated_workload_hours = $weekMonitor->workload_hours - $prev_activity_hours;
                     if ($updated_workload_hours <= 80) {
                         Activity::where('is_allowed', 0)
@@ -409,6 +416,12 @@ class ActivityController extends Controller
                     }
                 }
                 $activity->delete();
+                if($updated_workload_hours === 0){
+                    Activity::withoutEvents(function () use($request, $activity) {
+                        Activity::withoutGlobalScopes()->where(['user_id' => $request->user()->id, 'week_group_id' => $activity->week_group_id, 'is_generated' => 1])
+                            ->delete();
+                    });
+                }
             });
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Activity deleted successfully');
@@ -430,6 +443,7 @@ class ActivityController extends Controller
             $week = substr($weekGroupId, 4, 2);
             $date = new DateTime();
             $date->setISODate($year, $week);
+            $year = $date->format('Y');
             $month = $date->format('m');
             $month = $month - 1;
         }
@@ -474,8 +488,8 @@ class ActivityController extends Controller
     public function calendarGenerateDays(Request $request, User $user): \Illuminate\Http\JsonResponse
     {
         
-        $year = $request->input('year');
-        $month = $request->input('month') + 1; // Tambahkan 1 untuk menyesuaikan dengan format PHP
+        $year = $request->year;
+        $month = $request->month + 1; // Tambahkan 1 untuk menyesuaikan dengan format PHP
         $days = [];
         
         
@@ -546,7 +560,7 @@ class ActivityController extends Controller
             }
 
             $weekMonitor = WeekMonitor::where('user_id', $user_id)
-                ->where('week_group_id', $date->year . $date->isoWeek)
+                ->where('week_group_id', $date->isoWeekYear . $date->isoWeek)
                 ->first();
             if (isset($weekMonitor)) {
                 $dayObj['workload'] = $weekMonitor->workload;
@@ -742,6 +756,7 @@ class ActivityController extends Controller
         // Ambil total user per unit
         $totalUsersPerUnit = User::withoutGlobalScopes()
             ->select('student_unit_id', DB::raw('COUNT(id) as total_users'))
+            ->where('is_active_student', 1)
             ->groupBy('student_unit_id')
             ->pluck('total_users', 'student_unit_id'); // Menghasilkan array [unit_id => total_users]
 
@@ -751,7 +766,11 @@ class ActivityController extends Controller
                 'units.name as name',
                 DB::raw('COALESCE(COUNT(DISTINCT week_monitors.user_id), 0) as monitored_users')
             )
-            ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
+            // ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
+            ->leftJoin('users', function ($join) {
+                $join->on('users.student_unit_id', '=', 'units.id')
+                     ->where('users.is_active_student', 1);
+            })
             ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
                 $join->on('week_monitors.user_id', '=', 'users.id');
                 
@@ -801,7 +820,11 @@ class ActivityController extends Controller
                 DB::raw('SUM(CASE WHEN week_monitors.workload_hours BETWEEN 71 AND 80 THEN 1 ELSE 0 END) as workload_71_to_80'),
                 DB::raw('SUM(CASE WHEN week_monitors.workload_hours > 80 THEN 1 ELSE 0 END) as workload_above_80')
             )
-            ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
+            // ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
+            ->leftJoin('users', function ($join) {
+                $join->on('users.student_unit_id', '=', 'units.id')
+                     ->where('users.is_active_student', 1);
+            })
             ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
                 $join->on('week_monitors.user_id', '=', 'users.id');
                 
@@ -819,7 +842,11 @@ class ActivityController extends Controller
             ->groupBy('units.id')
             ->get();
 
-        $workloadPieRecord = Unit::leftJoin('users', 'users.student_unit_id', '=', 'units.id')
+        // $workloadPieRecord = Unit::leftJoin('users', 'users.student_unit_id', '=', 'units.id')
+        $workloadPieRecord = Unit::leftJoin('users', function ($join) {
+                $join->on('users.student_unit_id', '=', 'units.id')
+                    ->where('users.is_active_student', 1);
+            })
             ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
                 $join->on('week_monitors.user_id', '=', 'users.id');
         
@@ -853,7 +880,11 @@ class ActivityController extends Controller
                     'units.name as name', 
                     DB::raw('COUNT(DISTINCT week_monitors.user_id) as value') // Menghitung user unik dalam week_monitors
                 )
-                ->join('users', 'users.student_unit_id', '=', 'units.id')
+                // ->join('users', 'users.student_unit_id', '=', 'units.id')
+                ->leftJoin('users', function ($join) {
+                    $join->on('users.student_unit_id', '=', 'units.id')
+                         ->where('users.is_active_student', 1);
+                })
                 ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
                     $join->on('week_monitors.user_id', '=', 'users.id');
                     
