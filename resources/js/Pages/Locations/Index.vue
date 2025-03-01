@@ -81,7 +81,7 @@ const searchPosts = () => {
                 <tbody>
                     <tr v-for="(location, index) in locations.data" :key="location.id">
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-4 pr-3 text-sm sm:pl-6']">
+                            :class="[index === 0 ? '' : 'border-t border-transparent', 'align-top relative py-2 pl-4 pr-3 text-sm sm:pl-6']">
                             <div class="font-medium text-gray-900">
                                 {{ location.name }}
                             </div>
@@ -91,10 +91,10 @@ const searchPosts = () => {
                             <div v-if="index !== 0" class="absolute -top-px left-6 right-0 h-px bg-gray-200" />
                         </td>
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ location.description }}</td>
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <ul v-if="$hasItems(location?.stases)" class="list-disc">
                                 <li v-for="(stase, index) in (location?.stases ?? [])" :key="stase.name" class="whitespace-nowrap">
                                     {{ stase.name }}
@@ -102,13 +102,13 @@ const searchPosts = () => {
                             </ul>
                         </td>
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ $formatDate({ date: location.created_at }) }}</td>
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ $formatDate({ date: location.updated_at }) }}</td>
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-3 pr-4 text-center text-sm font-medium sm:pr-6']">
+                            :class="[index === 0 ? '' : 'border-t border-transparent', 'align-top relative py-1 pl-3 pr-4 text-center text-sm font-medium sm:pr-6']">
                             <button type="button" @click="openUpdate(location)"
                                 class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
                                 Edit<span class="sr-only">, {{ location.name }}</span>
