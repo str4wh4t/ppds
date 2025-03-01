@@ -6,8 +6,9 @@ import ModalCreate from './Modals/Create.vue';
 import ModalUpdate from './Modals/Update.vue';
 import CreateButton from '@/Components/CreateButton.vue';
 import { CheckCircleIcon, ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon, XCircleIcon } from '@heroicons/vue/20/solid';
-import { ref, computed } from 'vue';
+import { ref, defineProps, onMounted, computed, watch } from "vue";
 import MultiselectBasic from '@/Components/MultiselectBasic.vue';
+import SelectInput from '@/Components/SelectInputBasic.vue';
 
 const users = computed(() => usePage().props.users);
 const units = usePage().props.units;
@@ -27,15 +28,32 @@ const closeUpdate = () => {
     isUpdate.value = false;
 };
 
+const activeSttsList = [
+    { id: 2, name: 'Active' },
+    { id: 1, name: 'Inactive' },
+];
+
+const activeSttsSelected = ref(usePage().props.filters.activeSttsSelected);
+const activeSttsSelectedOpt = ref(activeSttsList.find(activeStts => activeStts.id == activeSttsSelected.value) || null);
+
 const unitSelectedAsString = ref(JSON.stringify(filters.value.units));
 const unitSelected = (selected) => {
     unitSelectedAsString.value = JSON.stringify(selected);
-    router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+    router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value, activeSttsSelected: activeSttsSelected.value || null }, { replace: true });
 };
 
 const searchPosts = () => {
-    router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+    router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value, activeSttsSelected: activeSttsSelected.value || null }, { replace: true });
 };
+
+watch(
+  () => activeSttsSelectedOpt.value, // Amati perubahan `yearSelectedOpt.value`
+  (newactiveStts, oldactiveStts) => {
+    // if (newactiveStts) {
+        router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value, activeSttsSelected: newactiveStts?.id || null }, { replace: true });
+    // }
+  },
+);
 
 const activateStudent = async (user_id, is_active_student) => {
     try {
@@ -77,6 +95,10 @@ const activateStudent = async (user_id, is_active_student) => {
             </div>
             <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">
                 <MultiselectBasic :options="units" v-model="filters.units" @optionSelected="unitSelected" />
+            </div>
+            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">
+                <SelectInput id="activeSttsSelected" class="block w-full" v-model="activeSttsSelectedOpt" :options="activeSttsList"
+                    required autofocus autocomplete="activeSttsSelected" placeholder="Select status" />
             </div>
             <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-none">
                 <CreateButton @click="isCreate = true">

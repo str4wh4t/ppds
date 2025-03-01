@@ -29,6 +29,7 @@ class StudentController extends Controller
         //
         $search = $request->input('search');
         $unitSelected = $request->input('units');
+        $activeSttsSelected = $request->input('activeSttsSelected');
 
         $users = User::student()->when($search, function ($query, $search) {
             $query->where(function ($query) use ($search) {
@@ -50,7 +51,10 @@ class StudentController extends Controller
                     $query->whereIn('name', $unitNames);
                 });
             }
-        })->with('roles', 'studentUnit', 'dosbingUser', 'doswalUser')
+        })->when($activeSttsSelected, function ($query, $activeSttsSelected) {
+            $query->where('is_active_student', $activeSttsSelected - 1);
+        })
+        ->with('roles', 'studentUnit', 'dosbingUser', 'doswalUser')
             ->paginate(10)
             ->withQueryString();
 
@@ -64,6 +68,7 @@ class StudentController extends Controller
             'filters' => [
                 'search' => $search,
                 'units' => $unitSelected,
+                'activeSttsSelected' => (int) $activeSttsSelected ?? null,
             ]
         ]);
     }

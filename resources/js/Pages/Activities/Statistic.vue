@@ -45,6 +45,7 @@ const weekIndexList = [
     { id: 2, name: 'Minggu-2' },
     { id: 3, name: 'Minggu-3' },
     { id: 4, name: 'Minggu-4' },
+    { id: 5, name: 'Minggu-5' },
 ];
 
 const weekIndexSelected = ref(usePage().props.filters.weekIndexSelected);
