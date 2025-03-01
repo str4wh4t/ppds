@@ -79,7 +79,7 @@ const searchPosts = () => {
                 </CreateButton>
             </div>
         </div>
-        <div class="-mx-4 mt-5 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg">
+        <div class="-mx-4 mt-5 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg overflow-x-auto w-full">
             <table class="min-w-full divide-y divide-gray-300">
                 <thead>
                     <tr>
@@ -106,7 +106,7 @@ const searchPosts = () => {
                 <tbody>
                     <tr v-for="(unit, index) in units.data" :key="unit.id">
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-4 pr-3 text-sm sm:pl-6']">
+                            :class="[index === 0 ? '' : 'border-t border-transparent', 'align-top relative py-1 pl-4 pr-3 text-sm sm:pl-6']">
                             <div class="font-medium text-gray-900">
                                 {{ unit.name }}
                             </div>
@@ -116,12 +116,12 @@ const searchPosts = () => {
                             <div v-if="index !== 0" class="absolute -top-px left-6 right-0 h-px bg-gray-200" />
                         </td>
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden align-top px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ unit.kaprodi_user?.fullname ?? '' }}</td>
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ (unit?.unit_admins ?? []).map(admin => admin.fullname).join(', ') }}</td>
-                        <td :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                        <td :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <ul v-if="$hasItems(unit?.stases)" class="list-disc">
                                 <li v-for="stase in unit?.stases ?? []" :key="stase.name" class="whitespace-nowrap">
                                     {{ stase.name }}
@@ -134,7 +134,7 @@ const searchPosts = () => {
 
                         </td>
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <div class="flex justify-center items-center">
                                 <CheckCircleIcon v-if="unit.guideline_document_path"
                                     class="h-4 w-4 u text-green-400 cursor-pointer" @click="openUploadGuideline(unit)"
@@ -147,7 +147,7 @@ const searchPosts = () => {
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ $formatDate({ date: unit.created_at }) }}</td> -->
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-3 pr-4 text-center text-sm font-medium sm:pr-6']">
+                            :class="[index === 0 ? '' : 'border-t border-transparent', 'align-top relative py-1 pl-3 pr-4 text-center text-sm font-medium sm:pr-6']">
                             <span v-if="$hasItems(unit?.stases)" class="isolate inline-flex rounded-md shadow-sm">
                                 <button type="button" @click="openUpdate(unit)" class="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 ring-1
                                     ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10">
