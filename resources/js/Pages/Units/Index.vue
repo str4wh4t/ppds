@@ -123,15 +123,17 @@ const searchPosts = () => {
                             {{ (unit?.unit_admins ?? []).map(admin => admin.fullname).join(', ') }}</td>
                         <td :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <ul v-if="$hasItems(unit?.stases)" class="list-disc">
-                                <li v-for="stase in unit?.stases ?? []" :key="stase.name" class="whitespace-nowrap truncate w-80">
+                                <li v-for="(stase, index) in (unit?.stases ?? []).slice(0, 5)" :key="stase.name" class="whitespace-nowrap truncate w-80">
                                     {{ stase.name }}
                                     <div v-if="$hasItems(stase.locations)" class="text-xs">
                                         <hr class="border-t border-gray-400 my-0"> 
                                         {{ (stase.locations ?? []).map(location => location.name).join(', ') }}
                                     </div>
                                 </li>
+                                <li v-if="(unit?.stases ?? []).length > 5" class="text-xs text-gray-500">
+                                    {{ (unit?.stases.length - 5) }} more...
+                                </li>
                             </ul>
-
                         </td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
