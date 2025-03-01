@@ -51,7 +51,7 @@ class UnitController extends Controller
                     // Pencarian pada kolom 'fullname' di relasi unitAdmins
                     $query->where('fullname', 'like', "%{$search}%");
                 });
-        })->with('kaprodiUser', 'unitAdmins', 'stases');
+        })->with('kaprodiUser', 'unitAdmins', 'stases', 'stases.locations');
         // ->with('kaprodiUser', 'unitAdmins', 'stases.locations'); // Eager load relasi
         if ($request->user()->hasRole('admin_prodi')) {
             $unit_ids_all = $request->user()->adminUnits->pluck('id')->toArray();

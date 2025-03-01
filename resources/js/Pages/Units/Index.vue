@@ -91,13 +91,13 @@ const searchPosts = () => {
                             Kaprodi</th>
                         <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Admin</th>
-                        <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
+                        <th scope="col" class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Stase</th>
                         <th scope="col" class="hidden px-3 py-2 text-sm font-semibold text-gray-900 lg:table-cell">
                             Pedoman</th>
-                        <th scope="col"
+                        <!-- <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            CreatedAt</th>
+                            CreatedAt</th> -->
                         <th scope="col" class="relative py-1 pl-3 pr-4 sm:pr-6">
                             Action
                         </th>
@@ -121,10 +121,17 @@ const searchPosts = () => {
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ (unit?.unit_admins ?? []).map(admin => admin.fullname).join(', ') }}</td>
-                        <td :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500']">
-                            <div class="sm:hidden">{{ (unit?.stases ?? []).map(stase => stase.name).join(', ') }}</div>
-                            <div class="hidden sm:block">{{ (unit?.stases ?? []).map(stase => stase.name).join(', ') }}
-                            </div>
+                        <td :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
+                            <ul v-if="$hasItems(unit?.stases)" class="list-disc">
+                                <li v-for="stase in unit?.stases ?? []" :key="stase.name" class="whitespace-nowrap">
+                                    {{ stase.name }}
+                                    <div v-if="$hasItems(stase.locations)" class="text-xs">
+                                        <hr class="border-t border-gray-400 my-0"> 
+                                        {{ (stase.locations ?? []).map(location => location.name).join(', ') }}
+                                    </div>
+                                </li>
+                            </ul>
+
                         </td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
@@ -136,9 +143,9 @@ const searchPosts = () => {
                                     @click="openUploadGuideline(unit)" aria-hidden="true" />
                             </div>
                         </td>
-                        <td
+                        <!-- <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ $formatDate({ date: unit.created_at }) }}</td>
+                            {{ $formatDate({ date: unit.created_at }) }}</td> -->
                         <td
                             :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-3 pr-4 text-center text-sm font-medium sm:pr-6']">
                             <span v-if="$hasItems(unit?.stases)" class="isolate inline-flex rounded-md shadow-sm">
