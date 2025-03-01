@@ -106,7 +106,7 @@ const searchPosts = () => {
                 <tbody>
                     <tr v-for="(unit, index) in units.data" :key="unit.id">
                         <td
-                            :class="[index === 0 ? '' : 'border-t border-transparent', 'align-top relative py-1 pl-4 pr-3 text-sm sm:pl-6']">
+                            :class="[index === 0 ? '' : 'border-t border-transparent', 'align-top relative py-2 pl-4 pr-3 text-sm sm:pl-6']">
                             <div class="font-medium text-gray-900">
                                 {{ unit.name }}
                             </div>
@@ -123,7 +123,7 @@ const searchPosts = () => {
                             {{ (unit?.unit_admins ?? []).map(admin => admin.fullname).join(', ') }}</td>
                         <td :class="[index === 0 ? '' : 'border-t border-gray-200', 'align-top hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <ul v-if="$hasItems(unit?.stases)" class="list-disc">
-                                <li v-for="stase in unit?.stases ?? []" :key="stase.name" class="whitespace-nowrap truncate w-64">
+                                <li v-for="stase in unit?.stases ?? []" :key="stase.name" class="whitespace-nowrap truncate w-80">
                                     {{ stase.name }}
                                     <div v-if="$hasItems(stase.locations)" class="text-xs">
                                         <hr class="border-t border-gray-400 my-0"> 
