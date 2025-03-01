@@ -95,7 +95,12 @@ const searchPosts = () => {
                             {{ location.description }}</td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ (location?.stases ?? []).map(stase => stase.name).join(', ') }}</td>
+                            <ul v-if="$hasItems(location?.stases)" class="list-disc">
+                                <li v-for="(stase, index) in (location?.stases ?? [])" :key="stase.name" class="whitespace-nowrap">
+                                    {{ stase.name }}
+                                </li>
+                            </ul>
+                        </td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ $formatDate({ date: location.created_at }) }}</td>
