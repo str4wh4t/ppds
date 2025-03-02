@@ -49,6 +49,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $user = Auth::user();
+
+        // **Tambahan Validasi `is_active_student`**
+        if ($user->is_active_student == 0) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'username' => 'Akun anda nonaktif. Silakan hubungi admin.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
