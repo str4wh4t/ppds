@@ -36,13 +36,14 @@ class PermissionSeeder extends Seeder
             'get-notifs',
             'week-monitor.index',
             'schedule.*',
+            'survey.*'
         ];
 
         foreach ($permissions as $permissionName) {
             // Cek apakah permission sudah ada, jika belum buat baru
             Permission::firstOrCreate(['name' => $permissionName]);
-            // $role = Role::findByName('system');
-            // $role->givePermissionTo($permissionName);
+            $role = Role::findByName('system');
+            $role->givePermissionTo($permissionName);
         }
     }
 }

@@ -139,6 +139,10 @@ Route::middleware(['permission:speak.*'])->group(function () {
     Route::get('/speaks/index-flyer', [\App\Http\Controllers\SpeakController::class, 'indexFlyer'])->name('speaks.index-flyer');
 });
 
+Route::middleware(['permission:survey.*'])->group(function () {
+    Route::get('/surveys/index', [\App\Http\Controllers\SurveyController::class, 'index'])->name('surveys.index');
+});
+
 Route::middleware(['permission:week-monitor.index'])->group(function () {
     Route::get('/week-monitors/{user}/index', [\App\Http\Controllers\WeekMonitorController::class, 'index'])->name('week-monitors.index');
 });

@@ -53,6 +53,7 @@ const navigation = [
     { name: 'Datadiri', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
     { name: 'Report Stase', href: route('activities.report', { user: usePage().props.auth.user }), icon: ClipboardDocumentCheckIcon, current: route().current('activities.report'), method: 'get' },
     { name: 'Laporkan', href: route('speaks.index-flyer'), icon: ExclamationCircleIcon, current: route().current('speaks.index-flyer'), method: 'get' },
+    { name: 'Survey', href: route('surveys.index'), icon: ExclamationCircleIcon, current: route().current('surveys.index'), method: 'get' },
 ];
 
 const adminNavigation = [
