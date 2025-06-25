@@ -12,22 +12,22 @@ import { PaperClipIcon } from '@heroicons/vue/24/outline';
 const surverys = [
     {
         id: 1,
-        href: 'https://drive.google.com/drive/u/2/folders/1_eujru0YBdfC7p_1bPqXTp8zFkx9Xf39',
+        href: 'https://forms.gle/HAkoB1Dm7LLedySi8',
         text: "Skrining Depresi Berkala",
     },
     {
         id: 2,
-        href: 'https://drive.google.com/drive/u/2/folders/13RcheQWzYUdo1b5Xr2_ZVdMOSyPbAplU',
-        text: "Evaluasi Kinerja 360 Derajat",
+        href: 'https://forms.gle/WwmxmBnQHJTFZau97',
+        text: "Kepuasan Manajemen",
     },
     {
         id: 3,
-        href: 'https://drive.google.com/drive/u/2/folders/1d5H5SzHddIoBkeNnafWiIRt5XSS51kOQ',
+        href: 'https://forms.gle/EdXxk4ihQkMkvYek7',
         text: "Identifikasi Perundungan ",
     },
     {
         id: 4,
-        href: 'https://docs.google.com/forms/d/e/1FAIpQLScsd6gT3G0PHRltWUuz2bWyViEr679YnUsBP24sWvvOU8XrQQ/viewform?usp=sharing',
+        href: 'https://docs.google.com/forms/d/e/1FAIpQLScsd6gT3G0PHRltWUuz2bWyViEr679YnUsBP24sWvvOU8XrQQ/viewform?usp=dialog',
         text: "Internalisasi Perundungan ",
     },
 ]
