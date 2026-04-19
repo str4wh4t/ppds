@@ -5,8 +5,9 @@ namespace App\Observers;
 use App\Events\WorkloadExceeded;
 use App\Models\Activity;
 use App\Models\WeekMonitor;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ActivityObserver
 {
@@ -94,6 +95,39 @@ class ActivityObserver
         }
 
         
+    }
+
+    /**
+     * Handle the Activity "deleting" event.
+     *
+     * Hapus file foto di disk `public` jika tidak ada activity lain yang memakai path yang sama
+     * (penting untuk split checkout: beberapa baris bisa berbagi `checkin_photo_path` / `checkout_photo_path`).
+     */
+    public function deleting(Activity $activity): void
+    {
+        $this->deletePublicPhotoIfUnreferenced('checkin_photo_path', $activity);
+        $this->deletePublicPhotoIfUnreferenced('checkout_photo_path', $activity);
+    }
+
+    private function deletePublicPhotoIfUnreferenced(string $column, Activity $activity): void
+    {
+        $path = $activity->{$column};
+        if ($path === null || $path === '') {
+            return;
+        }
+
+        $stillReferenced = Activity::withoutGlobalScopes()
+            ->whereKeyNot($activity->getKey())
+            ->where($column, $path)
+            ->exists();
+
+        if ($stillReferenced) {
+            return;
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
     }
 
     /**

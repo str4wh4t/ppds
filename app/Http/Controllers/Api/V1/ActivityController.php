@@ -351,7 +351,7 @@ class ActivityController extends Controller
      * @bodyParam dosen_user_id integer ID user dosen pembimbing. Example: 12
      * @bodyParam latitude number required Latitude lokasi saat check-in. Example: -7.050549
      * @bodyParam longitude number required Longitude lokasi saat check-in. Example: 110.393465
-     * @bodyParam photo file required Foto bukti saat check-in (jpg/png/webp, max 2MB). Gunakan multipart/form-data.
+     * @bodyParam photo file required Foto bukti saat check-in (jpg/png/webp, max 500KB). Gunakan multipart/form-data.
      */
     #[Response(201, 'Activity check-in successful', type: 'array{message: string, data: array{id: int, name: string, start_date: string, end_date: string, time_spend: string}}')]
     #[Response(422, 'Validation/process error', type: 'array{message: string, errors?: array}')]
@@ -368,7 +368,7 @@ class ActivityController extends Controller
             'dosen_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:500'],
         ]);
 
         $validator->after(function ($validator) use ($request) {
@@ -411,7 +411,11 @@ class ActivityController extends Controller
         $validator->validate();
 
         try {
-            $checkinPhotoPath = $request->file('photo')->store('activities/checkin', 'public');
+            $checkinYear = (int) Carbon::createFromFormat('Y-m-d H:i:s', $request->input('start_at'))->year;
+            $checkinPhotoPath = $request->file('photo')->store(
+                $this->publicActivityPhotoDirectory('checkin', $checkinYear),
+                'public'
+            );
 
             $activityData = new CreateActivityData(
                 userId: $request->user()->id,
@@ -466,7 +470,7 @@ class ActivityController extends Controller
      * @bodyParam finish_at string required Datetime selesai (Y-m-d H:i:s). Example: 2026-04-15 12:30:00
      * @bodyParam latitude number required Latitude lokasi saat check-out. Example: -7.050549
      * @bodyParam longitude number required Longitude lokasi saat check-out. Example: 110.393465
-     * @bodyParam photo file required Foto bukti saat check-out (jpg/png/webp, max 2MB). Gunakan multipart/form-data.
+     * @bodyParam photo file required Foto bukti saat check-out (jpg/png/webp, max 500KB). Gunakan multipart/form-data.
      */
     #[Response(200, 'Activity check-out successful', type: 'array{message: string, data: array{id: int, name: string, start_date: string, end_date: string, time_spend: string}}')]
     #[Response(422, 'Validation/process error', type: 'array{message: string, errors?: array}')]
@@ -490,7 +494,7 @@ class ActivityController extends Controller
             'finish_at' => ['required', 'date_format:Y-m-d H:i:s'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:500'],
         ]);
 
         $validator->after(function ($validator) use ($request, $activity) {
@@ -529,7 +533,10 @@ class ActivityController extends Controller
 
         try {
             $finishDate = Carbon::createFromFormat('Y-m-d H:i:s', $request->input('finish_at'));
-            $checkoutPhotoPath = $request->file('photo')->store('activities/checkout', 'public');
+            $checkoutPhotoPath = $request->file('photo')->store(
+                $this->publicActivityPhotoDirectory('checkout', (int) $finishDate->year),
+                'public'
+            );
             $checkoutLatitude = (float) $request->input('latitude');
             $checkoutLongitude = (float) $request->input('longitude');
 
@@ -630,5 +637,13 @@ class ActivityController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    /**
+     * Path relatif di disk `public`: `activities/{checkin|checkout}/{tahun}` agar file mudah diarsip per tahun.
+     */
+    private function publicActivityPhotoDirectory(string $kind, int $year): string
+    {
+        return sprintf('activities/%s/%d', $kind, $year);
     }
 }
