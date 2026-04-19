@@ -132,6 +132,8 @@ class ActivityController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * Validasi waktu: `finish_time` tidak sebelum `start_time`; sama (durasi nol) diperbolehkan.
      */
     public function store(StoreRequest $request): RedirectResponse
     {
@@ -163,6 +165,8 @@ class ActivityController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * Validasi waktu: `finish_time` tidak sebelum `start_time`; sama (durasi nol) diperbolehkan. Koordinat/foto tidak diubah.
      */
     public function update(UpdateRequest $request, Activity $activity): RedirectResponse
     {

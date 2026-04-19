@@ -10,6 +10,9 @@ use App\Models\WeekMonitor;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Memperbarui activity; rentang waktu mengikuti validasi request (selesai tidak sebelum mulai, boleh sama).
+ */
 class UpdateActivityService
 {
     public function execute(Activity $activity, UpdateActivityData $data): Activity

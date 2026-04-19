@@ -10,6 +10,9 @@ use App\Models\WeekMonitor;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Membuat activity; rentang waktu mengikuti validasi request (selesai tidak sebelum mulai, boleh sama).
+ */
 class CreateActivityService
 {
     public function execute(CreateActivityData $data): Activity

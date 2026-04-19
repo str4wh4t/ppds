@@ -233,6 +233,8 @@ class ActivityController extends Controller
      * Logika validasi bentrok waktu dan batas beban kerja mengikuti form update web (`ActivityController@update`).
      * **Tidak** mengubah koordinat GPS (`latitude` / `longitude`) maupun path foto check-in / check-out.
      *
+     * Aturan jam: `finish_time` harus **tidak sebelum** `start_time` (string `H:i` / `24:00`); **sama** (durasi nol) diperbolehkan.
+     *
      * @group Activities API
      *
      * @authenticated
@@ -430,6 +432,8 @@ class ActivityController extends Controller
      * di `EntryActivity.vue` (`name`, `type`, `date`, `start_time`, `finish_time`,
      * `description`, `stase_id`, `location_id`, `dosen_user_id`).
      *
+     * Aturan jam: `finish_time` harus **tidak sebelum** `start_time` (string `H:i` / `24:00`); **sama** (durasi nol) diperbolehkan.
+     *
      * @group Activities API
      *
      * @authenticated
@@ -440,7 +444,7 @@ class ActivityController extends Controller
      * @bodyParam type string required Jenis aktivitas (jaga/nonjaga). Example: nonjaga
      * @bodyParam date string required Tanggal aktivitas (Y-m-d). Example: 2026-04-15
      * @bodyParam start_time string required Jam mulai (H:i). Example: 08:00
-     * @bodyParam finish_time string required Jam selesai (H:i atau 24:00). Example: 12:30
+     * @bodyParam finish_time string required Jam selesai (H:i atau 24:00). Tidak boleh sebelum `start_time`; boleh sama untuk durasi nol. Example: 12:30
      * @bodyParam description string required Deskripsi aktivitas. Example: Visit pasien rawat inap
      * @bodyParam stase_id integer ID stase (wajib jika type=nonjaga). Example: 3
      * @bodyParam location_id integer ID lokasi (wajib jika type=nonjaga). Example: 7

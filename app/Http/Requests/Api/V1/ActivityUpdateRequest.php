@@ -6,7 +6,9 @@ use App\Http\Requests\Activity\UpdateRequest as ActivityUpdateRequestBase;
 use App\Models\Activity;
 
 /**
- * Validasi body sama dengan {@see ActivityUpdateRequestBase}; otorisasi API mengizinkan role `system`.
+ * Validasi body sama dengan {@see \App\Http\Requests\Activity\UpdateRequest}; otorisasi API mengizinkan role `system`.
+ *
+ * Aturan jam: sama dengan base — `finish_time` tidak sebelum `start_time`, boleh sama.
  */
 class ActivityUpdateRequest extends ActivityUpdateRequestBase
 {

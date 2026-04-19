@@ -4,6 +4,7 @@ namespace App\DTOs\Activity;
 
 use App\Http\Requests\Activity\UpdateRequest;
 
+/** Data update activity; jam selesai tidak sebelum jam mulai (boleh sama), sudah divalidasi di {@see UpdateRequest}. */
 class UpdateActivityData
 {
     public function __construct(

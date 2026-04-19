@@ -8,6 +8,9 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validasi update: `finish_time` tidak boleh **sebelum** `start_time` (perbandingan string `H:i` / `24:00`); **sama** diperbolehkan.
+ */
 class UpdateRequest extends FormRequest
 {
     public function authorize(): bool
@@ -52,8 +55,8 @@ class UpdateRequest extends FormRequest
         $finishTime = $this->input('finish_time');
 
         $validator->after(function ($validator) use ($startTime, $finishTime) {
-            if ($startTime && $finishTime && $startTime >= $finishTime) {
-                $validator->errors()->add('finish_time', 'Waktu selesai tidak boleh kurang dari waktu mulai.');
+            if ($startTime && $finishTime && $startTime > $finishTime) {
+                $validator->errors()->add('finish_time', 'Waktu selesai tidak boleh sebelum waktu mulai.');
             }
 
             if (! (preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $finishTime) || $finishTime === '24:00')) {
