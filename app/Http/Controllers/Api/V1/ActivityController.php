@@ -128,6 +128,65 @@ class ActivityController extends Controller
     }
 
     /**
+     * Activity list by week_group_id
+     *
+     * week_group_id menggunakan pola ISO: tahun ISO + nomor minggu, mis. 202614.
+     * 
+     * Pola `user_id` sama seperti `activity.list`: role `student` memakai token; `system` boleh kirim `user_id`.
+     *
+     * @group Activities API
+     *
+     * @authenticated
+     *
+     * @header Authorization string required Gunakan format: Bearer {access_token}
+     *
+     * @bodyParam week_group_id integer required Contoh: 202614
+     * @bodyParam user_id integer Optional Hanya role `system` (sama seperti list).
+     * @bodyParam search string Optional Substring pada nama aktivitas.
+     * @bodyParam per_page integer Optional Default 10, maks 50.
+     */
+    #[Response(200, 'Paginated activities by week group', type: 'array{data: array, current_page: int, per_page: int, total: int, last_page: int}')]
+    #[Response(401, 'Unauthenticated', type: 'array{message: string}')]
+    #[Response(422, 'Validation error', type: 'array{message: string, errors: array}')]
+    public function byWeekGroup(Request $request): JsonResponse
+    {
+        Validator::make($request->all(), [
+            'week_group_id' => ['required', 'integer', 'min:1'],
+            'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'search' => ['nullable', 'string', 'max:255'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ])->validate();
+
+        $search = $request->input('search');
+        if (is_string($search)) {
+            $search = trim($search);
+        }
+        $perPage = (int) ($request->input('per_page') ?? 10);
+
+        if ($request->user()->hasRole('student')) {
+            $targetUserId = $request->user()->id;
+        } elseif ($request->user()->hasRole('system')) {
+            $targetUserId = (int) ($request->input('user_id') ?? $request->user()->id);
+        } else {
+            $targetUserId = $request->user()->id;
+        }
+
+        $weekGroupId = (int) $request->input('week_group_id');
+
+        $query = Activity::query()
+            ->where('user_id', $targetUserId)
+            ->where('week_group_id', $weekGroupId)
+            ->when($search !== null && $search !== '', function ($q) use ($search) {
+                $q->where('name', 'like', '%' . addcslashes($search, '%_\\') . '%');
+            })
+            ->with('user', 'user.studentUnit', 'unitStase', 'stase', 'staseLocation', 'location', 'dosenUser');
+
+        $activities = $query->paginate($perPage);
+
+        return response()->json($activities);
+    }
+
+    /**
      * Detail activity by id
      *
      * Relasi dimuat sama seperti list: `user`, `user.studentUnit`, `unitStase`, `stase`, `staseLocation`, `location`, `dosenUser`.
