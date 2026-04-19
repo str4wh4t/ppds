@@ -500,6 +500,8 @@ class ActivityController extends Controller
      * Membuat activity baru dengan datetime penuh `start_at`.
      * `finish_at` akan diisi saat checkout.
      *
+     * Activity terbuka yang diperiksa untuk batas “belum checkout” hanya yang `is_overdue_checkout` masih false.
+     *
      * @group Activities API
      *
      * @authenticated
@@ -540,6 +542,7 @@ class ActivityController extends Controller
 
             $openActivities = Activity::where('user_id', $request->user()->id)
                 ->where('is_generated', 0)
+                ->where('is_overdue_checkout', false)
                 ->whereColumn('start_date', 'end_date')
                 ->where('time_spend', '00:00:00')
                 ->get();
