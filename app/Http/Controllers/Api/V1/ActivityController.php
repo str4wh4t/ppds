@@ -351,7 +351,7 @@ class ActivityController extends Controller
      * @bodyParam dosen_user_id integer ID user dosen pembimbing. Example: 12
      * @bodyParam latitude number required Latitude lokasi saat check-in. Example: -7.050549
      * @bodyParam longitude number required Longitude lokasi saat check-in. Example: 110.393465
-     * @bodyParam photo file required Foto bukti saat check-in (jpg/png/webp, max 5MB). Gunakan multipart/form-data.
+     * @bodyParam photo file required Foto bukti saat check-in (jpg/png/webp, max 2MB). Gunakan multipart/form-data.
      */
     #[Response(201, 'Activity check-in successful', type: 'array{message: string, data: array{id: int, name: string, start_date: string, end_date: string, time_spend: string}}')]
     #[Response(422, 'Validation/process error', type: 'array{message: string, errors?: array}')]
@@ -368,7 +368,7 @@ class ActivityController extends Controller
             'dosen_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         $validator->after(function ($validator) use ($request) {
@@ -466,7 +466,7 @@ class ActivityController extends Controller
      * @bodyParam finish_at string required Datetime selesai (Y-m-d H:i:s). Example: 2026-04-15 12:30:00
      * @bodyParam latitude number required Latitude lokasi saat check-out. Example: -7.050549
      * @bodyParam longitude number required Longitude lokasi saat check-out. Example: 110.393465
-     * @bodyParam photo file required Foto bukti saat check-out (jpg/png/webp, max 5MB). Gunakan multipart/form-data.
+     * @bodyParam photo file required Foto bukti saat check-out (jpg/png/webp, max 2MB). Gunakan multipart/form-data.
      */
     #[Response(200, 'Activity check-out successful', type: 'array{message: string, data: array{id: int, name: string, start_date: string, end_date: string, time_spend: string}}')]
     #[Response(422, 'Validation/process error', type: 'array{message: string, errors?: array}')]
@@ -490,7 +490,7 @@ class ActivityController extends Controller
             'finish_at' => ['required', 'date_format:Y-m-d H:i:s'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         $validator->after(function ($validator) use ($request, $activity) {
