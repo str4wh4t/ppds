@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Stase;
+use App\Models\Unit;
+use App\Models\UnitStase;
+use App\Models\User;
 use Dedoc\Scramble\Attributes\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -118,5 +121,112 @@ class StaseController extends Controller
         return response()->json([
             'data' => $stase->locations()->get(),
         ]);
+    }
+
+    /**
+     * Daftar stase by unit
+     *
+     * Untuk role `student`, unit diambil dari `student_unit_id` pada token (abaikan `unit_id`).
+     * Untuk role lain: gunakan `unit_id` di body bila dikirim, atau `student_unit_id`, atau unit kaprodi (`kaprodi_user_id`).
+     * Role `system` dapat meminta `unit_id` mana pun. User lain hanya jika berhak atas unit tersebut.
+     *
+     * @group Master Data API
+     *
+     * @authenticated
+     *
+     * @header Authorization string required Gunakan format: Bearer {access_token}
+     *
+     * @bodyParam unit_id integer Optional ID unit (wajib disertai logika di atas untuk non-student). Example: 2
+     * @bodyParam search string Optional filter nama atau deskripsi stase. Example: igd
+     */
+    #[Response(200, 'Stases for user unit', type: 'array{data: array<array{id: int, unit_id: int, stase_id: int, is_mandatory: bool, stase: array}>}')]
+    #[Response(401, 'Unauthenticated', type: 'array{message: string}')]
+    #[Response(403, 'Forbidden', type: 'array{message: string}')]
+    #[Response(422, 'Validation / unit tidak dapat ditentukan', type: 'array{message: string}')]
+    public function byUnit(Request $request): JsonResponse
+    {
+        Validator::make($request->all(), [
+            'unit_id' => ['nullable', 'integer', 'exists:units,id'],
+            'search' => ['nullable', 'string', 'max:255'],
+        ])->validate();
+
+        $user = $request->user();
+        $unitId = null;
+
+        if ($user->hasRole('student')) {
+            $unitId = $user->student_unit_id;
+            if (empty($unitId)) {
+                return response()->json([
+                    'message' => 'Mahasiswa belum terhubung ke unit (student_unit_id kosong).',
+                ], 422);
+            }
+        } else {
+            $unitId = $request->input('unit_id') ?? $user->student_unit_id;
+            if (empty($unitId)) {
+                $unitId = Unit::query()->where('kaprodi_user_id', $user->id)->value('id');
+            }
+            if (empty($unitId)) {
+                return response()->json([
+                    'message' => 'Tidak dapat menentukan unit. Kirim unit_id atau hubungkan user ke unit.',
+                ], 422);
+            }
+            if (! $this->userCanAccessUnitForStaseList($user, (int) $unitId)) {
+                return response()->json([
+                    'message' => 'Anda tidak memiliki akses ke unit ini.',
+                ], 403);
+            }
+        }
+
+        $search = $request->input('search');
+
+        $unitStases = UnitStase::query()
+            ->where('unit_id', $unitId)
+            ->with(['stase' => function ($query) {
+                $query->with('locations');
+            }])
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('stase', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->get()
+            ->sortBy(fn(UnitStase $row) => $row->stase?->name ?? '')
+            ->values();
+
+        $data = $unitStases->map(function (UnitStase $row) {
+            return [
+                'id' => $row->id,
+                'unit_id' => $row->unit_id,
+                'stase_id' => $row->stase_id,
+                'is_mandatory' => (bool) $row->is_mandatory,
+                'stase' => $row->stase,
+            ];
+        });
+
+        return response()->json([
+            'data' => $data,
+        ]);
+    }
+
+    private function userCanAccessUnitForStaseList(User $user, int $unitId): bool
+    {
+        if ($user->hasRole('system')) {
+            return true;
+        }
+        if ((int) $user->student_unit_id === $unitId) {
+            return true;
+        }
+        if (Unit::query()->whereKey($unitId)->where('kaprodi_user_id', $user->id)->exists()) {
+            return true;
+        }
+        if ($user->adminUnits()->where('units.id', $unitId)->exists()) {
+            return true;
+        }
+        if ($user->dosenUnits()->where('units.id', $unitId)->exists()) {
+            return true;
+        }
+
+        return false;
     }
 }

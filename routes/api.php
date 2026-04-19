@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/activities/{activity}/checkout', [\App\Http\Controllers\Api\V1\ActivityController::class, 'checkOut'])->name('activity.checkout');
         Route::delete('/activities/{activity}', [\App\Http\Controllers\Api\V1\ActivityController::class, 'destroy'])->name('activity.destroy-api');
         Route::post('/stases', [\App\Http\Controllers\Api\V1\StaseController::class, 'index'])->name('stase.index');
+        Route::post('/stases/by-unit', [\App\Http\Controllers\Api\V1\StaseController::class, 'byUnit'])->name('stase.by-unit');
         Route::post('/stases/locations', [\App\Http\Controllers\Api\V1\StaseController::class, 'locations'])->name('stase.locations');
         Route::post('/locations', [\App\Http\Controllers\Api\V1\LocationController::class, 'index'])->name('location.index');
         Route::post('/dosens', [\App\Http\Controllers\Api\V1\DosenController::class, 'index'])->name('dosen.index');
