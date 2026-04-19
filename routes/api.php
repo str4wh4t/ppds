@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/activities/{user}/calendar-generatedays', [\App\Http\Controllers\Api\V1\ActivityController::class, 'calendarGenerateDays'])->name('activities.calendar-generatedays');
 
         Route::post('/activities/list', [\App\Http\Controllers\Api\V1\ActivityController::class, 'list'])->name('activity.list');
+        Route::get('/activities/{activity}', [\App\Http\Controllers\Api\V1\ActivityController::class, 'show'])->name('activity.show-api');
 
         Route::get('/user', [AuthController::class, 'profile'])->name('user');
         Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');

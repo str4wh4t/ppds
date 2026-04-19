@@ -41,16 +41,15 @@ class ActivityController extends Controller
      * @authenticated
      *
      * @bodyParam user_id integer Optional ID user yang aktivitinya ingin ditampilkan (hanya untuk role `system`)
-     * @bodyParam search string Optional pencarian berdasarkan `name` atau `user.fullname`
+     * @bodyParam search string Optional Pencarian substring pada **nama aktivitas** (`activities.name`).
      * @bodyParam units string Optional filter unit (JSON).
      *   Format yang didukung:
      *   - array nama unit: ["Kedokteran", "Keperawatan"]
      *   - array objek: [{"name":"Kedokteran"},{"name":"Keperawatan"}]
      * @bodyParam per_page integer Optional jumlah per halaman. Default: 10 (maks 50)
-     * @bodyParam year integer Optional Filter menurut tahun kalender `start_date` (1970–2100). Bisa dipakai sendiri atau dikombinasikan.
-     * @bodyParam month integer Optional Filter menurut bulan (1–12) `start_date`. Bisa dipakai sendiri atau dikombinasikan.
-     * @bodyParam day integer Optional Filter menurut tanggal (1–31) `start_date`. Bisa dipakai sendiri atau dikombinasikan.
-     *   Jika **year**, **month**, dan **day** semua diisi, filter tepat satu hari (`whereDate`). Jika tidak, tiap parameter yang diisi ditambahkan sebagai `AND` (`whereYear` / `whereMonth` / `whereDay`).
+     * @bodyParam year integer Optional Filter `start_date` menurut tahun (1970–2100). Dapat dikombinasikan dengan `month` (tanpa `date`), atau dengan `date` (nilai harus sama dengan tahun pada `date`).
+     * @bodyParam month integer Optional Filter `start_date` menurut bulan (1–12). Dapat dikombinasikan dengan `year`, atau dengan `date` (nilai harus sama dengan bulan pada `date`).
+     * @bodyParam date string Optional Filter satu hari: `Y-m-d` pada `start_date`. Boleh bersama `year`/`month` jika konsisten (satu hari terpresisi).
      *
      * @response 401 { "message": "Unauthenticated." }
      * @response 422 { "message": "Validation error", "errors": [] }
@@ -67,20 +66,24 @@ class ActivityController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
             'year' => ['nullable', 'integer', 'min:1970', 'max:2100'],
             'month' => ['nullable', 'integer', 'min:1', 'max:12'],
-            'day' => ['nullable', 'integer', 'min:1', 'max:31'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
         ])->after(function ($validator) use ($request) {
-            if (! $request->filled('year') || ! $request->filled('month') || ! $request->filled('day')) {
+            if (! $request->filled('date')) {
                 return;
             }
-            $y = (int) $request->input('year');
-            $m = (int) $request->input('month');
-            $d = (int) $request->input('day');
-            if (! checkdate($m, $d, $y)) {
-                $validator->errors()->add('day', 'Kombinasi tahun, bulan, dan tanggal tidak valid.');
+            $parsed = Carbon::createFromFormat('Y-m-d', $request->input('date'))->startOfDay();
+            if ($request->filled('year') && (int) $request->input('year') !== (int) $parsed->year) {
+                $validator->errors()->add('year', 'Field year harus sama dengan tahun pada date.');
+            }
+            if ($request->filled('month') && (int) $request->input('month') !== (int) $parsed->month) {
+                $validator->errors()->add('month', 'Field month harus sama dengan bulan pada date.');
             }
         })->validate();
 
         $search = $request->input('search');
+        if (is_string($search)) {
+            $search = trim($search);
+        }
         $unitsSelected = $request->input('units');
         $perPage = (int) ($request->input('per_page') ?? 10);
 
@@ -100,19 +103,14 @@ class ActivityController extends Controller
                 $unitNames = array_map(function ($item) {
                     return is_array($item) ? ($item['name'] ?? null) : $item;
                 }, $decoded);
-                $unitNames = array_values(array_filter($unitNames, fn ($v) => ! empty($v)));
+                $unitNames = array_values(array_filter($unitNames, fn($v) => ! empty($v)));
             }
         }
 
         $query = Activity::query()
             ->where('user_id', $targetUserId)
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($inner) use ($search) {
-                    $inner->where('name', 'like', "%{$search}%")
-                        ->orWhereHas('user', function ($userQuery) use ($search) {
-                            $userQuery->where('fullname', 'like', "%{$search}%");
-                        });
-                });
+            ->when($search !== null && $search !== '', function ($q) use ($search) {
+                $q->where('name', 'like', '%' . addcslashes($search, '%_\\') . '%');
             })
             ->when($unitNames, function ($q) use ($unitNames) {
                 $q->whereHas('user.studentUnit', function ($unitQuery) use ($unitNames) {
@@ -127,6 +125,39 @@ class ActivityController extends Controller
         $activities = $query->paginate($perPage);
 
         return response()->json($activities);
+    }
+
+    /**
+     * Detail activity by id
+     *
+     * Relasi dimuat sama seperti list: `user`, `user.studentUnit`, `unitStase`, `stase`, `staseLocation`, `location`, `dosenUser`.
+     * Hanya pemilik activity atau role `system` yang dapat mengakses.
+     *
+     * @group Activities API
+     *
+     * @authenticated
+     *
+     * @header Authorization string required Gunakan format: Bearer {access_token}
+     *
+     * @urlParam activity int required ID activity. Example: 321
+     */
+    #[Response(200, 'Activity detail', type: 'array{data: array{id: int, user_id: int, name: string, type: string, start_date: string, end_date: string}}')]
+    #[Response(401, 'Unauthenticated', type: 'array{message: string}')]
+    #[Response(403, 'Forbidden', type: 'array{message: string}')]
+    public function show(Request $request, Activity $activity): JsonResponse
+    {
+        $user = $request->user();
+        if ((int) $activity->user_id !== (int) $user->id && ! $user->hasRole('system')) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke activity ini.',
+            ], 403);
+        }
+
+        $activity->load(['user', 'user.studentUnit', 'unitStase', 'stase', 'staseLocation', 'location', 'dosenUser']);
+
+        return response()->json([
+            'data' => $activity,
+        ]);
     }
 
     /**
@@ -240,7 +271,7 @@ class ActivityController extends Controller
             }
 
             $weekMonitor = WeekMonitor::where('user_id', $user_id)
-                ->where('week_group_id', $date->isoWeekYear.$date->isoWeek)
+                ->where('week_group_id', $date->isoWeekYear . $date->isoWeek)
                 ->first();
 
             if (isset($weekMonitor)) {
@@ -670,30 +701,26 @@ class ActivityController extends Controller
 
     /**
      * Filter list activity menurut komponen tanggal pada `start_date`.
+     *
+     * - Hanya `date` → satu hari (`whereDate`).
+     * - Hanya `year` → tahun tersebut.
+     * - Hanya `month` → bulan tersebut (semua tahun).
+     * - `year` + `month` (tanpa `date`) → bulan kalender tersebut di tahun tersebut.
+     * - `date` + `year` dan/atau `month` → sama dengan hanya `date` (setelah validasi konsistensi).
      */
     private function applyActivityListDateFilters(Builder $query, Request $request): void
     {
-        $hasYear = $request->filled('year');
-        $hasMonth = $request->filled('month');
-        $hasDay = $request->filled('day');
-
-        if ($hasYear && $hasMonth && $hasDay) {
-            $y = (int) $request->input('year');
-            $m = (int) $request->input('month');
-            $d = (int) $request->input('day');
-            $query->whereDate('start_date', sprintf('%04d-%02d-%02d', $y, $m, $d));
+        if ($request->filled('date')) {
+            $query->whereDate('start_date', $request->input('date'));
 
             return;
         }
 
-        if ($hasYear) {
+        if ($request->filled('year')) {
             $query->whereYear('start_date', (int) $request->input('year'));
         }
-        if ($hasMonth) {
+        if ($request->filled('month')) {
             $query->whereMonth('start_date', (int) $request->input('month'));
-        }
-        if ($hasDay) {
-            $query->whereDay('start_date', (int) $request->input('day'));
         }
     }
 }
