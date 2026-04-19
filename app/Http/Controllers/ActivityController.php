@@ -3,21 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\DTOs\Activity\CreateActivityData;
+use App\DTOs\Activity\UpdateActivityData;
 use App\Http\Requests\Activity\StoreRequest;
 use App\Http\Requests\Activity\UpdateRequest;
 use App\Models\Activity;
 use App\Models\Location;
 use App\Models\Schedule;
 use App\Models\Stase;
-use App\Models\StaseLocation;
 use App\Models\Unit;
-use App\Models\UnitStase;
 use App\Models\User;
 use App\Models\WeekMonitor;
 use App\Services\Activity\CreateActivityService;
 use App\Services\Activity\SplitCheckoutService;
+use App\Services\Activity\UpdateActivityService;
 use Carbon\Carbon;
 use DateTime;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,7 @@ class ActivityController extends Controller
     public function __construct(
         private readonly CreateActivityService $createActivityService,
         private readonly SplitCheckoutService $splitCheckoutService,
+        private readonly UpdateActivityService $updateActivityService,
     ) {
         // Menambahkan Policy untuk otorisasi update dan delete
         $this->middleware('can:create,\App\Models\Activity')->only('store');
@@ -165,77 +167,12 @@ class ActivityController extends Controller
     public function update(UpdateRequest $request, Activity $activity): RedirectResponse
     {
         try {
-            DB::transaction(function () use ($request, $activity) {
-                // Menghitung time_spend sebagai selisih antara end_date dan start_date
-                $startDate = Carbon::parse($request->date.' '.$request->start_time);
-                $endDate = Carbon::parse($request->date.' '.$request->finish_time);
-                $timeSpendInSeconds = $startDate->diffInSeconds($endDate);
-
-                // Menghitung jam, menit, dan detik
-                $hours = floor($timeSpendInSeconds / 3600);
-                $minutes = floor(($timeSpendInSeconds % 3600) / 60);
-                $seconds = $timeSpendInSeconds % 60;
-
-                // Format dengan sprintf untuk memastikan dua digit
-                $timeSpend = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
-
-                $changeToAllow = false;
-                // proteksi update tidak boleh melebihi 80 jam
-                [$prev_activity_hours, $prev_activity_minutes, $prev_activity_seconds] = explode(':', $activity->time_spend);
-                if ($prev_activity_hours != $hours) {
-                    $weekMonitor = WeekMonitor::where('user_id', $request->user()->id)
-                        ->where('week_group_id', $activity->week_group_id)
-                        ->first();
-                    $updated_workload_hours = ($weekMonitor->workload_hours - $prev_activity_hours) + $hours;
-                    if ($updated_workload_hours > 80) {
-                        if ($activity->is_allowed == 1) {
-                            throw new \Exception('Workload exceeded');
-                        }
-                    } else {
-                        if ($activity->is_allowed == 0) {
-                            $changeToAllow = true;
-                        } else {
-                            Activity::where('is_allowed', 0)
-                                ->where('user_id', $request->user()->id)
-                                ->where('week_group_id', $activity->week_group_id)
-                                ->update(['is_allowed' => 1]);
-                        }
-                    }
-                }
-
-                $unit_stase_id = null;
-
-                if (! is_null($request->stase_id)) {
-                    $unit_stase = UnitStase::where('stase_id', $request->stase_id)->where('unit_id', $request->user()->student_unit_id)->first();
-                    $unit_stase_id = $unit_stase->id;
-                }
-
-                $stase_location_id = null;
-
-                if (! is_null($request->stase_id)) {
-                    $stase_location = StaseLocation::where('stase_id', $request->stase_id)->where('location_id', $request->location_id)->first();
-                    $stase_location_id = $stase_location->id;
-                }
-
-                $activity->update([
-                    'name' => $request->name,
-                    'type' => $request->type,
-                    'unit_stase_id' => $request->type == 'jaga' ? null : $unit_stase_id,
-                    'stase_id' => $request->type == 'jaga' ? null : $request->stase_id,
-                    'stase_location_id' => $request->type == 'jaga' ? null : $stase_location_id,
-                    'location_id' => $request->type == 'jaga' ? null : $request->location_id,
-                    'dosen_user_id' => $request->dosen_user_id ?? null,
-                    'latitude' => $request->latitude,
-                    'longitude' => $request->longitude,
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
-                    'time_spend' => $timeSpend,
-                    'description' => $request->description,
-                    'is_allowed' => $activity->is_allowed == 0 ? ($changeToAllow ? 1 : 0) : 1,
-                ]);
-            });
+            $data = UpdateActivityData::fromUpdateRequest($request);
+            $this->updateActivityService->execute($activity, $data);
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Activity updated successfully');
+        } catch (ModelNotFoundException $e) {
+            return Redirect::back()->with(config('constants.public.flashmsg.ko'), 'Stase atau lokasi tidak valid untuk kombinasi unit dan stase ini.');
         } catch (\Exception $e) {
             return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
         }

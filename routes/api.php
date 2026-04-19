@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'profile'])->name('user');
         Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::post('/activities', [\App\Http\Controllers\Api\V1\ActivityController::class, 'store'])->name('activity.store');
+        Route::put('/activities/{activity}', [\App\Http\Controllers\Api\V1\ActivityController::class, 'update'])->name('activity.update-api');
         Route::post('/activities/checkin', [\App\Http\Controllers\Api\V1\ActivityController::class, 'checkIn'])->name('activity.checkin');
         Route::post('/activities/{activity}/checkout', [\App\Http\Controllers\Api\V1\ActivityController::class, 'checkOut'])->name('activity.checkout');
         Route::delete('/activities/{activity}', [\App\Http\Controllers\Api\V1\ActivityController::class, 'destroy'])->name('activity.destroy-api');

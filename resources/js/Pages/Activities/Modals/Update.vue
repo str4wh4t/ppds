@@ -33,8 +33,6 @@ const form = useForm({
     stase_id: '',
     location_id: '',
     dosen_user_id: '',
-    latitude: '',
-    longitude: '',
 });
 
 const activityOptions = usePage().props.constants.activity_types;
@@ -81,8 +79,6 @@ watch(
             form.finish_time = moment(props.activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(props.activity.end_date).format('HH:mm');
             form.description = props.activity.description ?? '';
             form.date = moment(props.activity.start_date).format('YYYY-MM-DD');  // cont : 2021-08-01
-            form.latitude = props.activity.latitude ?? '';
-            form.longitude = props.activity.longitude ?? '';
             isOverdueActivity.value = Boolean(props.activity?.is_overdue_checkout);
         }
     },

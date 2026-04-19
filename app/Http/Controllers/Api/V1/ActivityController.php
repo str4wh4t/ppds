@@ -3,16 +3,22 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\DTOs\Activity\CreateActivityData;
+use App\DTOs\Activity\UpdateActivityData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Activity\StoreRequest;
+use App\Http\Requests\Api\V1\ActivityUpdateRequest;
 use App\Models\Activity;
+use App\Models\StaseLocation;
+use App\Models\UnitStase;
 use App\Models\User;
 use App\Models\WeekMonitor;
 use App\Services\Activity\CreateActivityService;
 use App\Services\Activity\SplitCheckoutService;
+use App\Services\Activity\UpdateActivityService;
 use Carbon\Carbon;
 use Dedoc\Scramble\Attributes\Response;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +30,7 @@ class ActivityController extends Controller
     public function __construct(
         private readonly CreateActivityService $createActivityService,
         private readonly SplitCheckoutService $splitCheckoutService,
+        private readonly UpdateActivityService $updateActivityService,
     ) {
         $this->middleware('can:create,\App\Models\Activity')->only('store');
         $this->middleware('can:checkout,activity')->only('checkOut');
@@ -103,14 +110,14 @@ class ActivityController extends Controller
                 $unitNames = array_map(function ($item) {
                     return is_array($item) ? ($item['name'] ?? null) : $item;
                 }, $decoded);
-                $unitNames = array_values(array_filter($unitNames, fn($v) => ! empty($v)));
+                $unitNames = array_values(array_filter($unitNames, fn ($v) => ! empty($v)));
             }
         }
 
         $query = Activity::query()
             ->where('user_id', $targetUserId)
             ->when($search !== null && $search !== '', function ($q) use ($search) {
-                $q->where('name', 'like', '%' . addcslashes($search, '%_\\') . '%');
+                $q->where('name', 'like', '%'.addcslashes($search, '%_\\').'%');
             })
             ->when($unitNames, function ($q) use ($unitNames) {
                 $q->whereHas('user.studentUnit', function ($unitQuery) use ($unitNames) {
@@ -131,7 +138,7 @@ class ActivityController extends Controller
      * Activity list by week_group_id
      *
      * week_group_id menggunakan pola ISO: tahun ISO + nomor minggu, mis. 202614.
-     * 
+     *
      * Pola `user_id` sama seperti `activity.list`: role `student` memakai token; `system` boleh kirim `user_id`.
      *
      * @group Activities API
@@ -177,7 +184,7 @@ class ActivityController extends Controller
             ->where('user_id', $targetUserId)
             ->where('week_group_id', $weekGroupId)
             ->when($search !== null && $search !== '', function ($q) use ($search) {
-                $q->where('name', 'like', '%' . addcslashes($search, '%_\\') . '%');
+                $q->where('name', 'like', '%'.addcslashes($search, '%_\\').'%');
             })
             ->with('user', 'user.studentUnit', 'unitStase', 'stase', 'staseLocation', 'location', 'dosenUser');
 
@@ -217,6 +224,48 @@ class ActivityController extends Controller
         return response()->json([
             'data' => $activity,
         ]);
+    }
+
+    /**
+     * Update activity by ID
+     *
+     * Input berupa nama, deskripsi, jenis, stase, lokasi stase, dosen, serta rentang waktu.
+     * Logika validasi bentrok waktu dan batas beban kerja mengikuti form update web (`ActivityController@update`).
+     * **Tidak** mengubah koordinat GPS (`latitude` / `longitude`) maupun path foto check-in / check-out.
+     *
+     * @group Activities API
+     *
+     * @authenticated
+     *
+     * @header Authorization string required Gunakan format: Bearer {access_token}
+     *
+     * @urlParam activity int required ID activity. Example: 321
+     */
+    #[Response(200, 'Activity updated', type: 'array{message: string, data: array}')]
+    #[Response(401, 'Unauthenticated', type: 'array{message: string}')]
+    #[Response(403, 'Forbidden', type: 'array{message: string}')]
+    #[Response(422, 'Validation or process error', type: 'array{message: string, errors?: array}')]
+    public function update(ActivityUpdateRequest $request, Activity $activity): JsonResponse
+    {
+        try {
+            $data = UpdateActivityData::fromUpdateRequest($request);
+            $activity = $this->updateActivityService->execute($activity, $data);
+
+            $activity->load(['user', 'user.studentUnit', 'unitStase', 'stase', 'staseLocation', 'location', 'dosenUser']);
+
+            return response()->json([
+                'message' => 'Activity updated successfully',
+                'data' => $activity,
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Stase atau lokasi tidak valid untuk kombinasi unit dan stase ini.',
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**
@@ -330,7 +379,7 @@ class ActivityController extends Controller
             }
 
             $weekMonitor = WeekMonitor::where('user_id', $user_id)
-                ->where('week_group_id', $date->isoWeekYear . $date->isoWeek)
+                ->where('week_group_id', $date->isoWeekYear.$date->isoWeek)
                 ->first();
 
             if (isset($weekMonitor)) {
