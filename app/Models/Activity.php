@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Observers\ActivityObserver;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -80,6 +81,37 @@ class Activity extends Model
     public function location()
     {
         return $this->belongsTo(Location::class);
+    }
+
+    /**
+     * Activity hasil check-in API yang belum checkout: tidak generated, `time_spend` nol, mulai = selesai.
+     */
+    public function isOpenCheckInWithoutCheckout(): bool
+    {
+        if ((int) $this->is_generated !== 0) {
+            return false;
+        }
+
+        if ($this->time_spend !== '00:00:00') {
+            return false;
+        }
+
+        $start = Carbon::parse($this->start_date);
+        $end = Carbon::parse($this->end_date);
+
+        return $start->equalTo($end);
+    }
+
+    /**
+     * Terbuka seperti check-in dan sudah melewati ambang jam sejak `start_date` (default 24, sama logika check-in API).
+     */
+    public function isOverdueCheckoutByElapsedHours(int $hoursThreshold = 24): bool
+    {
+        if (! $this->isOpenCheckInWithoutCheckout()) {
+            return false;
+        }
+
+        return Carbon::parse($this->start_date)->diffInHours(now()) > $hoursThreshold;
     }
 
     protected static function booted()

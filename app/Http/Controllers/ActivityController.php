@@ -172,7 +172,7 @@ class ActivityController extends Controller
     {
         try {
             $data = UpdateActivityData::fromUpdateRequest($request);
-            $this->updateActivityService->execute($activity, $data);
+            $this->updateActivityService->execute($activity, $data, $request->user());
 
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Activity updated successfully');
         } catch (ModelNotFoundException $e) {
@@ -260,25 +260,28 @@ class ActivityController extends Controller
     public function destroy(Request $request, Activity $activity): RedirectResponse
     {
         try {
-            DB::transaction(function () use ($request, $activity) {
+            DB::transaction(function () use ($activity) {
                 $updated_workload_hours = null;
+                $owner_user_id = (int) $activity->user_id;
                 if ($activity->is_allowed == 1) {
-                    $weekMonitor = WeekMonitor::where('user_id', $request->user()->id)
+                    $weekMonitor = WeekMonitor::where('user_id', $owner_user_id)
                         ->where('week_group_id', $activity->week_group_id)
                         ->first();
-                    [$prev_activity_hours, $prev_activity_minutes, $prev_activity_seconds] = explode(':', $activity->time_spend);
-                    $updated_workload_hours = $weekMonitor->workload_hours - $prev_activity_hours;
-                    if ($updated_workload_hours <= 80) {
-                        Activity::where('is_allowed', 0)
-                            ->where('user_id', $request->user()->id)
-                            ->where('week_group_id', $activity->week_group_id)
-                            ->update(['is_allowed' => 1]);
+                    if ($weekMonitor) {
+                        [$prev_activity_hours, $prev_activity_minutes, $prev_activity_seconds] = explode(':', $activity->time_spend);
+                        $updated_workload_hours = $weekMonitor->workload_hours - $prev_activity_hours;
+                        if ($updated_workload_hours <= 80) {
+                            Activity::where('is_allowed', 0)
+                                ->where('user_id', $owner_user_id)
+                                ->where('week_group_id', $activity->week_group_id)
+                                ->update(['is_allowed' => 1]);
+                        }
                     }
                 }
                 $activity->delete();
                 if ($updated_workload_hours === 0) {
-                    Activity::withoutEvents(function () use ($request, $activity) {
-                        Activity::withoutGlobalScopes()->where(['user_id' => $request->user()->id, 'week_group_id' => $activity->week_group_id, 'is_generated' => 1])
+                    Activity::withoutEvents(function () use ($activity, $owner_user_id) {
+                        Activity::withoutGlobalScopes()->where(['user_id' => $owner_user_id, 'week_group_id' => $activity->week_group_id, 'is_generated' => 1])
                             ->delete();
                     });
                 }

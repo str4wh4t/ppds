@@ -6,22 +6,24 @@ use App\DTOs\Activity\UpdateActivityData;
 use App\Models\Activity;
 use App\Models\StaseLocation;
 use App\Models\UnitStase;
+use App\Models\User;
 use App\Models\WeekMonitor;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Memperbarui activity; rentang waktu mengikuti validasi request (selesai tidak sebelum mulai, boleh sama).
+ * User selain `student` yang mengubah waktu: `is_overdue_checkout` diselaraskan dengan apakah masih “open check-in” dan >24 jam setelah update.
  */
 class UpdateActivityService
 {
-    public function execute(Activity $activity, UpdateActivityData $data): Activity
+    public function execute(Activity $activity, UpdateActivityData $data, ?User $actingUser = null): Activity
     {
-        return DB::transaction(function () use ($activity, $data) {
+        return DB::transaction(function () use ($activity, $data, $actingUser) {
             $activity->loadMissing('user');
 
-            $startDate = Carbon::parse($data->date.' '.$data->startTime);
-            $endDate = Carbon::parse($data->date.' '.$data->finishTime);
+            $startDate = Carbon::parse($data->date . ' ' . $data->startTime);
+            $endDate = Carbon::parse($data->date . ' ' . $data->finishTime);
             $timeSpendInSeconds = $startDate->diffInSeconds($endDate);
 
             $hours = (int) floor($timeSpendInSeconds / 3600);
@@ -31,7 +33,7 @@ class UpdateActivityService
 
             $yearIso = $startDate->isoWeekYear;
             $weekIso = $startDate->isoWeek;
-            $newWeekGroupId = (int) ($yearIso.$weekIso);
+            $newWeekGroupId = (int) ($yearIso . $weekIso);
 
             $changeToAllow = false;
             [$prev_activity_hours] = explode(':', $activity->time_spend);
@@ -75,7 +77,7 @@ class UpdateActivityService
                 $staseLocationId = $staseLocation->id;
             }
 
-            $activity->update([
+            $attributes = [
                 'name' => $data->name,
                 'type' => $data->type,
                 'unit_stase_id' => $data->type === 'jaga' ? null : $unitStaseId,
@@ -89,9 +91,44 @@ class UpdateActivityService
                 'description' => $data->description,
                 'week_group_id' => $newWeekGroupId,
                 'is_allowed' => (int) $activity->is_allowed === 0 ? ($changeToAllow ? 1 : 0) : 1,
-            ]);
+            ];
+
+            if ($actingUser !== null && ! $actingUser->hasRole('student')) {
+                $attributes['is_overdue_checkout'] = $this->isOverdueOpenCheckInAfterUpdate(
+                    $activity,
+                    $startDate,
+                    $endDate,
+                    $timeSpend
+                );
+            }
+
+            $activity->update($attributes);
 
             return $activity->fresh();
         });
+    }
+
+    /**
+     * Setelah update: activity non-generated, `time_spend` nol, mulai = selesai, dan >24 jam sejak mulai baru.
+     */
+    private function isOverdueOpenCheckInAfterUpdate(
+        Activity $activity,
+        Carbon $startDate,
+        Carbon $endDate,
+        string $timeSpend
+    ): bool {
+        if ((int) $activity->is_generated !== 0) {
+            return false;
+        }
+
+        if ($timeSpend !== '00:00:00') {
+            return false;
+        }
+
+        if (! $startDate->equalTo($endDate)) {
+            return false;
+        }
+
+        return $startDate->diffInHours(now()) > 24;
     }
 }

@@ -31,6 +31,10 @@ class ActivityPolicy
      */
     public function update(User $user, Activity $model): bool
     {
+        if (! $user->hasRole('student')) {
+            return true;
+        }
+
         if ($user->id !== $model->user_id) {
             return false;
         }
@@ -47,25 +51,10 @@ class ActivityPolicy
      */
     public function checkout(User $user, Activity $model): bool
     {
-        if ($user->hasRole('admin_prodi')) {
-            // ini tambahkan jika checkout dari admin prodi adalah yang overdue checkout
-            if ((bool) $model->is_overdue_checkout) {
-                return true;
-            }
+        if (! $user->hasRole('student')) {
+            return true;
         }
 
-        if ($user->id !== $model->user_id) {
-            return false;
-        }
-
-        return $this->isSameCreationChannel($model);
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Activity $model): bool
-    {
         if ($user->id !== $model->user_id) {
             return false;
         }
@@ -74,8 +63,22 @@ class ActivityPolicy
             return false;
         }
 
-        // return $this->isSameCreationChannel($model);
-        return true;
+        return $this->isSameCreationChannel($model);
+    }
+
+    /**
+     * Determine whether the user can delete the model.
+     *
+     * Student: hanya activity sendiri; boleh meskipun overdue.
+     * User selain student: boleh menghapus activity milik user lain (mis. admin lewat API).
+     */
+    public function delete(User $user, Activity $model): bool
+    {
+        if (! $user->hasRole('student')) {
+            return true;
+        }
+
+        return (int) $user->id === (int) $model->user_id;
     }
 
     public function permitActivity(User $user, Activity $model): bool

@@ -251,7 +251,7 @@ class ActivityController extends Controller
     {
         try {
             $data = UpdateActivityData::fromUpdateRequest($request);
-            $activity = $this->updateActivityService->execute($activity, $data);
+            $activity = $this->updateActivityService->execute($activity, $data, $request->user());
 
             $activity->load(['user', 'user.studentUnit', 'unitStase', 'stase', 'staseLocation', 'location', 'dosenUser']);
 
@@ -738,7 +738,7 @@ class ActivityController extends Controller
     /**
      * Delete activity
      *
-     * Menghapus activity user yang login.
+     * Menghapus activity. Student hanya record sendiri; role lain boleh menghapus record user lain (policy `delete`).
      *
      * @group Activities API
      *
@@ -754,18 +754,19 @@ class ActivityController extends Controller
     #[Response(422, 'Validation/process error', type: 'array{message: string}')]
     public function destroy(Request $request, Activity $activity): JsonResponse
     {
-        if ($activity->user_id !== $request->user()->id) {
+        if ($request->user()->hasRole('student') && (int) $activity->user_id !== (int) $request->user()->id) {
             return response()->json([
                 'message' => 'Anda tidak memiliki akses ke activity ini.',
             ], 403);
         }
 
         try {
-            DB::transaction(function () use ($request, $activity) {
+            DB::transaction(function () use ($activity) {
                 $updatedWorkloadHours = null;
+                $ownerUserId = (int) $activity->user_id;
 
                 if ((int) $activity->is_allowed === 1) {
-                    $weekMonitor = WeekMonitor::where('user_id', $request->user()->id)
+                    $weekMonitor = WeekMonitor::where('user_id', $ownerUserId)
                         ->where('week_group_id', $activity->week_group_id)
                         ->first();
 
@@ -774,7 +775,7 @@ class ActivityController extends Controller
                         $updatedWorkloadHours = $weekMonitor->workload_hours - (int) $prevActivityHours;
                         if ($updatedWorkloadHours <= 80) {
                             Activity::where('is_allowed', 0)
-                                ->where('user_id', $request->user()->id)
+                                ->where('user_id', $ownerUserId)
                                 ->where('week_group_id', $activity->week_group_id)
                                 ->update(['is_allowed' => 1]);
                         }
@@ -784,10 +785,10 @@ class ActivityController extends Controller
                 $activity->delete();
 
                 if ($updatedWorkloadHours === 0) {
-                    Activity::withoutEvents(function () use ($request, $activity) {
+                    Activity::withoutEvents(function () use ($activity, $ownerUserId) {
                         Activity::withoutGlobalScopes()
                             ->where([
-                                'user_id' => $request->user()->id,
+                                'user_id' => $ownerUserId,
                                 'week_group_id' => $activity->week_group_id,
                                 'is_generated' => 1,
                             ])
