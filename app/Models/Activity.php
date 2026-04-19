@@ -103,7 +103,7 @@ class Activity extends Model
     }
 
     /**
-     * Terbuka seperti check-in dan sudah melewati ambang jam sejak `start_date` (default 24, sama logika check-in API).
+     * Terbuka seperti check-in dan sudah melewati ambang jam sejak `start_date` (default 24 jam: **≥** threshold, `diffInHours` membulatkan ke bawah).
      */
     public function isOverdueCheckoutByElapsedHours(int $hoursThreshold = 24): bool
     {
@@ -111,7 +111,7 @@ class Activity extends Model
             return false;
         }
 
-        return Carbon::parse($this->start_date)->diffInHours(now()) > $hoursThreshold;
+        return Carbon::parse($this->start_date)->diffInHours(now()) >= $hoursThreshold;
     }
 
     protected static function booted()

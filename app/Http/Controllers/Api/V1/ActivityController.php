@@ -549,7 +549,6 @@ class ActivityController extends Controller
 
             $hasNonOverdueOpenActivity = false;
             foreach ($openActivities as $openActivity) {
-                $openStartDate = Carbon::parse($openActivity->start_date);
                 if ($openActivity->isOverdueCheckoutByElapsedHours()) {
                     if (! $openActivity->is_overdue_checkout) {
                         $openActivity->update(['is_overdue_checkout' => true]);
@@ -673,7 +672,7 @@ class ActivityController extends Controller
                     $activity->update(['is_overdue_checkout' => true]);
                 }
 
-                $validator->errors()->add('finish_at', 'Activity melebihi 24 jam dan dianggap lupa checkout. Hubungi admin.');
+                $validator->errors()->add('finish_at', 'Activity sudah 24 jam atau lebih tanpa checkout (lupa checkout). Hubungi admin.');
 
                 return;
             }

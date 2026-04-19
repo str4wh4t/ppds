@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Memperbarui activity; rentang waktu mengikuti validasi request (selesai tidak sebelum mulai, boleh sama).
- * User selain `student` yang mengubah waktu: `is_overdue_checkout` diselaraskan dengan apakah masih “open check-in” dan >24 jam setelah update.
+ * User selain `student` yang mengubah waktu: `is_overdue_checkout` diselaraskan dengan apakah masih “open check-in” dan ≥24 jam setelah update.
  */
 class UpdateActivityService
 {
@@ -109,7 +109,7 @@ class UpdateActivityService
     }
 
     /**
-     * Setelah update: activity non-generated, `time_spend` nol, mulai = selesai, dan >24 jam sejak mulai baru.
+     * Setelah update: activity non-generated, `time_spend` nol, mulai = selesai, dan ≥24 jam sejak mulai.
      */
     private function isOverdueOpenCheckInAfterUpdate(
         Activity $activity,
@@ -129,6 +129,6 @@ class UpdateActivityService
             return false;
         }
 
-        return $startDate->diffInHours(now()) > 24;
+        return $startDate->diffInHours(now()) >= 24;
     }
 }

@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * Validasi update: `finish_time` tidak boleh **sebelum** `start_time` (perbandingan string `H:i` / `24:00`); **sama** diperbolehkan.
- * Activity check-in terbuka yang sudah >24 jam tanpa checkout tidak boleh diubah (diselaraskan dengan check-in API); role `system` dikecualikan.
+ * Activity check-in terbuka yang sudah ≥24 jam tanpa checkout tidak boleh diubah (diselaraskan dengan check-in API); role `system` dikecualikan.
  */
 class UpdateRequest extends FormRequest
 {
@@ -68,7 +68,7 @@ class UpdateRequest extends FormRequest
 
             $validator->errors()->add(
                 'date',
-                'Activity ini dianggap overdue (>24 jam dari check-in tanpa checkout). Update tidak dapat dilakukan; lakukan checkout atau hubungi admin.'
+                'Activity ini dianggap overdue (≥24 jam dari check-in tanpa checkout). Update tidak dapat dilakukan; lakukan checkout atau hubungi admin.'
             );
         });
 

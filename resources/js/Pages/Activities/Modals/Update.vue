@@ -166,7 +166,7 @@ const handleUpdateStase = (value) => {
             <div class="px-4 py-5 sm:p-6">
                 <form @submit.prevent="submit" class="mt-1 text-sm text-gray-600">
                     <div v-if="isOverdueActivity" class="mb-3 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
-                        Activity ini berstatus overdue (>24 jam dari check-in). Perubahan (Save) tidak dapat dilakukan; Anda tetap bisa menghapus activity ini jika perlu. Untuk menutup tanpa menghapus, lakukan checkout dari halaman list activity.
+                        Activity ini berstatus overdue (24 jam atau lebih dari check-in). Perubahan (Save) tidak dapat dilakukan; Anda tetap bisa menghapus activity ini jika perlu. Untuk menutup tanpa menghapus, lakukan checkout dari halaman list activity.
                     </div>
 
                     <div>
