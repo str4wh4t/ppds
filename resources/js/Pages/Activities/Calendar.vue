@@ -36,13 +36,17 @@ const modalStore = useModalStore();
 const generateDays = async (year, month, callback = null) => {
     try {
         isLoading.value = true;
+        const isStudent = usePage().props.auth.user.roles?.some(role => role.name === 'student');
+        const payload = {
+            year: labelYear.value,
+            month: pointerMonth.value,
+        };
+
+        const targetUserId = usePage().props.selectedUser?.id ?? usePage().props.auth.user.id;
 
         const response = await axios.post(
-            route('activities.calendar-generatedays', { user: usePage().props.selectedUser }),
-            {
-                year: labelYear.value,
-                month: pointerMonth.value,
-            }
+            route('activities.calendar-generatedays', { user: targetUserId }),
+            payload
         );
 
         // Hanya dipanggil jika `await axios.post()` berhasil

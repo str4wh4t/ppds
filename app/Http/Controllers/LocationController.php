@@ -4,15 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Location\StoreRequest;
 use App\Http\Requests\Location\UpdateRequest;
-use App\Models\User;
 use App\Models\Location;
 use App\Models\StaseLocation;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
-use \Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Redirect;
 
 class LocationController extends Controller
 {
@@ -40,7 +39,7 @@ class LocationController extends Controller
             'locations' => $locations,
             'filters' => [
                 'search' => $search,
-            ]
+            ],
         ]);
     }
 
@@ -63,6 +62,8 @@ class LocationController extends Controller
                 Location::create([
                     'name' => $request->name,
                     'description' => $request->description,
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
                 ]);
             });
 
@@ -99,6 +100,8 @@ class LocationController extends Controller
                 $location->update([
                     'name' => $request->name,
                     'description' => $request->description,
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
                 ]);
             });
 
@@ -118,6 +121,7 @@ class LocationController extends Controller
             DB::transaction(function () use ($location) {
                 $location->delete();
             });
+
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Location deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());

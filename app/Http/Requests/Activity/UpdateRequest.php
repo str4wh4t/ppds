@@ -19,7 +19,7 @@ class UpdateRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'type' => ['required', Rule::in(config('constants.public.activity_types'))],
-            'date' => 'required|date',
+            'date' => 'required|date_format:Y-m-d',
             'start_time' => 'required|date_format:H:i',
             'finish_time' => 'required',
             'description' => 'required|string',
@@ -28,8 +28,17 @@ class UpdateRequest extends FormRequest
             // 'approved_at' => 'nullable|date',
             // 'unit_stase_id' => 'nullable|integer|exists:units,id|required_with:stase_id',
             'stase_id' => 'nullable|integer|exists:stases,id|required_if:type,nonjaga',
-            'location_id' => 'nullable|integer|exists:locations,id|required_if:type,nonjaga',
+            'location_id' => [
+                'nullable',
+                'integer',
+                'required_if:type,nonjaga',
+                Rule::exists('stase_locations', 'location_id')->where(function ($query) {
+                    $query->where('stase_id', $this->input('stase_id'));
+                }),
+            ],
             'dosen_user_id' => 'nullable|integer|exists:users,id',
+            'latitude' => 'nullable|numeric|between:-90,90|required_with:longitude',
+            'longitude' => 'nullable|numeric|between:-180,180|required_with:latitude',
         ];
     }
 
@@ -46,7 +55,7 @@ class UpdateRequest extends FormRequest
                 $validator->errors()->add('finish_time', 'Waktu selesai tidak boleh kurang dari waktu mulai.');
             }
 
-            if (!(preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $finishTime) || $finishTime === '24:00')) {
+            if (! (preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $finishTime) || $finishTime === '24:00')) {
                 $validator->errors()->add(
                     'finish_time',
                     'The finish time must be in the format HH:MM (24-hour format) or 24:00.'
@@ -55,8 +64,8 @@ class UpdateRequest extends FormRequest
         });
 
         // Ambil start_date dan end_date dari request
-        $startDate = Carbon::parse($date . ' ' . $startTime);
-        $endDate = Carbon::parse($date . ' ' . $finishTime);
+        $startDate = Carbon::parse($date.' '.$startTime);
+        $endDate = Carbon::parse($date.' '.$finishTime);
 
         // Tambahkan validasi custom untuk memeriksa overlap
         $validator->after(function ($validator) use ($activity, $date, $startDate, $endDate) {

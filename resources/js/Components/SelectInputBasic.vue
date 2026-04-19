@@ -122,7 +122,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="relative w-full">
+    <div class="relative min-w-0 w-full max-w-full">
         <!-- Trigger Dropdown -->
         <div ref="triggerButton" @click="toggleDropdown" type="button"
             :class="[selectedItem ? [selectedItem.name ? 'text-gray-700' : 'text-gray-400'] : 'text-gray-400', isOpen ? 'border-green-600 ring-1 ring-green-600' : 'border-gray-300', 'w-full flex items-center cursor-pointer justify-between px-4 py-2 border rounded-full bg-white shadow-sm text-left text-sm']">

@@ -23,6 +23,8 @@ const form = useForm({
     start_date: '',
     end_date: '',
     description: '',
+    latitude: '',
+    longitude: '',
 });
 
 const activityType = ref(null);
@@ -90,7 +92,6 @@ const submit = () => {
                             v-model="form.end_date" />
                         <InputError class="mt-2" :message="form.errors.end_date" />
                     </div>
-
                     <div class="mt-2">
                         <InputLabel for="description" value="Description" />
                         <TextArea id="description" class="mt-1 block w-full" required v-model="form.description" />

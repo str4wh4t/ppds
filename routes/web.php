@@ -1,9 +1,8 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\MainController;
-use App\Http\Controllers\PageController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -57,14 +56,14 @@ Route::group(['middleware' => ['permission:reset-password']], function () {
 
 Route::middleware(['permission:mahasiswa.*'])->group(function () {
     Route::resource('/students', \App\Http\Controllers\StudentController::class)->parameters([
-        'students' => 'user'
+        'students' => 'user',
     ]);
     Route::post('/students/activate/{user}', [\App\Http\Controllers\StudentController::class, 'activate'])->name('students.activate');
 });
 
 Route::middleware(['permission:dosen.*'])->group(function () {
     Route::resource('/dosens', \App\Http\Controllers\DosenController::class)->parameters([
-        'dosens' => 'user'
+        'dosens' => 'user',
     ]);
 });
 
@@ -72,7 +71,7 @@ Route::middleware('permission:dosen.read')->get('/dosens', [\App\Http\Controller
 
 Route::middleware(['permission:kaprodi.*'])->group(function () {
     Route::resource('/kaprodis', \App\Http\Controllers\KaprodiController::class)->parameters([
-        'kaprodis' => 'user'
+        'kaprodis' => 'user',
     ]);
 });
 
@@ -85,7 +84,6 @@ Route::middleware(['permission:unit.*'])->group(function () {
     Route::post('/units/{unit}/upload-guideline', [UnitController::class, 'uploadGuidelineDocument'])->name('units.upload-document-guideline');
     Route::delete('/units/{unit}/delete-guideline', [UnitController::class, 'deleteGuidelineDocument'])->name('units.delete-document-guideline');
 });
-
 
 Route::middleware(['permission:stase.*'])->group(function () {
     Route::resource('/stases', \App\Http\Controllers\StaseController::class);
@@ -104,14 +102,20 @@ Route::middleware(['permission:logbook.*'])->group(function () {
     // Menambahkan middleware 'can' untuk aksi update dan delete pada resource activities
     Route::resource('/activities', \App\Http\Controllers\ActivityController::class)
         ->except(['index', 'show']);
+    Route::post('/activities/{activity}/checkout', [\App\Http\Controllers\ActivityController::class, 'checkout'])
+        ->name('activities.checkout');
     Route::get('/activities/{user}/calendar/{month_number?}/{year?}', [\App\Http\Controllers\ActivityController::class, 'calendar'])->name('activities.calendar');
-    Route::get('/activities/{user}/report', [\App\Http\Controllers\ActivityController::class, 'report'])->name('activities.report');
     Route::get('/activities/{user}/schedule/{month_number}/month/{year}/year', [\App\Http\Controllers\ActivityController::class, 'schedule'])->name('activities.schedule');
     Route::post('/activities/{activity}/allow-activity', [\App\Http\Controllers\ActivityController::class, 'allowActivity'])->name('activities.allow');
 });
 
-Route::middleware(['permission:report-logbook'])->group(function () {
+// Satu URL report: OR logbook.* atau report-logbook (duplikat route dengan URI sama membuat
+// permintaan selalu memakai definisi pertama).
+Route::middleware(['permission:logbook.*|report-logbook'])->group(function () {
     Route::get('/activities/{user}/report', [\App\Http\Controllers\ActivityController::class, 'report'])->name('activities.report');
+});
+
+Route::middleware(['permission:report-logbook'])->group(function () {
     Route::get('/activities/{user}/statistic', [\App\Http\Controllers\ActivityController::class, 'statistic'])->name('activities.statistic');
 });
 
@@ -153,5 +157,4 @@ Route::middleware(['permission:schedule.*'])->group(function () {
     Route::delete('/schedules/{schedule}/delete-document', [\App\Http\Controllers\ScheduleController::class, 'deleteDocument'])->name('schedules.delete-document');
 });
 
-
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

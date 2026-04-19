@@ -17,6 +17,8 @@ class Location extends Model
     protected $fillable = [
         'name',
         'description',
+        'latitude',
+        'longitude',
     ];
 
     public function stases()

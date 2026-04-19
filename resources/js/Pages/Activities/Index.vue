@@ -1,15 +1,20 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { Link, usePage } from '@inertiajs/vue3';
 import ModalCreate from './Modals/Create.vue';
 import ModalUpdate from './Modals/Update.vue';
+import Modal from '@/Components/Modal.vue';
 import CreateButton from '@/Components/CreateButton.vue';
 import { ChevronLeftIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/vue/20/solid';
 import { ref, computed } from 'vue';
 import { useModalStore } from '@/stores/modalStore';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/20/solid';
 import MultiselectBasic from '@/Components/MultiselectBasic.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import InputError from '@/Components/InputError.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 const activities = computed(() => usePage().props.activities);
 
@@ -20,6 +25,12 @@ const modalStore = useModalStore();
 const isCreate = ref(false);
 const isUpdate = ref(false);
 const selectedItem = ref({});
+const showCheckoutModal = ref(false);
+const selectedCheckoutActivity = ref(null);
+const checkoutForm = useForm({
+    date: '',
+    finish_time: '',
+});
 
 const openUpdate = (activity) => {
     selectedItem.value = activity;
@@ -42,6 +53,45 @@ const searchPosts = () => {
 
 const openModalGlobal = () => {
     modalStore.openModal('Warning', 'Silahkan dapat menambahkan akfitas melalui menu kalender');
+};
+
+const openCheckoutModal = (activity) => {
+    selectedCheckoutActivity.value = activity;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+
+    const date = `${year}-${month}-${day}`;
+    const finish_time = `${hours}:${minutes}`;
+
+    checkoutForm.reset();
+    checkoutForm.clearErrors();
+    checkoutForm.date = date;
+    checkoutForm.finish_time = finish_time;
+    showCheckoutModal.value = true;
+};
+
+const closeCheckoutModal = () => {
+    showCheckoutModal.value = false;
+    selectedCheckoutActivity.value = null;
+    checkoutForm.reset();
+    checkoutForm.clearErrors();
+};
+
+const submitCheckout = () => {
+    if (!selectedCheckoutActivity.value) {
+        return;
+    }
+
+    checkoutForm.post(route('activities.checkout', { activity: selectedCheckoutActivity.value }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            closeCheckoutModal();
+        },
+    });
 };
 
 </script>
@@ -92,18 +142,13 @@ const openModalGlobal = () => {
                     <tr>
                         <th scope="col" class="py-2 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                             Mhs</th>
-                        <th scope="col"
-                            class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            Unit</th>
                         <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Aktifitas</th>
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Jenis</th>
                         <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            Mulai</th>
-                        <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
-                            Selesai</th>
+                            Mulai / Selesai</th>
                         <th scope="col"
                             class="hidden px-3 py-2 text-left text-sm font-semibold text-gray-900 lg:table-cell">
                             Waktu</th>
@@ -125,14 +170,14 @@ const openModalGlobal = () => {
                             <div class="font-medium text-gray-900">
                                 {{ activity.user.fullname }}
                             </div>
+                            <div class="hidden text-xs text-gray-400 lg:block">
+                                {{ activity.user.student_unit.name }}
+                            </div>
                             <div class="mt-1 flex flex-col text-gray-500 sm:block lg:hidden">
                                 <span>{{ activity.user.student_unit.name }}</span>
                             </div>
                             <div v-if="index !== 0" class="absolute -top-px left-6 right-0 h-px bg-gray-200" />
                         </td>
-                        <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ activity.user.student_unit.name }}</td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             <div class="font-medium text-gray-900">
@@ -156,10 +201,10 @@ const openModalGlobal = () => {
                         </td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ $formatDate({ date: activity.start_date, formatOutput: 'DD/MM/YYYY HH:mm' }) }}</td>
-                        <td
-                            :class="[index === 0 ? '' : 'border-t border-gray-200', 'px-3 py-2 text-sm text-gray-500 lg:table-cell']">
-                            {{ $formatDate({ date: activity.end_date, formatOutput: 'DD/MM/YYYY HH:mm' }) }}</td>
+                            <div>{{ $formatDate({ date: activity.start_date, formatOutput: 'DD/MM/YYYY HH:mm' }) }}</div>
+                            <div class="text-xs text-gray-400">sd</div>
+                            <div>{{ $formatDate({ date: activity.end_date, formatOutput: 'DD/MM/YYYY HH:mm' }) }}</div>
+                        </td>
                         <td
                             :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-gray-500 lg:table-cell']">
                             {{ activity.time_spend }}</td>
@@ -179,6 +224,11 @@ const openModalGlobal = () => {
                             <button type="button" @click="openUpdate(activity)"
                                 class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white">
                                 Edit
+                            </button>
+                            <button v-if="$hasRoles('admin_prodi') && activity.is_overdue_checkout" type="button"
+                                @click="openCheckoutModal(activity)"
+                                class="ml-2 inline-flex items-center rounded-md bg-orange-500 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-30">
+                                Checkout
                             </button>
                             <div v-if="index !== 0" class="absolute -top-px left-0 right-6 h-px bg-gray-200" />
                         </td>
@@ -249,5 +299,49 @@ const openModalGlobal = () => {
         </div>
         <!-- <ModalCreate :show="isCreate" @close="isCreate = false" /> -->
         <ModalUpdate :activity="selectedItem" :show="isUpdate" @close="closeUpdate" @exitUpdate="closeUpdate" />
+
+        <Modal :show="showCheckoutModal" @close="closeCheckoutModal">
+            <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+                <div class="px-4 py-5 sm:px-6">
+                    <h2 class="text-lg font-medium text-gray-900">Checkout Activity</h2>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <form @submit.prevent="submitCheckout" class="space-y-4">
+                        <div>
+                            <InputLabel for="checkout_date" value="Tanggal Checkout" />
+                            <input
+                                id="checkout_date"
+                                type="date"
+                                v-model="checkoutForm.date"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                required
+                            />
+                            <InputError class="mt-2" :message="checkoutForm.errors.date" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="checkout_finish_time" value="Jam Checkout" />
+                            <input
+                                id="checkout_finish_time"
+                                type="time"
+                                v-model="checkoutForm.finish_time"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                required
+                            />
+                            <InputError class="mt-2" :message="checkoutForm.errors.finish_time" />
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-2">
+                            <SecondaryButton type="button" :disabled="checkoutForm.processing" @click="closeCheckoutModal">
+                                Batal
+                            </SecondaryButton>
+                            <PrimaryButton :disabled="checkoutForm.processing">
+                                Simpan Checkout
+                            </PrimaryButton>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </Modal>
     </AuthenticatedLayout>
 </template>

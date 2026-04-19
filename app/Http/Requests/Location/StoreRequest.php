@@ -3,8 +3,6 @@
 namespace App\Http\Requests\Location;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Role;
 
 class StoreRequest extends FormRequest
 {
@@ -25,6 +23,18 @@ class StoreRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:255',
+            ],
+            'latitude' => [
+                'nullable',
+                'numeric',
+                'between:-90,90',
+                'required_with:longitude',
+            ],
+            'longitude' => [
+                'nullable',
+                'numeric',
+                'between:-180,180',
+                'required_with:latitude',
             ],
         ];
     }

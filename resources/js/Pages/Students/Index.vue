@@ -83,27 +83,30 @@ const activateStudent = async (user_id, is_active_student) => {
         <template #header>
             Student List
         </template>
-        <div class="sm:flex sm:items-center mt-4">
-            <div class="sm:flex-auto">
+        <div class="mt-4 flex justify-end">
+            <CreateButton @click="isCreate = true">
+                Add student
+            </CreateButton>
+        </div>
+        <div
+            class="mt-4 flex w-full min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end lg:flex-nowrap">
+            <div class="min-w-0 w-full sm:min-w-[12rem] sm:flex-1">
                 <div class="relative rounded-md shadow-sm">
                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <MagnifyingGlassIcon class="h-4 w-4 u text-gray-400" aria-hidden="true" />
+                        <MagnifyingGlassIcon class="h-4 w-4 text-gray-400" aria-hidden="true" />
                     </div>
-                    <input v-model="filters.search" @keyup.enter="searchPosts" type="text" placeholder="Pencarian data"
+                    <input v-model="filters.search" @keyup.enter="searchPosts" type="text"
+                        placeholder="Pencarian data"
                         class="block w-full rounded-full border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                 </div>
             </div>
-            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">
+            <div class="min-w-0 w-full sm:w-60 sm:flex-shrink-0 md:w-64">
                 <MultiselectBasic :options="units" v-model="filters.units" @optionSelected="unitSelected" />
             </div>
-            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-auto w-24">
-                <SelectInput id="activeSttsSelected" class="block w-full" v-model="activeSttsSelectedOpt" :options="activeSttsList"
-                    required autofocus autocomplete="activeSttsSelected" placeholder="Select status" />
-            </div>
-            <div class="mt-4 sm:ml-5 sm:mt-0 sm:flex-none">
-                <CreateButton @click="isCreate = true">
-                    Add student
-                </CreateButton>
+            <div class="min-w-0 w-full sm:w-44 sm:flex-shrink-0">
+                <SelectInput id="activeSttsSelected" class="block w-full" v-model="activeSttsSelectedOpt"
+                    :options="activeSttsList" required autocomplete="activeSttsSelected"
+                    placeholder="Select status" />
             </div>
         </div>
         <div class="-mx-4 mt-5 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg">

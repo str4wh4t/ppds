@@ -33,6 +33,8 @@ const form = useForm({
     stase_id: '',
     location_id: '',
     dosen_user_id: '',
+    latitude: '',
+    longitude: '',
 });
 
 const activityOptions = usePage().props.constants.activity_types;
@@ -50,12 +52,14 @@ const dosenSelected = ref(null);
 const activityType = ref(null);
 const activityStase = ref(null);
 const activityLocation = ref(null);
+const isOverdueActivity = ref(false);
 
 watch(
     () => props.show,
     (newValue) => {
         if (!newValue) {
             showConfirmDelete.value = false;
+            isOverdueActivity.value = false;
         }
         if (newValue) {
             form.clearErrors();
@@ -77,13 +81,19 @@ watch(
             form.finish_time = moment(props.activity.end_date).format('HH:mm') === '00:00' ? '24:00' : moment(props.activity.end_date).format('HH:mm');
             form.description = props.activity.description ?? '';
             form.date = moment(props.activity.start_date).format('YYYY-MM-DD');  // cont : 2021-08-01
+            form.latitude = props.activity.latitude ?? '';
+            form.longitude = props.activity.longitude ?? '';
+            isOverdueActivity.value = Boolean(props.activity?.is_overdue_checkout);
         }
     },
     { immediate: true }
 );
 
 const submit = () => {
-    form.type = activityType.value.name ?? activityType.value;
+    if (isOverdueActivity.value) {
+        return;
+    }
+    form.type = activityType.value?.name ?? activityType.value ?? '';
     form.stase_id = activityStase.value?.id ?? null;
     form.location_id = activityLocation.value?.id ?? null;
     form.dosen_user_id = dosenSelected.value?.id ?? null;
@@ -98,6 +108,9 @@ const submit = () => {
 const confirmDeleteDialog = ref(null);
 
 const onShowConfirmDelete = () => {
+    if (isOverdueActivity.value) {
+        return;
+    }
     showConfirmDelete.value = true;
     nextTick(() => {
         confirmDeleteDialog.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -118,8 +131,9 @@ const isLoading = ref(false);
 const getAvailLocation = async (stase) => {
     try {
         isLoading.value = true;
+        const staseId = (typeof stase === 'object' && stase !== null) ? stase.id : stase;
         const responseData = await axios
-            .get(route('stases.avail-location', { stase: stase }))
+            .post(route('stase.locations'), { stase_id: staseId })
             .catch(error => {
                 console.error('Error fetching users:', error);
             });
@@ -158,6 +172,9 @@ const handleUpdateStase = (value) => {
             </div>
             <div class="px-4 py-5 sm:p-6">
                 <form @submit.prevent="submit" class="mt-1 text-sm text-gray-600">
+                    <div v-if="isOverdueActivity" class="mb-3 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
+                        Activity ini berstatus overdue (>24 jam dari check-in). Update dan delete tidak dapat dilakukan dari form ini. Silahkan lakukan checkout dari halaman list activity.
+                    </div>
 
                     <div>
                         <InputLabel for="name" value="Activity Name" />
@@ -213,7 +230,6 @@ const handleUpdateStase = (value) => {
                             v-model="form.finish_time" />
                         <InputError class="mt-2" :message="form.errors.finish_time" />
                     </div>
-
                     <div class="mt-2">
                         <InputLabel for="description" value="Description" />
                         <TextArea id="description" class="mt-1 block w-full" required v-model="form.description" />
@@ -225,10 +241,10 @@ const handleUpdateStase = (value) => {
                             leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
                             <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
                         </Transition>
-                        <PrimaryButton class="ml-4" :disabled="form.processing">
+                        <PrimaryButton class="ml-4" :disabled="form.processing || isOverdueActivity">
                             Save
                         </PrimaryButton>
-                        <DangerButton type="button" class="ml-2" :disabled="form.processing"
+                        <DangerButton type="button" class="ml-2" :disabled="form.processing || isOverdueActivity"
                             @click="onShowConfirmDelete">
                             Delete
                         </DangerButton>

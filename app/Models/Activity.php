@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Observers\ActivityObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use DateTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,10 +27,24 @@ class Activity extends Model
         'stase_location_id',
         'stase_id',
         'location_id',
+        'latitude',
+        'longitude',
+        'checkin_photo_path',
+        'checkout_photo_path',
+        'checkout_latitude',
+        'checkout_longitude',
         'dosen_user_id',
         'week_group_id',
         'is_generated',
         'is_allowed',
+        'created_via',
+        'device_info',
+        'is_overdue_checkout',
+    ];
+
+    protected $casts = [
+        'device_info' => 'array',
+        'is_overdue_checkout' => 'boolean',
     ];
 
     public function user()

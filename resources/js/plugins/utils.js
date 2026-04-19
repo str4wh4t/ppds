@@ -2,6 +2,53 @@
 import moment from "moment";
 import { usePage } from "@inertiajs/vue3";
 
+/**
+ * Kumpulkan nama permission unik dari semua role user (Spatie).
+ * @param {object|null} user
+ * @returns {Set<string>}
+ */
+export function collectUserPermissionNames(user) {
+  const names = new Set();
+  user?.roles?.forEach((role) => {
+    role.permissions?.forEach((p) => names.add(p.name));
+  });
+  return names;
+}
+
+/**
+ * Cek akses permission — mendukung OR dengan `|` dan wildcard akhiran `.*`
+ * (selaras pola route `permission:logbook.*`).
+ * @param {object|null} user
+ * @param {string} pattern contoh: `logbook.*`, `report-logbook`, `a|b`
+ */
+export function userCan(user, pattern) {
+  if (!user || !pattern) {
+    return false;
+  }
+  const parts = String(pattern)
+    .split("|")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (parts.length === 0) {
+    return false;
+  }
+  return parts.some((p) => matchOnePermissionPattern(user, p));
+}
+
+function matchOnePermissionPattern(user, pattern) {
+  const names = collectUserPermissionNames(user);
+  if (names.size === 0) {
+    return false;
+  }
+  if (pattern.endsWith(".*")) {
+    const prefix = pattern.slice(0, -2);
+    return [...names].some(
+      (n) => n === pattern || n.startsWith(`${prefix}.`)
+    );
+  }
+  return names.has(pattern);
+}
+
 export default {
   install(app) {
     // Fungsi untuk memeriksa apakah array memiliki item
@@ -37,6 +84,10 @@ export default {
         )
       );
     };
+
+    /** Pakai ini untuk menyelaraskan menu dengan middleware route (termasuk wildcard `nama.*`). */
+    app.config.globalProperties.$can = (pattern) =>
+      userCan(usePage().props.auth.user, pattern);
 
     app.config.globalProperties.$truncatedText = (text) => {
       const words = text ? text.split(" ") : "";

@@ -22,6 +22,8 @@ const showConfirmDelete = ref(false);
 const form = useForm({
     name: '',
     description: '',
+    latitude: '',
+    longitude: '',
 });
 
 watch(
@@ -34,6 +36,8 @@ watch(
             form.clearErrors();
             form.name = props.location.name;
             form.description = props.location.description;
+            form.latitude = props.location.latitude;
+            form.longitude = props.location.longitude;
         }
     },
     { immediate: true }
@@ -97,6 +101,21 @@ const deleteItem = () => {
 
                         <InputError class="mt-2" :message="form.errors.description" />
                     </div>
+
+                    <div class="mt-2">
+                        <InputLabel for="latitude" value="Latitude" />
+                        <TextInput id="latitude" type="number" step="any" class="mt-1 block w-full"
+                            v-model="form.latitude" autocomplete="latitude" />
+                        <InputError class="mt-2" :message="form.errors.latitude" />
+                    </div>
+
+                    <div class="mt-2">
+                        <InputLabel for="longitude" value="Longitude" />
+                        <TextInput id="longitude" type="number" step="any" class="mt-1 block w-full"
+                            v-model="form.longitude" autocomplete="longitude" />
+                        <InputError class="mt-2" :message="form.errors.longitude" />
+                    </div>
+
                     <div class="flex items-center justify-end mt-4">
                         <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
                             leave-active-class="transition ease-in-out" leave-to-class="opacity-0">

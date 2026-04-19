@@ -41,16 +41,44 @@ class Unit extends Model
         return $this->hasMany(UnitStase::class);
     }
 
+    /**
+     * User yang terdaftar pada unit ini lewat users.student_unit_id (bukan tabel unit_users).
+     */
+    public function students()
+    {
+        return $this->hasMany(User::class, 'student_unit_id', 'id');
+    }
+
+    /**
+     * User di atas yang masih aktif sebagai mahasiswa (is_active_student = 1).
+     */
+    public function activeStudents()
+    {
+        return $this->students()->where('is_active_student', 1);
+    }
+
+    /**
+     * Baris pivot di unit_users untuk unit ini.
+     */
+    public function unitUsers()
+    {
+        return $this->hasMany(UnitUser::class, 'unit_id');
+    }
+
     public function unitDosens()
     {
         return $this->belongsToMany(User::class, 'unit_users', 'unit_id', 'user_id')
-            ->wherePivot('role_as', 'dosen'); // Filter berdasarkan role_as = 'dosen'
+            ->using(UnitUser::class)
+            ->wherePivot('role_as', UnitUser::ROLE_DOSEN)
+            ->withTimestamps();
     }
 
     public function unitAdmins()
     {
         return $this->belongsToMany(User::class, 'unit_users', 'unit_id', 'user_id')
-            ->wherePivot('role_as', 'admin_prodi'); // Filter berdasarkan role_as = 'admin_prodi'
+            ->using(UnitUser::class)
+            ->wherePivot('role_as', UnitUser::ROLE_ADMIN_PRODI)
+            ->withTimestamps();
     }
 
     protected static function booted()

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
+import { userCan } from '@/plugins/utils.js'
 import {
     Dialog,
     DialogPanel,
@@ -45,46 +46,71 @@ const defaultnav = [
     { name: 'Dashboard', href: route('dashboard'), icon: HomeIcon, current: route().current('dashboard'), method: 'get' },
 ];
 
-const navigation = [
-    { name: 'Kalender', href: route('activities.calendar', { user: usePage().props.auth.user }), icon: CalendarDaysIcon, current: route().current('activities.calendar'), method: 'get' },
-    { name: 'Logbook', href: route('activities.index', { user: usePage().props.auth.user }), icon: FolderIcon, current: route().current('activities.index'), method: 'get' },
-    { name: 'Beban Kerja', href: route('week-monitors.index', { user: usePage().props.auth.user }), icon: PresentationChartBarIcon, current: route().current('week-monitors.index'), method: 'get' },
-    { name: 'Konsultasi', href: route('consults.index', { user: usePage().props.auth.user }), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.index'), method: 'get' },
-    { name: 'Datadiri', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
-    { name: 'Report Stase', href: route('activities.report', { user: usePage().props.auth.user }), icon: ClipboardDocumentCheckIcon, current: route().current('activities.report'), method: 'get' },
-    { name: 'Laporkan', href: route('speaks.index-flyer'), icon: ExclamationCircleIcon, current: route().current('speaks.index-flyer'), method: 'get' },
-    { name: 'Survey', href: route('surveys.index'), icon: ExclamationCircleIcon, current: route().current('surveys.index'), method: 'get' },
+/** Selaraskan dengan middleware di routes/web.php (permission / permission wildcard). */
+const studentNavigation = [
+    { name: 'Kalender', href: route('activities.calendar', { user: usePage().props.auth.user }), icon: CalendarDaysIcon, current: route().current('activities.calendar'), method: 'get', permission: 'logbook.*' },
+    { name: 'Logbook', href: route('activities.index', { user: usePage().props.auth.user }), icon: FolderIcon, current: route().current('activities.index'), method: 'get', permission: 'logbook.*' },
+    { name: 'Beban Kerja', href: route('week-monitors.index', { user: usePage().props.auth.user }), icon: PresentationChartBarIcon, current: route().current('week-monitors.index'), method: 'get', permission: 'week-monitor.index' },
+    { name: 'Konsultasi', href: route('consults.index', { user: usePage().props.auth.user }), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.index'), method: 'get', permission: 'consult.*' },
+    { name: 'Datadiri', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get', permission: 'portofolio.*' },
+    { name: 'Report Stase', href: route('activities.report', { user: usePage().props.auth.user }), icon: ClipboardDocumentCheckIcon, current: route().current('activities.report'), method: 'get', permission: 'logbook.*|report-logbook' },
+    { name: 'Laporkan', href: route('speaks.index-flyer'), icon: ExclamationCircleIcon, current: route().current('speaks.index-flyer'), method: 'get', permission: 'speak.*' },
+    { name: 'Survey', href: route('surveys.index'), icon: ExclamationCircleIcon, current: route().current('surveys.index'), method: 'get', permission: 'survey.*' },
 ];
 
 const adminNavigation = [
-    { name: 'Logbook', href: route('activities.index', { user: usePage().props.auth.user }), icon: FolderIcon, current: route().current('activities.index'), method: 'get' },
-    // { name: 'Kalender', href: route('activities.calendar', { user: usePage().props.auth.user }), icon: CalendarIcon, current: route().current('activities.calendar'), method: 'get' },
-    { name: 'Beban Kerja', href: route('week-monitors.index', { user: usePage().props.auth.user }), icon: PresentationChartBarIcon, current: route().current('week-monitors.index') || route().current('activities.calendar'), method: 'get' },
-    { name: 'Konsultasi', href: route('consults.student-list'), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.student-list') || route().current('consults.index'), method: 'get' },
-    { name: 'Datadiri', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get' },
-    { name: 'Report Stase', href: route('activities.report', { user: usePage().props.auth.user }), icon: ClipboardDocumentCheckIcon, current: route().current('activities.report'), method: 'get' },
-    { name: 'Statistic', href: route('activities.statistic', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.statistic'), method: 'get' },
-    // { name: 'Laporkan', href: route('speaks.student-list'), icon: ExclamationCircleIcon, current: route().current('speaks.student-list') || route().current('speaks.index'), method: 'get' },
-    { name: 'Survey', href: route('surveys.index'), icon: ExclamationCircleIcon, current: route().current('surveys.index'), method: 'get' },
+    { name: 'Logbook', href: route('activities.index', { user: usePage().props.auth.user }), icon: FolderIcon, current: route().current('activities.index'), method: 'get', permission: 'logbook.*' },
+    { name: 'Beban Kerja', href: route('week-monitors.index', { user: usePage().props.auth.user }), icon: PresentationChartBarIcon, current: route().current('week-monitors.index') || route().current('activities.calendar'), method: 'get', permission: 'week-monitor.index' },
+    { name: 'Konsultasi', href: route('consults.student-list'), icon: ChatBubbleBottomCenterIcon, current: route().current('consults.student-list') || route().current('consults.index'), method: 'get', permission: 'consult.*' },
+    { name: 'Datadiri', href: route('portofolios.index', { user: usePage().props.auth.user }), icon: DocumentDuplicateIcon, current: route().current('portofolios.index'), method: 'get', permission: 'portofolio.*' },
+    { name: 'Report Stase', href: route('activities.report', { user: usePage().props.auth.user }), icon: ClipboardDocumentCheckIcon, current: route().current('activities.report'), method: 'get', permission: 'logbook.*|report-logbook' },
+    { name: 'Statistic', href: route('activities.statistic', { user: usePage().props.auth.user }), icon: ChartPieIcon, current: route().current('activities.statistic'), method: 'get', permission: 'report-logbook' },
+    { name: 'Survey', href: route('surveys.index'), icon: ExclamationCircleIcon, current: route().current('surveys.index'), method: 'get', permission: 'survey.*' },
 ];
 
 const masterNavigation = [
-    { name: 'Units', href: route('units.index'), icon: QueueListIcon, current: route().current('units.index') },
-    { name: 'Schedules', href: route('schedules.index'), icon: CalendarDaysIcon, current: route().current('schedules.index') },
-    { name: 'Stase', href: route('stases.index'), icon: ClipboardDocumentListIcon, current: route().current('stases.index') },
-    { name: 'Location', href: route('locations.index'), icon: BuildingOffice2Icon, current: route().current('locations.index') },
+    { name: 'Units', href: route('units.index'), icon: QueueListIcon, current: route().current('units.index'), method: 'get', permission: 'unit.*' },
+    { name: 'Schedules', href: route('schedules.index'), icon: CalendarDaysIcon, current: route().current('schedules.index'), method: 'get', permission: 'schedule.*' },
+    { name: 'Stase', href: route('stases.index'), icon: ClipboardDocumentListIcon, current: route().current('stases.index'), method: 'get', permission: 'stase.*' },
+    { name: 'Location', href: route('locations.index'), icon: BuildingOffice2Icon, current: route().current('locations.index'), method: 'get', permission: 'location.*' },
     {
         name: 'Users',
         icon: UsersIcon,
         current: route().current('kaprodis.index') || route().current('dosens.index'),
         href: '#',
         children: [
-            { name: 'Dosen', href: route('dosens.index'), icon: MinusIcon, current: route().current('dosens.index'), method: 'get' },
-            { name: 'Kaprodi', href: route('kaprodis.index'), icon: MinusIcon, current: route().current('kaprodis.index'), method: 'get' },
+            { name: 'Dosen', href: route('dosens.index'), icon: MinusIcon, current: route().current('dosens.index'), method: 'get', permission: 'dosen.*|dosen.read' },
+            { name: 'Kaprodi', href: route('kaprodis.index'), icon: MinusIcon, current: route().current('kaprodis.index'), method: 'get', permission: 'kaprodi.*|kaprodi.read' },
         ],
     },
-    { name: 'Students', href: route('students.index'), icon: UserGroupIcon, current: route().current('students.index'), method: 'get' },
+    { name: 'Students', href: route('students.index'), icon: UserGroupIcon, current: route().current('students.index'), method: 'get', permission: 'mahasiswa.*' },
 ];
+
+const authUser = computed(() => usePage().props.auth.user);
+
+const visibleStudentNavigation = computed(() =>
+    studentNavigation.filter((item) => userCan(authUser.value, item.permission))
+);
+
+const visibleAdminNavigation = computed(() =>
+    adminNavigation.filter((item) => userCan(authUser.value, item.permission))
+);
+
+const visibleMasterNavigation = computed(() => {
+    const user = authUser.value;
+    return masterNavigation
+        .map((item) => {
+            if (item.children?.length) {
+                const children = item.children.filter((c) => userCan(user, c.permission));
+                if (!children.length) {
+                    return null;
+                }
+                return { ...item, children };
+            }
+            return userCan(user, item.permission) ? item : null;
+        })
+        .filter(Boolean);
+});
 
 const accessControlNavigation = [
     { id: 1, name: 'Users', href: route('users.index'), initial: 'U', current: route().current('users.index'), method: 'get' },
@@ -172,7 +198,7 @@ watch(
                                                 {{ item.name }}
                                                 </Link>
                                             </li>
-                                            <li v-if="$hasRoles('student')" v-for="item in navigation" :key="item.name">
+                                            <li v-if="$hasRoles('student')" v-for="item in visibleStudentNavigation" :key="item.name">
                                                 <!-- <a :href="item.href"
                                                         :class="[item.current ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600', 'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6']">
                                                         <component :is="item.icon"
@@ -189,7 +215,7 @@ watch(
                                                 {{ item.name }}
                                                 </Link>
                                             </li>
-                                            <li v-if="!$hasRoles('student')" v-for="item in adminNavigation"
+                                            <li v-if="!$hasRoles('student')" v-for="item in visibleAdminNavigation"
                                                 :key="item.name">
                                                 <!-- <a :href="item.href"
                                                         :class="[item.current ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600', 'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6']">
@@ -209,9 +235,9 @@ watch(
                                             </li>
                                         </ul>
                                     </li>
-                                    <div v-if="$hasRoles(['admin_prodi', 'admin_fakultas'])">
+                                    <div v-if="visibleMasterNavigation.length">
                                         <div class="text-xs font-semibold leading-6 text-gray-400">Master Data</div>
-                                        <li v-for="item in masterNavigation" :key="item.name" class="-mx-2">
+                                        <li v-for="item in visibleMasterNavigation" :key="item.name" class="-mx-2">
                                             <Link v-if="!item.children" :href="item.href"
                                                 :class="[item.current ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600', 'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6']"
                                                 :method="item.method" as="button">
@@ -248,7 +274,7 @@ watch(
                                         </Disclosure>
                                         </li>
                                     </div>
-                                    <div v-if="$hasPerms('access-control')">
+                                    <div v-if="$can('access-control')">
                                         <div class="text-xs font-semibold leading-6 text-gray-400">Access
                                             Control
                                         </div>
@@ -308,7 +334,7 @@ watch(
                                 {{ item.name }}
                                 </Link>
                             </li>
-                            <li v-if="$hasRoles('student')" v-for="item in navigation" :key="item.name">
+                            <li v-if="$hasRoles('student')" v-for="item in visibleStudentNavigation" :key="item.name">
                                 <Link :href="item.href"
                                     :class="[item.current ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600', 'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6']"
                                     :method="item.method" as="button">
@@ -318,7 +344,7 @@ watch(
                                 {{ item.name }}
                                 </Link>
                             </li>
-                            <li v-if="!$hasRoles('student')" v-for="item in adminNavigation" :key="item.name">
+                            <li v-if="!$hasRoles('student')" v-for="item in visibleAdminNavigation" :key="item.name">
                                 <Link :href="item.href"
                                     :class="[item.current ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600', 'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6']"
                                     :method="item.method" as="button">
@@ -330,9 +356,9 @@ watch(
                             </li>
                         </ul>
                     </li>
-                    <div v-if="$hasRoles(['admin_prodi', 'admin_fakultas'])">
+                    <div v-if="visibleMasterNavigation.length">
                         <div class="text-xs font-semibold leading-6 text-gray-400">Master Data</div>
-                        <li v-for="item in masterNavigation" :key="item.name" class="-mx-2">
+                        <li v-for="item in visibleMasterNavigation" :key="item.name" class="-mx-2">
                             <Link v-if="!item.children" :href="item.href"
                                 :class="[item.current ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600', 'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6']"
                                 :method="item.method" as="button">
@@ -368,7 +394,7 @@ watch(
                         </Disclosure>
                         </li>
                     </div>
-                    <div v-if="$hasPerms('access-control')">
+                    <div v-if="$can('access-control')">
                         <div class="text-xs font-semibold leading-6 text-gray-400">Access Control</div>
                         <li>
                             <ul role="list" class="-mx-2 mt-2">

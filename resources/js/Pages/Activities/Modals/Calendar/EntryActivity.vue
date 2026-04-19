@@ -48,6 +48,7 @@ const activityType = ref(null);
 const activityStase = ref(null);
 const activityLocation = ref(null);
 const selectedActivity = ref(null);
+const isOverdueSelectedActivity = ref(false);
 const confirmDeleteDialog = ref(null);
 const btnConfirmDelete = ref(false);
 const isUpdate = ref(false);
@@ -62,6 +63,8 @@ const form = useForm({
     stase_id: '',
     location_id: '',
     dosen_user_id: '',
+    latitude: '',
+    longitude: '',
     is_allowed: '',
 });
 
@@ -104,12 +107,14 @@ watch(
 
 const openForm = () => {
     form.reset();
+    isOverdueSelectedActivity.value = false;
     isFormShow.value = true;
 }
 
 const openUpdate = (activity) => {
     isFormShow.value = true;
     isUpdate.value = true;
+    isOverdueSelectedActivity.value = Boolean(activity?.is_overdue_checkout);
     form.name = activity.name;
     form.type = activity.type;
     activityType.value = activity.type;
@@ -129,12 +134,17 @@ const openUpdate = (activity) => {
     // form.start_time = mmDate({ date: activity.start_date, formatOutput: 'HH:mm' });
     // form.finish_time = mmDate({ date: activity.end_date, formatOutput: 'HH:mm' });
     form.description = activity.description;
+    form.latitude = activity.latitude ?? '';
+    form.longitude = activity.longitude ?? '';
     btnConfirmDelete.value = true;
     selectedActivity.value = activity;
 }
 
 const submit = () => {
-    form.type = activityType.value.name ?? activityType.value;
+    if (isUpdate.value && isOverdueSelectedActivity.value) {
+        return;
+    }
+    form.type = activityType.value?.name ?? activityType.value ?? '';
     form.stase_id = activityStase.value?.id ?? null;
     form.location_id = activityLocation.value?.id ?? null;
     form.dosen_user_id = dosenSelected.value?.id ?? null;
@@ -164,6 +174,9 @@ const submit = () => {
 };
 
 const onShowConfirmDelete = () => {
+    if (isUpdate.value && isOverdueSelectedActivity.value) {
+        return;
+    }
     showConfirmDelete.value = true;
     nextTick(() => {
         confirmDeleteDialog.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -208,8 +221,9 @@ const isLoading = ref(false);
 const getAvailLocation = async (stase) => {
     try {
         isLoading.value = true;
+        const staseId = (typeof stase === 'object' && stase !== null) ? stase.id : stase;
         const responseData = await axios
-            .get(route('stases.avail-location', { stase: stase }))
+            .post(route('stase.locations'), { stase_id: staseId })
             .catch(error => {
                 console.error('Error fetching users:', error);
             });
@@ -379,6 +393,10 @@ const allowActivity = () => {
                     </div>
                 </div>
                 <form @submit.prevent="submit" v-show="isFormShow" class="mt-1 text-sm text-gray-600">
+                    <div v-if="isUpdate && isOverdueSelectedActivity"
+                        class="mb-3 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
+                        Activity ini berstatus overdue (>24 jam dari check-in). Update dan delete tidak dapat dilakukan dari form ini. Silahkan lakukan checkout dari halaman list activity.
+                    </div>
 
                     <div>
                         <InputLabel for="name" value="Aktifitas" />
@@ -434,7 +452,6 @@ const allowActivity = () => {
                             v-model="form.finish_time" />
                         <InputError class="mt-2" :message="form.errors.finish_time" />
                     </div>
-
                     <div class="mt-2">
                         <InputLabel for="description" value="Deskripsi" />
                         <TextArea id="description" class="mt-1 block w-full" required v-model="form.description" />
@@ -454,10 +471,11 @@ const allowActivity = () => {
                         <SecondaryButton class="ml-2" :disabled="form.processing" @click="isFormShow = false">
                             Cancel
                         </SecondaryButton>
-                        <PrimaryButton class="ml-4" :disabled="form.processing">
+                        <PrimaryButton class="ml-4" :disabled="form.processing || (isUpdate && isOverdueSelectedActivity)">
                             Save
                         </PrimaryButton>
-                        <DangerButton v-if="btnConfirmDelete" type="button" class="ml-2" :disabled="form.processing"
+                        <DangerButton v-if="btnConfirmDelete" type="button" class="ml-2"
+                            :disabled="form.processing || (isUpdate && isOverdueSelectedActivity)"
                             @click="onShowConfirmDelete">
                             Delete
                         </DangerButton>

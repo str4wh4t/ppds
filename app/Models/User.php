@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
         'username',
@@ -48,6 +47,17 @@ class User extends Authenticatable
         return $this->belongsTo(Unit::class, 'student_unit_id', 'id'); // MENDAPATKAN PRODI MAHASISWA
     }
 
+    /**
+     * Filter user yang prodi-nya (student_unit_id) sama dengan unit tertentu.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeForStudentUnit($query, int $unitId)
+    {
+        return $query->where('student_unit_id', $unitId);
+    }
+
     public function dosbingUser()
     {
         return $this->belongsTo(self::class, 'dosbing_user_id', 'id');
@@ -78,17 +88,45 @@ class User extends Authenticatable
         return $this->hasMany(Unit::class, 'kaprodi_user_id', 'id'); // Relasi melalui kolom user_id di tabel units
     }
 
+    /**
+     * Baris pivot di unit_users (semua role_as).
+     */
+    public function unitUsers()
+    {
+        return $this->hasMany(UnitUser::class);
+    }
+
     // Definisikan relasi many-to-many dengan Unit untuk dosen
     public function dosenUnits()
     {
         return $this->belongsToMany(Unit::class, 'unit_users', 'user_id', 'unit_id')
-            ->wherePivot('role_as', 'dosen'); // Filter berdasarkan role_as = 'dosen'
+            ->using(UnitUser::class)
+            ->wherePivot('role_as', UnitUser::ROLE_DOSEN)
+            ->withTimestamps();
     }
 
     public function adminUnits()
     {
         return $this->belongsToMany(Unit::class, 'unit_users', 'user_id', 'unit_id')
-            ->wherePivot('role_as', 'admin_prodi'); // Filter berdasarkan role_as = 'admin_prodi'
+            ->using(UnitUser::class)
+            ->wherePivot('role_as', UnitUser::ROLE_ADMIN_PRODI)
+            ->withTimestamps();
+    }
+
+    /**
+     * ID unit dari pivot unit_users untuk admin_prodi. Null bila user bukan admin_prodi.
+     *
+     * @return Collection<int, int>|null
+     */
+    public function adminProdiUnitIds(): ?Collection
+    {
+        if (! $this->hasRole('admin_prodi')) {
+            return null;
+        }
+
+        $this->loadMissing('adminUnits');
+
+        return $this->adminUnits->pluck('id');
     }
 
     public function unitStaseUsers() // Ini hanya untuk role dosen
@@ -114,7 +152,7 @@ class User extends Authenticatable
     /**
      * Scope untuk mengambil pengguna dengan role 'student'.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeStudent($query)
@@ -147,6 +185,6 @@ class User extends Authenticatable
 
     public function receivesBroadcastNotificationsOn()
     {
-        return 'user.notification.' . $this->id;
+        return 'user.notification.'.$this->id;
     }
 }

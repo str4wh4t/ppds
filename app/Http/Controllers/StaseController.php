@@ -5,16 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Stase\StoreRequest;
 use App\Http\Requests\Stase\UpdateRequest;
 use App\Models\Location;
-use App\Models\User;
 use App\Models\Stase;
-use App\Models\StaseLocation;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
-use \Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Redirect;
 
 class StaseController extends Controller
 {
@@ -44,7 +41,7 @@ class StaseController extends Controller
             'location_list' => $location_list,
             'filters' => [
                 'search' => $search,
-            ]
+            ],
         ]);
     }
 
@@ -69,7 +66,7 @@ class StaseController extends Controller
                     'description' => $request->description,
                 ]);
                 $locations = $request->locations;
-                if (!empty($locations)) {
+                if (! empty($locations)) {
                     $ids = array_map(function ($location) {
                         return $location['id'];
                     }, $locations);
@@ -113,7 +110,7 @@ class StaseController extends Controller
                     'description' => $request->description,
                 ]);
                 $locations = $request->locations;
-                if (!empty($locations)) {
+                if (! empty($locations)) {
                     $ids = array_map(function ($location) {
                         return $location['id'];
                     }, $locations);
@@ -138,29 +135,10 @@ class StaseController extends Controller
             DB::transaction(function () use ($stase) {
                 $stase->delete();
             });
+
             return Redirect::back()->with(config('constants.public.flashmsg.ok'), 'Stase deleted successfully');
         } catch (\Exception $e) {
             return Redirect::back()->with(config('constants.public.flashmsg.ko'), $e->getMessage());
-        }
-    }
-
-    public function getAvailLocation(Stase $stase): JsonResponse
-    {
-        try {
-            // Mengambil lokasi terkait dari relasi locations()
-            $locations = $stase->locations()->get();
-
-            // Mengembalikan data sebagai JSON
-            return response()->json([
-                'success' => true,
-                'data' => $locations,
-            ], 200);
-        } catch (\Exception $e) {
-            // Menangani error dan mengembalikan pesan JSON
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
         }
     }
 }
