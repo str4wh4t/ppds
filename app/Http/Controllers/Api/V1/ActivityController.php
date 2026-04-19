@@ -550,7 +550,7 @@ class ActivityController extends Controller
             $hasNonOverdueOpenActivity = false;
             foreach ($openActivities as $openActivity) {
                 $openStartDate = Carbon::parse($openActivity->start_date);
-                if ($openStartDate->diffInHours(now()) > 24) {
+                if ($openActivity->isOverdueCheckoutByElapsedHours()) {
                     if (! $openActivity->is_overdue_checkout) {
                         $openActivity->update(['is_overdue_checkout' => true]);
                     }
@@ -668,7 +668,7 @@ class ActivityController extends Controller
             $startDate = Carbon::parse($activity->start_date);
             $finishDate = Carbon::createFromFormat('Y-m-d H:i:s', $request->input('finish_at'));
 
-            if ($startDate->diffInHours(now()) > 24) {
+            if ($activity->isOverdueCheckoutByElapsedHours()) {
                 if (! $activity->is_overdue_checkout) {
                     $activity->update(['is_overdue_checkout' => true]);
                 }

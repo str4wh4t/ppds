@@ -39,7 +39,8 @@ class ActivityPolicy
             return false;
         }
 
-        if ((bool) $model->is_overdue_checkout) {
+        // Overdue dari waktu nyata (bukan hanya flag DB), supaya checkout web tidak lolos jika flag belum pernah diset.
+        if ($model->isOverdueCheckoutByElapsedHours() || (bool) $model->is_overdue_checkout) {
             return false;
         }
 
@@ -59,7 +60,8 @@ class ActivityPolicy
             return false;
         }
 
-        if ((bool) $model->is_overdue_checkout) {
+        // Overdue dari waktu nyata (bukan hanya flag DB), supaya checkout web tidak lolos jika flag belum pernah diset.
+        if ($model->isOverdueCheckoutByElapsedHours() || (bool) $model->is_overdue_checkout) {
             return false;
         }
 
