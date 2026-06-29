@@ -30,6 +30,8 @@ use Inertia\Inertia;
 
 Route::get('/', [AuthenticatedSessionController::class, 'create']);
 
+Route::get('/privacy-policy', \App\Http\Controllers\PrivacyPolicyController::class)->name('privacy-policy');
+
 Route::get('/dashboard', [MainController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

@@ -106,6 +106,11 @@ const submit = () => {
                 Petunjuk penggunaan aplikasi : <a href="/manual-book-elogbook-ppds-student.pdf" target="_blank"
                     class="font-bold text-blue-800">Download</a>
             </div>
+            <div class="mt-3 text-center text-xs text-gray-500">
+                <Link :href="route('privacy-policy')" class="underline hover:text-gray-700">
+                    Kebijakan Privasi
+                </Link>
+            </div>
         </form>
     </GuestLayout>
     <Modal :show="isLupaPassword" @close="isLupaPassword = false">
