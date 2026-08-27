@@ -57,7 +57,7 @@ watch(
 
 const activateStudent = async (user_id, is_active_student) => {
     try {
-        const response = await axios.post(
+        await axios.post(
             route('students.activate', { user: user_id }),
             {
                 is_active_student: is_active_student,
@@ -70,7 +70,16 @@ const activateStudent = async (user_id, is_active_student) => {
             // console.log(error.message || 'Terjadi kesalahan');
         }
     } finally {
-        router.get(route('students.index'), { search: filters.value.search, units: unitSelectedAsString.value }, { replace: true });
+        router.get(
+            route('students.index'),
+            {
+                search: filters.value.search,
+                units: unitSelectedAsString.value,
+                activeSttsSelected: activeSttsSelected.value || null,
+                page: users.value?.current_page || 1,
+            },
+            { replace: true, preserveScroll: true }
+        );
     }
 };
 
