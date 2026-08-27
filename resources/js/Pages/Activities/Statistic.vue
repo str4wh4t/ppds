@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Link, Head, usePage, router } from '@inertiajs/vue3';
-import { ref, defineProps, onMounted, computed, watch } from "vue";
+import { Head, usePage, router } from '@inertiajs/vue3';
+import { ref, computed, watch } from "vue";
 import { use } from "echarts/core";
 import { BarChart, PieChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
@@ -9,6 +9,9 @@ import { TooltipComponent, LegendComponent, TitleComponent, GridComponent } from
 import VChart from "vue-echarts";
 import moment from 'moment';
 import SelectInput from '@/Components/SelectInputBasic.vue';
+import Modal from '@/Components/Modal.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import axios from 'axios';
 
 use([CanvasRenderer, BarChart, PieChart, TooltipComponent, LegendComponent, TitleComponent, GridComponent]);
 
@@ -50,6 +53,100 @@ const weekIndexList = [
 
 const weekIndexSelected = ref(usePage().props.filters.weekIndexSelected);
 const weekIndexSelectedOpt = ref(weekIndexList.find(weekIndex => weekIndex.id == weekIndexSelected.value) || null);
+
+const showNotMonitoredModal = ref(false);
+const notMonitoredLoading = ref(false);
+const notMonitoredError = ref('');
+const notMonitoredUnitName = ref('');
+const notMonitoredStudents = ref([]);
+const detailModalTitle = ref('Mahasiswa Belum Mengisi');
+const detailShowWorkload = ref(false);
+
+const statisticFilterParams = () => ({
+    yearSelected: yearSelected.value || null,
+    monthIndexSelected: monthIndexSelected.value != null ? monthIndexSelected.value + 1 : null,
+    weekIndexSelected: weekIndexSelected.value || null,
+});
+
+const openNotMonitoredModal = async (unit) => {
+    if (!unit?.id || !unit?.not_monitored_users) {
+        return;
+    }
+
+    showNotMonitoredModal.value = true;
+    notMonitoredLoading.value = true;
+    notMonitoredError.value = '';
+    notMonitoredUnitName.value = unit.name;
+    notMonitoredStudents.value = [];
+    detailModalTitle.value = 'Mahasiswa Belum Mengisi';
+    detailShowWorkload.value = false;
+
+    try {
+        const response = await axios.get(
+            route('activities.statistic.not-monitored', {
+                user: usePage().props.auth.user,
+                unit: unit.id,
+            }),
+            { params: statisticFilterParams() }
+        );
+        notMonitoredStudents.value = response.data?.data ?? [];
+        notMonitoredUnitName.value = response.data?.unit?.name ?? unit.name;
+    } catch (error) {
+        notMonitoredError.value = error.response?.data?.message || 'Gagal memuat daftar mahasiswa.';
+    } finally {
+        notMonitoredLoading.value = false;
+    }
+};
+
+const openWorkloadModal = async (unit, category, count) => {
+    if (!unit?.id || !count) {
+        return;
+    }
+
+    const titles = {
+        '71_80': 'Mahasiswa Beban Kerja 71 - 80 Jam',
+        above_80: 'Mahasiswa Beban Kerja Lebih 80 Jam',
+    };
+
+    showNotMonitoredModal.value = true;
+    notMonitoredLoading.value = true;
+    notMonitoredError.value = '';
+    notMonitoredUnitName.value = unit.name;
+    notMonitoredStudents.value = [];
+    detailModalTitle.value = titles[category] || 'Mahasiswa Beban Kerja';
+    detailShowWorkload.value = true;
+
+    try {
+        const response = await axios.get(
+            route('activities.statistic.workload-students', {
+                user: usePage().props.auth.user,
+                unit: unit.id,
+            }),
+            {
+                params: {
+                    ...statisticFilterParams(),
+                    category,
+                },
+            }
+        );
+        notMonitoredStudents.value = response.data?.data ?? [];
+        notMonitoredUnitName.value = response.data?.unit?.name ?? unit.name;
+        if (response.data?.category_label) {
+            detailModalTitle.value = `Mahasiswa Beban Kerja ${response.data.category_label}`;
+        }
+    } catch (error) {
+        notMonitoredError.value = error.response?.data?.message || 'Gagal memuat daftar mahasiswa.';
+    } finally {
+        notMonitoredLoading.value = false;
+    }
+};
+
+const closeNotMonitoredModal = () => {
+    showNotMonitoredModal.value = false;
+    notMonitoredError.value = '';
+    notMonitoredStudents.value = [];
+    detailShowWorkload.value = false;
+};
 
 // Data untuk Bar Chart (Persentase)
 const barOptions = ref({
@@ -93,8 +190,6 @@ const pieOptions = ref({
     ]
 });
 
-// const tableData = computed(() => usePage().props.tableData);
-
 // Hitung Total di tfoot
 const totalUsers = computed(() =>
   props.tableData.reduce((sum, unit) => sum + unit.total_users, 0)
@@ -116,7 +211,6 @@ const averagePercentage = computed(() => {
 watch(
   () => yearSelectedOpt.value, // Amati perubahan `yearSelectedOpt.value`
   (newYear, oldYear) => {
-    // if (newYear) {
       router.get(
         route("activities.statistic", { user: usePage().props.auth.user }), // Gunakan nilai terbaru
         { 
@@ -126,14 +220,12 @@ watch(
         },
         { replace: true }
       );
-    // }
   },
 );
 
 watch(
   () => monthSelectedOpt.value, // Amati perubahan `monthSelectedOpt.value`
   (newMonth, oldMonth) => {
-    // if (newMonth) {
       router.get(
         route("activities.statistic", { user: usePage().props.auth.user }), // Gunakan nilai terbaru
         { 
@@ -143,14 +235,12 @@ watch(
         },
         { replace: true }
       );
-    // }
   },
 );
 
 watch(
   () => weekIndexSelectedOpt.value, // Amati perubahan `monthSelectedOpt.value`
   (newWeekIndex, oldWeekIndex) => {
-    // if (newWeekIndex) {
       router.get(
         route("activities.statistic", { user: usePage().props.auth.user }), // Gunakan nilai terbaru
         { 
@@ -160,7 +250,6 @@ watch(
         },
         { replace: true }
       );
-    // }
   },
 );
 
@@ -263,7 +352,16 @@ const workloadPieOptions = ref({
                                 {{ unit.monitored_users }}</td>
                             <td
                                 :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-center text-gray-500 lg:table-cell']">
-                                {{ unit.not_monitored_users }}</td>
+                                <button
+                                    v-if="unit.not_monitored_users > 0"
+                                    type="button"
+                                    class="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                                    @click="openNotMonitoredModal(unit)"
+                                >
+                                    {{ unit.not_monitored_users }}
+                                </button>
+                                <span v-else>{{ unit.not_monitored_users }}</span>
+                            </td>
                             <td :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-3 pr-4 text-sm text-center font-medium sm:pr-6']">
                                 {{ unit.percentage }}
                                 <div v-if="index !== 0" class="absolute -top-px left-0 right-6 h-px bg-gray-200" />
@@ -332,10 +430,28 @@ const workloadPieOptions = ref({
                                 {{ unit.workload_below_71 }}</td>
                             <td
                                 :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-center text-gray-500 lg:table-cell']">
-                                {{ unit.workload_71_to_80 }}</td>
+                                <button
+                                    v-if="Number(unit.workload_71_to_80) > 0"
+                                    type="button"
+                                    class="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                                    @click="openWorkloadModal(unit, '71_80', Number(unit.workload_71_to_80))"
+                                >
+                                    {{ unit.workload_71_to_80 }}
+                                </button>
+                                <span v-else>{{ unit.workload_71_to_80 }}</span>
+                            </td>
                             <td
                                 :class="[index === 0 ? '' : 'border-t border-gray-200', 'hidden px-3 py-2 text-sm text-center text-gray-500 lg:table-cell']">
-                                {{ unit.workload_above_80 }}</td>
+                                <button
+                                    v-if="Number(unit.workload_above_80) > 0"
+                                    type="button"
+                                    class="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                                    @click="openWorkloadModal(unit, 'above_80', Number(unit.workload_above_80))"
+                                >
+                                    {{ unit.workload_above_80 }}
+                                </button>
+                                <span v-else>{{ unit.workload_above_80 }}</span>
+                            </td>
                             <td :class="[index === 0 ? '' : 'border-t border-transparent', 'relative py-1 pl-3 pr-4 text-sm text-center font-medium sm:pr-6']">
                                 {{ unit.total_monitored_users }}
                                 <div v-if="index !== 0" class="absolute -top-px left-0 right-6 h-px bg-gray-200" />
@@ -349,6 +465,65 @@ const workloadPieOptions = ref({
                 </table>
             </div>
         </div>
+
+        <Modal :show="showNotMonitoredModal" max-width="4xl" @close="closeNotMonitoredModal">
+            <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+                <div class="px-4 py-5 sm:px-6">
+                    <h2 class="text-lg font-medium text-gray-900">
+                        {{ detailModalTitle }}
+                    </h2>
+                    <p class="mt-1 text-sm text-gray-600">
+                        Prodi: <span class="font-semibold text-gray-900">{{ notMonitoredUnitName }}</span>
+                    </p>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <div v-if="notMonitoredLoading" class="py-8 text-center text-sm text-gray-500">
+                        Memuat daftar mahasiswa...
+                    </div>
+                    <div v-else-if="notMonitoredError" class="py-4 text-center text-sm text-red-600">
+                        {{ notMonitoredError }}
+                    </div>
+                    <div v-else class="overflow-x-auto ring-1 ring-gray-200 sm:rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">No</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Nama</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Username</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Identity</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Semester</th>
+                                    <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Email</th>
+                                    <th v-if="detailShowWorkload" class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Workload</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 bg-white">
+                                <tr v-for="(student, idx) in notMonitoredStudents" :key="student.id">
+                                    <td class="whitespace-nowrap px-4 py-2 text-sm text-gray-500">{{ idx + 1 }}</td>
+                                    <td class="whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-900">{{ student.fullname }}</td>
+                                    <td class="whitespace-nowrap px-4 py-2 text-sm text-gray-600">{{ student.username }}</td>
+                                    <td class="whitespace-nowrap px-4 py-2 text-sm text-gray-600">{{ student.identity }}</td>
+                                    <td class="whitespace-nowrap px-4 py-2 text-sm text-gray-600">{{ student.semester ?? '-' }}</td>
+                                    <td class="whitespace-nowrap px-4 py-2 text-sm text-gray-600">{{ student.email }}</td>
+                                    <td v-if="detailShowWorkload" class="whitespace-nowrap px-4 py-2 text-sm text-gray-600">
+                                        {{ student.workload ?? student.workload_hours ?? '-' }}
+                                    </td>
+                                </tr>
+                                <tr v-if="!notMonitoredStudents.length">
+                                    <td :colspan="detailShowWorkload ? 7 : 6" class="px-4 py-6 text-center text-sm font-medium text-indigo-600">
+                                        Tidak ada mahasiswa
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <SecondaryButton type="button" @click="closeNotMonitoredModal">
+                            Tutup
+                        </SecondaryButton>
+                    </div>
+                </div>
+            </div>
+        </Modal>
     </AuthenticatedLayout>
 </template>
 

@@ -19,6 +19,7 @@ use App\Services\Activity\UpdateActivityService;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -533,7 +534,7 @@ class ActivityController extends Controller
         $totalUsersPerUnit = User::withoutGlobalScopes()
             ->select('student_unit_id', DB::raw('COUNT(id) as total_users'))
             ->where('is_active_student', 1)
-            ->when($adminUnitScope, fn ($q) => $q->whereIn('student_unit_id', $adminUnitScope))
+            ->when($adminUnitScope, fn($q) => $q->whereIn('student_unit_id', $adminUnitScope))
             ->groupBy('student_unit_id')
             ->pluck('total_users', 'student_unit_id'); // Menghasilkan array [unit_id => total_users]
 
@@ -543,7 +544,7 @@ class ActivityController extends Controller
             'units.name as name',
             DB::raw('COALESCE(COUNT(DISTINCT week_monitors.user_id), 0) as monitored_users')
         )
-            ->when($adminUnitScope, fn ($q) => $q->whereIn('units.id', $adminUnitScope))
+            ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
             // ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
             ->leftJoin('users', function ($join) {
                 $join->on('users.student_unit_id', '=', 'units.id')
@@ -584,6 +585,7 @@ class ActivityController extends Controller
             $percentage = $totalUsers > 0 ? round(($monitoredUsers / $totalUsers) * 100, 2) : 0;
 
             return [
+                'id' => $unit->id,
                 'name' => $unit->name,
                 'total_users' => $totalUsers,
                 'monitored_users' => $monitoredUsers,
@@ -593,13 +595,14 @@ class ActivityController extends Controller
         });
 
         $weekMonitorStats = Unit::select(
+            'units.id as id',
             'units.name as name',
             DB::raw('COUNT(DISTINCT week_monitors.user_id) as total_monitored_users'),
             DB::raw('SUM(CASE WHEN week_monitors.workload_hours < 71 THEN 1 ELSE 0 END) as workload_below_71'),
             DB::raw('SUM(CASE WHEN week_monitors.workload_hours BETWEEN 71 AND 80 THEN 1 ELSE 0 END) as workload_71_to_80'),
             DB::raw('SUM(CASE WHEN week_monitors.workload_hours > 80 THEN 1 ELSE 0 END) as workload_above_80')
         )
-            ->when($adminUnitScope, fn ($q) => $q->whereIn('units.id', $adminUnitScope))
+            ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
             // ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
             ->leftJoin('users', function ($join) {
                 $join->on('users.student_unit_id', '=', 'units.id')
@@ -624,7 +627,7 @@ class ActivityController extends Controller
 
         // $workloadPieRecord = Unit::leftJoin('users', 'users.student_unit_id', '=', 'units.id')
         $workloadPieRecord = Unit::query()
-            ->when($adminUnitScope, fn ($q) => $q->whereIn('units.id', $adminUnitScope))
+            ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
             ->leftJoin('users', function ($join) {
                 $join->on('users.student_unit_id', '=', 'units.id')
                     ->where('users.is_active_student', 1);
@@ -662,7 +665,7 @@ class ActivityController extends Controller
             'units.name as name',
             DB::raw('COUNT(DISTINCT week_monitors.user_id) as value') // Menghitung user unik dalam week_monitors
         )
-            ->when($adminUnitScope, fn ($q) => $q->whereIn('units.id', $adminUnitScope))
+            ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
             // ->join('users', 'users.student_unit_id', '=', 'units.id')
             ->leftJoin('users', function ($join) {
                 $join->on('users.student_unit_id', '=', 'units.id')
@@ -697,6 +700,129 @@ class ActivityController extends Controller
                 'yearSelected' => (int) $yearSelected ?? null,
                 'weekIndexSelected' => (int) $weekIndexSelected ?? null,
             ],
+        ]);
+    }
+
+    /**
+     * Daftar mahasiswa aktif di unit yang belum punya week_monitor
+     * untuk filter tahun/bulan/minggu yang sama dengan halaman statistic.
+     */
+    public function statisticNotMonitored(Request $request, User $user, Unit $unit): JsonResponse
+    {
+        $adminUnitScope = $request->user()->adminProdiUnitIds();
+        if ($adminUnitScope !== null && ! $adminUnitScope->contains((int) $unit->id)) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke unit ini.',
+            ], 403);
+        }
+
+        $yearSelected = $request->input('yearSelected');
+        $monthIndexSelected = $request->input('monthIndexSelected');
+        $weekIndexSelected = $request->input('weekIndexSelected');
+
+        $students = User::withoutGlobalScopes()
+            ->where('student_unit_id', $unit->id)
+            ->where('is_active_student', 1)
+            ->whereNotExists(function ($query) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
+                $query->select(DB::raw(1))
+                    ->from('week_monitors')
+                    ->whereColumn('week_monitors.user_id', 'users.id');
+
+                if ($yearSelected) {
+                    $query->where('week_monitors.year', $yearSelected);
+                }
+                if ($monthIndexSelected) {
+                    $query->where('week_monitors.month', $monthIndexSelected);
+                }
+                if ($weekIndexSelected) {
+                    $query->where('week_monitors.week_month', $weekIndexSelected);
+                }
+            })
+            ->orderBy('fullname')
+            ->get(['id', 'username', 'fullname', 'identity', 'email', 'semester']);
+
+        return response()->json([
+            'unit' => [
+                'id' => $unit->id,
+                'name' => $unit->name,
+            ],
+            'data' => $students,
+        ]);
+    }
+
+    /**
+     * Daftar mahasiswa aktif di unit berdasarkan kategori beban kerja week_monitor
+     * (71–80 jam atau >80 jam), dengan filter yang sama dengan halaman statistic.
+     */
+    public function statisticWorkloadStudents(Request $request, User $user, Unit $unit): JsonResponse
+    {
+        $adminUnitScope = $request->user()->adminProdiUnitIds();
+        if ($adminUnitScope !== null && ! $adminUnitScope->contains((int) $unit->id)) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke unit ini.',
+            ], 403);
+        }
+
+        Validator::make($request->all(), [
+            'category' => ['required', 'in:71_80,above_80'],
+            'yearSelected' => ['nullable', 'integer'],
+            'monthIndexSelected' => ['nullable', 'integer', 'between:1,12'],
+            'weekIndexSelected' => ['nullable', 'integer', 'between:1,5'],
+        ])->validate();
+
+        $category = $request->input('category');
+        $yearSelected = $request->input('yearSelected');
+        $monthIndexSelected = $request->input('monthIndexSelected');
+        $weekIndexSelected = $request->input('weekIndexSelected');
+
+        $students = User::withoutGlobalScopes()
+            ->select(
+                'users.id',
+                'users.username',
+                'users.fullname',
+                'users.identity',
+                'users.email',
+                'users.semester',
+                'week_monitors.workload_hours',
+                'week_monitors.workload'
+            )
+            ->join('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
+                $join->on('week_monitors.user_id', '=', 'users.id');
+
+                if ($yearSelected) {
+                    $join->where('week_monitors.year', $yearSelected);
+                }
+                if ($monthIndexSelected) {
+                    $join->where('week_monitors.month', $monthIndexSelected);
+                }
+                if ($weekIndexSelected) {
+                    $join->where('week_monitors.week_month', $weekIndexSelected);
+                }
+            })
+            ->where('users.student_unit_id', $unit->id)
+            ->where('users.is_active_student', 1)
+            ->when($category === '71_80', function ($query) {
+                $query->whereBetween('week_monitors.workload_hours', [71, 80]);
+            })
+            ->when($category === 'above_80', function ($query) {
+                $query->where('week_monitors.workload_hours', '>', 80);
+            })
+            ->orderBy('users.fullname')
+            ->get();
+
+        $categoryLabels = [
+            '71_80' => '71 - 80 Jam',
+            'above_80' => 'Lebih 80 Jam',
+        ];
+
+        return response()->json([
+            'unit' => [
+                'id' => $unit->id,
+                'name' => $unit->name,
+            ],
+            'category' => $category,
+            'category_label' => $categoryLabels[$category] ?? $category,
+            'data' => $students,
         ]);
     }
 

@@ -12,7 +12,7 @@ import { PaperClipIcon } from '@heroicons/vue/24/outline';
 const surverys = [
     {
         id: 1,
-        href: 'https://forms.gle/HAkoB1Dm7LLedySi8',
+        href: 'https://skriningphq9.apps-fkundip.my.id/',
         text: "Skrining Depresi Berkala",
     },
     {
