@@ -16,6 +16,7 @@ use App\Models\WeekMonitor;
 use App\Services\Activity\CreateActivityService;
 use App\Services\Activity\SplitCheckoutService;
 use App\Services\Activity\UpdateActivityService;
+use App\Support\StatisticPeriodHelper;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -508,6 +509,7 @@ class ActivityController extends Controller
         $yearSelected = $request->input('yearSelected');
         $monthIndexSelected = $request->input('monthIndexSelected');
         $weekIndexSelected = $request->input('weekIndexSelected');
+        $periodEnd = StatisticPeriodHelper::fromRequest($yearSelected, $monthIndexSelected, $weekIndexSelected)['periodEnd'];
 
         $adminUnitScope = $request->user()->adminProdiUnitIds();
 
@@ -530,13 +532,17 @@ class ActivityController extends Controller
             ]);
         }
 
-        // Ambil total user per unit
-        $totalUsersPerUnit = User::withoutGlobalScopes()
+        // Ambil total user per unit (hanya mahasiswa yang sudah terdaftar pada akhir periode filter)
+        $totalUsersQuery = User::withoutGlobalScopes()
             ->select('student_unit_id', DB::raw('COUNT(id) as total_users'))
             ->where('is_active_student', 1)
-            ->when($adminUnitScope, fn($q) => $q->whereIn('student_unit_id', $adminUnitScope))
+            ->when($adminUnitScope, fn ($q) => $q->whereIn('student_unit_id', $adminUnitScope));
+
+        StatisticPeriodHelper::applyRegisteredBefore($totalUsersQuery, $periodEnd, 'created_at');
+
+        $totalUsersPerUnit = $totalUsersQuery
             ->groupBy('student_unit_id')
-            ->pluck('total_users', 'student_unit_id'); // Menghasilkan array [unit_id => total_users]
+            ->pluck('total_users', 'student_unit_id');
 
         // Ambil jumlah user yang ada di week_monitors per unit (Gunakan LEFT JOIN agar unit tetap muncul meskipun 0%)
         $monitoredUsersPerUnit = Unit::select(
@@ -546,9 +552,8 @@ class ActivityController extends Controller
         )
             ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
             // ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
-            ->leftJoin('users', function ($join) {
-                $join->on('users.student_unit_id', '=', 'units.id')
-                    ->where('users.is_active_student', 1);
+            ->leftJoin('users', function ($join) use ($periodEnd) {
+                StatisticPeriodHelper::applyActiveStudentJoin($join, $periodEnd);
             })
             ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
                 $join->on('week_monitors.user_id', '=', 'users.id');
@@ -604,9 +609,8 @@ class ActivityController extends Controller
         )
             ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
             // ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
-            ->leftJoin('users', function ($join) {
-                $join->on('users.student_unit_id', '=', 'units.id')
-                    ->where('users.is_active_student', 1);
+            ->leftJoin('users', function ($join) use ($periodEnd) {
+                StatisticPeriodHelper::applyActiveStudentJoin($join, $periodEnd);
             })
             ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
                 $join->on('week_monitors.user_id', '=', 'users.id');
@@ -628,9 +632,8 @@ class ActivityController extends Controller
         // $workloadPieRecord = Unit::leftJoin('users', 'users.student_unit_id', '=', 'units.id')
         $workloadPieRecord = Unit::query()
             ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
-            ->leftJoin('users', function ($join) {
-                $join->on('users.student_unit_id', '=', 'units.id')
-                    ->where('users.is_active_student', 1);
+            ->leftJoin('users', function ($join) use ($periodEnd) {
+                StatisticPeriodHelper::applyActiveStudentJoin($join, $periodEnd);
             })
             ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
                 $join->on('week_monitors.user_id', '=', 'users.id');
@@ -667,9 +670,8 @@ class ActivityController extends Controller
         )
             ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
             // ->join('users', 'users.student_unit_id', '=', 'units.id')
-            ->leftJoin('users', function ($join) {
-                $join->on('users.student_unit_id', '=', 'units.id')
-                    ->where('users.is_active_student', 1);
+            ->leftJoin('users', function ($join) use ($periodEnd) {
+                StatisticPeriodHelper::applyActiveStudentJoin($join, $periodEnd);
             })
             ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
                 $join->on('week_monitors.user_id', '=', 'users.id');
@@ -719,11 +721,15 @@ class ActivityController extends Controller
         $yearSelected = $request->input('yearSelected');
         $monthIndexSelected = $request->input('monthIndexSelected');
         $weekIndexSelected = $request->input('weekIndexSelected');
+        $periodEnd = StatisticPeriodHelper::fromRequest($yearSelected, $monthIndexSelected, $weekIndexSelected)['periodEnd'];
 
-        $students = User::withoutGlobalScopes()
+        $studentsQuery = User::withoutGlobalScopes()
             ->where('student_unit_id', $unit->id)
-            ->where('is_active_student', 1)
-            ->whereNotExists(function ($query) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
+            ->where('is_active_student', 1);
+
+        StatisticPeriodHelper::applyRegisteredBefore($studentsQuery, $periodEnd, 'created_at');
+
+        $students = $studentsQuery->whereNotExists(function ($query) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
                 $query->select(DB::raw(1))
                     ->from('week_monitors')
                     ->whereColumn('week_monitors.user_id', 'users.id');
@@ -774,8 +780,9 @@ class ActivityController extends Controller
         $yearSelected = $request->input('yearSelected');
         $monthIndexSelected = $request->input('monthIndexSelected');
         $weekIndexSelected = $request->input('weekIndexSelected');
+        $periodEnd = StatisticPeriodHelper::fromRequest($yearSelected, $monthIndexSelected, $weekIndexSelected)['periodEnd'];
 
-        $students = User::withoutGlobalScopes()
+        $studentsQuery = User::withoutGlobalScopes()
             ->select(
                 'users.id',
                 'users.username',
@@ -800,7 +807,11 @@ class ActivityController extends Controller
                 }
             })
             ->where('users.student_unit_id', $unit->id)
-            ->where('users.is_active_student', 1)
+            ->where('users.is_active_student', 1);
+
+        StatisticPeriodHelper::applyRegisteredBefore($studentsQuery, $periodEnd);
+
+        $students = $studentsQuery
             ->when($category === '71_80', function ($query) {
                 $query->whereBetween('week_monitors.workload_hours', [71, 80]);
             })
