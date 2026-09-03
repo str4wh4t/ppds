@@ -13,10 +13,13 @@ use App\Models\Stase;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\WeekMonitor;
+use App\Services\Activity\BuildActivityStatisticService;
 use App\Services\Activity\CreateActivityService;
+use App\Services\Activity\ExportActivityStatisticExcelService;
 use App\Services\Activity\SplitCheckoutService;
 use App\Services\Activity\UpdateActivityService;
 use App\Support\StatisticPeriodHelper;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -503,206 +506,62 @@ class ActivityController extends Controller
         ]);
     }
 
-    public function statistic(Request $request, User $user): Response
+    public function statistic(Request $request, User $user, BuildActivityStatisticService $buildStatistic): Response
     {
-        //
         $yearSelected = $request->input('yearSelected');
         $monthIndexSelected = $request->input('monthIndexSelected');
         $weekIndexSelected = $request->input('weekIndexSelected');
-        $periodEnd = StatisticPeriodHelper::fromRequest($yearSelected, $monthIndexSelected, $weekIndexSelected)['periodEnd'];
-
         $adminUnitScope = $request->user()->adminProdiUnitIds();
 
-        if ($adminUnitScope !== null && $adminUnitScope->isEmpty()) {
-            return Inertia::render('Activities/Statistic', [
-                'barData' => collect(),
-                'pieData' => collect(),
-                'tableData' => collect(),
-                'weekMonitorStats' => collect(),
-                'pieChartData' => [
-                    ['name' => 'Workload < 71', 'value' => 0],
-                    ['name' => 'Workload 71 - 80', 'value' => 0],
-                    ['name' => 'Workload > 80', 'value' => 0],
-                ],
-                'filters' => [
-                    'monthIndexSelected' => (int) $monthIndexSelected - 1 ?? null,
-                    'yearSelected' => (int) $yearSelected ?? null,
-                    'weekIndexSelected' => (int) $weekIndexSelected ?? null,
-                ],
-            ]);
-        }
-
-        // Ambil total user per unit (hanya mahasiswa yang sudah terdaftar pada akhir periode filter)
-        $totalUsersQuery = User::withoutGlobalScopes()
-            ->select('student_unit_id', DB::raw('COUNT(id) as total_users'))
-            ->where('is_active_student', 1)
-            ->when($adminUnitScope, fn ($q) => $q->whereIn('student_unit_id', $adminUnitScope));
-
-        StatisticPeriodHelper::applyRegisteredBefore($totalUsersQuery, $periodEnd, 'created_at');
-
-        $totalUsersPerUnit = $totalUsersQuery
-            ->groupBy('student_unit_id')
-            ->pluck('total_users', 'student_unit_id');
-
-        // Ambil jumlah user yang ada di week_monitors per unit (Gunakan LEFT JOIN agar unit tetap muncul meskipun 0%)
-        $monitoredUsersPerUnit = Unit::select(
-            'units.id',
-            'units.name as name',
-            DB::raw('COALESCE(COUNT(DISTINCT week_monitors.user_id), 0) as monitored_users')
-        )
-            ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
-            // ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
-            ->leftJoin('users', function ($join) use ($periodEnd) {
-                StatisticPeriodHelper::applyActiveStudentJoin($join, $periodEnd);
-            })
-            ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
-                $join->on('week_monitors.user_id', '=', 'users.id');
-
-                // Tambahkan kondisi hanya di dalam LEFT JOIN
-                if ($yearSelected) {
-                    $join->where('week_monitors.year', $yearSelected);
-                }
-                if ($monthIndexSelected) {
-                    $join->where('week_monitors.month', $monthIndexSelected);
-                }
-                if ($weekIndexSelected) {
-                    $join->where('week_monitors.week_month', $weekIndexSelected);
-                }
-            })
-            ->groupBy('units.id')
-            ->get();
-
-        // Hitung persentase user yang ada di week_monitors dibanding total user di unit
-        $barData = $monitoredUsersPerUnit->map(function ($unit) use ($totalUsersPerUnit) {
-            $totalUsers = $totalUsersPerUnit[$unit->id] ?? 1; // Hindari pembagian dengan 0
-
-            return [
-                'name' => $unit->name,
-                'value' => round(($unit->monitored_users / $totalUsers) * 100, 2), // Hitung persen
-            ];
-        });
-
-        // Hitung persentase user yang memiliki week_monitor dibanding total user
-        $tableData = $monitoredUsersPerUnit->map(function ($unit) use ($totalUsersPerUnit) {
-            $totalUsers = $totalUsersPerUnit[$unit->id] ?? 0;
-            $monitoredUsers = $unit->monitored_users;
-            $notMonitoredUsers = $totalUsers - $monitoredUsers;
-            $percentage = $totalUsers > 0 ? round(($monitoredUsers / $totalUsers) * 100, 2) : 0;
-
-            return [
-                'id' => $unit->id,
-                'name' => $unit->name,
-                'total_users' => $totalUsers,
-                'monitored_users' => $monitoredUsers,
-                'not_monitored_users' => max($notMonitoredUsers, 0),
-                'percentage' => $percentage,
-            ];
-        });
-
-        $weekMonitorStats = Unit::select(
-            'units.id as id',
-            'units.name as name',
-            DB::raw('COUNT(DISTINCT week_monitors.user_id) as total_monitored_users'),
-            DB::raw('SUM(CASE WHEN week_monitors.workload_hours < 71 THEN 1 ELSE 0 END) as workload_below_71'),
-            DB::raw('SUM(CASE WHEN week_monitors.workload_hours BETWEEN 71 AND 80 THEN 1 ELSE 0 END) as workload_71_to_80'),
-            DB::raw('SUM(CASE WHEN week_monitors.workload_hours > 80 THEN 1 ELSE 0 END) as workload_above_80')
-        )
-            ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
-            // ->leftJoin('users', 'users.student_unit_id', '=', 'units.id')
-            ->leftJoin('users', function ($join) use ($periodEnd) {
-                StatisticPeriodHelper::applyActiveStudentJoin($join, $periodEnd);
-            })
-            ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
-                $join->on('week_monitors.user_id', '=', 'users.id');
-
-                // Tambahkan kondisi hanya di dalam LEFT JOIN
-                if ($yearSelected) {
-                    $join->where('week_monitors.year', $yearSelected);
-                }
-                if ($monthIndexSelected) {
-                    $join->where('week_monitors.month', $monthIndexSelected);
-                }
-                if ($weekIndexSelected) {
-                    $join->where('week_monitors.week_month', $weekIndexSelected);
-                }
-            })
-            ->groupBy('units.id')
-            ->get();
-
-        // $workloadPieRecord = Unit::leftJoin('users', 'users.student_unit_id', '=', 'units.id')
-        $workloadPieRecord = Unit::query()
-            ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
-            ->leftJoin('users', function ($join) use ($periodEnd) {
-                StatisticPeriodHelper::applyActiveStudentJoin($join, $periodEnd);
-            })
-            ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
-                $join->on('week_monitors.user_id', '=', 'users.id');
-
-                // Filter hanya di week_monitors
-                if ($yearSelected) {
-                    $join->where('week_monitors.year', $yearSelected);
-                }
-                if ($monthIndexSelected) {
-                    $join->where('week_monitors.month', $monthIndexSelected);
-                }
-                if ($weekIndexSelected) {
-                    $join->where('week_monitors.week_month', $weekIndexSelected);
-                }
-            })
-            ->select(
-                DB::raw('COALESCE(SUM(CASE WHEN week_monitors.workload_hours < 71 THEN 1 ELSE 0 END), 0) as workload_below_71'),
-                DB::raw('COALESCE(SUM(CASE WHEN week_monitors.workload_hours BETWEEN 71 AND 80 THEN 1 ELSE 0 END), 0) as workload_71_to_80'),
-                DB::raw('COALESCE(SUM(CASE WHEN week_monitors.workload_hours > 80 THEN 1 ELSE 0 END), 0) as workload_above_80')
-            )
-            ->first();
-
-        // Format data untuk Pie Chart
-        $pieChartData = [
-            ['name' => 'Workload < 71', 'value' => $workloadPieRecord->workload_below_71],
-            ['name' => 'Workload 71 - 80', 'value' => $workloadPieRecord->workload_71_to_80],
-            ['name' => 'Workload > 80', 'value' => $workloadPieRecord->workload_above_80],
-        ];
-
-        // Data untuk Pie Chart (Distribusi workload_hours per unit)
-        $pieData = Unit::select(
-            'units.name as name',
-            DB::raw('COUNT(DISTINCT week_monitors.user_id) as value') // Menghitung user unik dalam week_monitors
-        )
-            ->when($adminUnitScope, fn($q) => $q->whereIn('units.id', $adminUnitScope))
-            // ->join('users', 'users.student_unit_id', '=', 'units.id')
-            ->leftJoin('users', function ($join) use ($periodEnd) {
-                StatisticPeriodHelper::applyActiveStudentJoin($join, $periodEnd);
-            })
-            ->leftJoin('week_monitors', function ($join) use ($yearSelected, $monthIndexSelected, $weekIndexSelected) {
-                $join->on('week_monitors.user_id', '=', 'users.id');
-
-                // Tambahkan kondisi hanya di dalam LEFT JOIN
-                if ($yearSelected) {
-                    $join->where('week_monitors.year', $yearSelected);
-                }
-                if ($monthIndexSelected) {
-                    $join->where('week_monitors.month', $monthIndexSelected);
-                }
-                if ($weekIndexSelected) {
-                    $join->where('week_monitors.week_month', $weekIndexSelected);
-                }
-            })
-            ->groupBy('units.id')
-            ->orderByDesc('value')
-            ->get();
+        $payload = $buildStatistic->execute(
+            $yearSelected !== null && $yearSelected !== '' ? (string) $yearSelected : null,
+            $monthIndexSelected !== null && $monthIndexSelected !== '' ? (string) $monthIndexSelected : null,
+            $weekIndexSelected !== null && $weekIndexSelected !== '' ? (string) $weekIndexSelected : null,
+            $adminUnitScope
+        );
 
         return Inertia::render('Activities/Statistic', [
-            'barData' => $barData,
-            'pieData' => $pieData,
-            'tableData' => $tableData,
-            'weekMonitorStats' => $weekMonitorStats,
-            'pieChartData' => $pieChartData,
+            ...$payload,
             'filters' => [
                 'monthIndexSelected' => (int) $monthIndexSelected - 1 ?? null, // karena index 0 merupakan januari tapi 0 ketika dikirim jadi null
                 'yearSelected' => (int) $yearSelected ?? null,
                 'weekIndexSelected' => (int) $weekIndexSelected ?? null,
             ],
         ]);
+    }
+
+    public function exportStatistic(
+        Request $request,
+        User $user,
+        BuildActivityStatisticService $buildStatistic,
+        ExportActivityStatisticExcelService $exportExcel
+    ): StreamedResponse {
+        $yearSelected = $request->input('yearSelected');
+        $monthIndexSelected = $request->input('monthIndexSelected');
+        $weekIndexSelected = $request->input('weekIndexSelected');
+        $adminUnitScope = $request->user()->adminProdiUnitIds();
+
+        $payload = $buildStatistic->execute(
+            $yearSelected !== null && $yearSelected !== '' ? (string) $yearSelected : null,
+            $monthIndexSelected !== null && $monthIndexSelected !== '' ? (string) $monthIndexSelected : null,
+            $weekIndexSelected !== null && $weekIndexSelected !== '' ? (string) $weekIndexSelected : null,
+            $adminUnitScope
+        );
+
+        $monthLabel = null;
+        if ($monthIndexSelected) {
+            $monthLabel = Carbon::createFromDate(2000, (int) $monthIndexSelected, 1)->translatedFormat('F');
+        }
+
+        return $exportExcel->download(
+            $payload['tableData'],
+            $payload['weekMonitorStats'],
+            [
+                'year' => $yearSelected ?: null,
+                'month' => $monthLabel,
+                'week' => $weekIndexSelected ?: null,
+            ]
+        );
     }
 
     /**

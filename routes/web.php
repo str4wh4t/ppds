@@ -119,6 +119,8 @@ Route::middleware(['permission:logbook.*|report-logbook'])->group(function () {
 
 Route::middleware(['permission:report-logbook'])->group(function () {
     Route::get('/activities/{user}/statistic', [\App\Http\Controllers\ActivityController::class, 'statistic'])->name('activities.statistic');
+    Route::get('/activities/{user}/statistic/export', [\App\Http\Controllers\ActivityController::class, 'exportStatistic'])
+        ->name('activities.statistic.export');
     Route::get('/activities/{user}/statistic/units/{unit}/not-monitored', [\App\Http\Controllers\ActivityController::class, 'statisticNotMonitored'])
         ->name('activities.statistic.not-monitored');
     Route::get('/activities/{user}/statistic/units/{unit}/workload-students', [\App\Http\Controllers\ActivityController::class, 'statisticWorkloadStudents'])

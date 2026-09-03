@@ -11,6 +11,8 @@ import moment from 'moment';
 import SelectInput from '@/Components/SelectInputBasic.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 import axios from 'axios';
 
 use([CanvasRenderer, BarChart, PieChart, TooltipComponent, LegendComponent, TitleComponent, GridComponent]);
@@ -67,6 +69,26 @@ const statisticFilterParams = () => ({
     monthIndexSelected: monthIndexSelected.value != null ? monthIndexSelected.value + 1 : null,
     weekIndexSelected: weekIndexSelected.value || null,
 });
+
+const downloadExcelUrl = computed(() => {
+    const params = new URLSearchParams();
+    const filters = statisticFilterParams();
+
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value != null && value !== '') {
+            params.append(key, String(value));
+        }
+    });
+
+    const query = params.toString();
+    const base = route('activities.statistic.export', { user: usePage().props.auth.user });
+
+    return query ? `${base}?${query}` : base;
+});
+
+const downloadExcel = () => {
+    window.location.href = downloadExcelUrl.value;
+};
 
 const openNotMonitoredModal = async (unit) => {
     if (!unit?.id || !unit?.not_monitored_users) {
@@ -275,18 +297,24 @@ const workloadPieOptions = ref({
         <template #header>
            Statistic
         </template>
-        <div class="flex justify-center items-center mt-4 w-full" v-if="!$hasRoles('student')">
+        <div class="flex flex-col items-center justify-center gap-3 mt-4 w-full sm:flex-row" v-if="!$hasRoles('student')">
             <div class="w-48">
                 <SelectInput id="yearSelected" class="block w-full" v-model="yearSelectedOpt" :options="yearList"
                     required autofocus autocomplete="yearSelected" placeholder="Select year" />
             </div>
-            <div class="w-48 ml-4">
+            <div class="w-48 sm:ml-4">
                 <SelectInput id="monthSelected" class="block w-full" v-model="monthSelectedOpt" :options="monthList"
                     required autofocus autocomplete="monthSelected" placeholder="Select month" />
             </div>
-            <div class="w-48 ml-4">
+            <div class="w-48 sm:ml-4">
                 <SelectInput id="weekIndexSelected" class="block w-full" v-model="weekIndexSelectedOpt" :options="weekIndexList"
                     required autofocus autocomplete="weekIndexSelected" placeholder="Select week index" />
+            </div>
+            <div class="sm:ml-4">
+                <PrimaryButton type="button" @click="downloadExcel">
+                    <ArrowDownTrayIcon class="-ml-0.5 mr-1.5 h-4 w-4" aria-hidden="true" />
+                    Download Excel
+                </PrimaryButton>
             </div>
         </div>
         <div class="lg:flex lg:h-full lg:flex-col mt-4">
